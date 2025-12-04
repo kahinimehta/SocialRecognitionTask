@@ -76,13 +76,6 @@ Short screen recording demonstrating:
 
 These are example CSVs produced by running the task with test parameters. Your real participants' files will follow identical formats.
 
-### File Naming Conventions
-recognition_study_<participantID><timestamp>.csv
-recognition_trials<participantID><timestamp>.csv
-recognition_questions<participantID>_<timestamp>.csv
-
-This ensures clean separation between participants and sessions.
-
 ---
 
 #### **`recognition_study_isa_20251203_235247.csv`**
