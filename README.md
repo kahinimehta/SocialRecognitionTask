@@ -83,6 +83,8 @@ recognition_questions<participantID>_<timestamp>.csv
 
 This ensures clean separation between participants and sessions.
 
+---
+
 #### **`recognition_study_isa_20251203_235247.csv`**
 Study-phase data.  
 Each row = one study trial.
