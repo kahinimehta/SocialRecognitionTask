@@ -393,7 +393,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             # Show timeout alert
             timeout_alert = visual.TextStim(
                 win,
-                text="Time's up! A random answer was selected.",
+                text="Time's up! A random answer was selected. This will be logged as an invalid trial. ",
                 color='red',
                 height=0.06,
                 pos=(0, 0)
