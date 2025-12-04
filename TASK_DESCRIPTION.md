@@ -268,9 +268,8 @@ After each block (including practice), participants answer 2 questions:
 
 - **Displayed at end of experiment**
 - Shows participant ranked 1-5 out of 10 (randomly assigned rank)
-- **Anonymized participant names**: P01-P10
+- **Anonymized fake participant names**: P01-P10
 - Participant shown as "[ID] (you)" at their rank
-- Based on total points earned across all experimental blocks
 
 ### Transition Screens
 
@@ -366,7 +365,7 @@ After each block (including practice), participants answer 2 questions:
 3. **Collaboration**: Can switch even if both agree (to match confidence levels)
 4. **Bonus points**: Randomly awarded 50% of the time when switching
 5. **Questions**: Quick questions at end of each block
-6. **Leaderboard**: See how you compare to others at the end
+6. **Leaderboard**: See how you compare to others at the end. This is made up but is supposed to incentivize participants to perform well. 
 
 ### Practice Instructions
 
