@@ -104,9 +104,6 @@ Each row = one block.
 
 ---
 
-## Questions or Issues?
-
-Feel free to open an issue or reach out if the task needs adjustment (stimuli, timing, conditions, etc.). The code is modular so most components can be modified with minimal changes.
 
 
 
