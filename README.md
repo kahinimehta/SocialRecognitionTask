@@ -96,6 +96,9 @@ Each row = one block.
 
 
 ---
+Stimuli used: 
+- From the THINGS dataset
+- https://drive.google.com/drive/u/1/folders/1sEeXyOnSymaFE0GUYKuhYLn6rYs_XY1A
 
 
 
