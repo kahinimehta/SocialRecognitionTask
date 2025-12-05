@@ -103,5 +103,4 @@ Stimuli used:
 
 
 
-When running the task, your generated CSVs will follow this format:
 
