@@ -24,25 +24,45 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ## Stimuli
 
-### Image Pairs
+### Stimulus Structure
 
-- Each block uses **10 studied images**, each paired with a corresponding **lure version**
-  - Example: `IMAGE_1.png` pairs with `LURE_1.png`
-  - Each image appears exactly once across all 10 experimental blocks (100 unique images total)
+- **100 unique stimuli** organized into **10 categories** with **10 items per category**:
+  - BIG_ANIMAL (e.g., Alligator, Elephant, Giraffe)
+  - BIG_OBJECT (e.g., Barrel, Chair, Couch)
+  - BIRD (e.g., Chicken, Duck, Owl)
+  - FOOD (e.g., Bagel, Pizza, Soup)
+  - FRUIT (e.g., Apple, Banana, Orange)
+  - INSECT (e.g., Ants, Bee, Butterfly)
+  - SMALL_ANIMAL (e.g., Cat, Dog, Mouse)
+  - SMALL_OBJECT (e.g., Balloon, Camera, Key)
+  - VEGETABLE (e.g., Carrot, Kale, Pepper)
+  - VEHICLE (e.g., Airplane, Bike, Car)
 
-### Placeholder Stimuli (Development Phase)
+- Each item has two versions:
+  - **Image version**: The original image (e.g., `Image_041.jpg`)
+  - **Lure version**: A similar but distinct version (e.g., `Lure_041.jpg`)
 
-- **100 distinct colored shapes** generated as placeholders
-- **Studied items**: Circles (50% of pairs)
-- **Lure items**: Squares (50% of pairs)
-- **Swapped pairs**: For 50% of pairs, squares are studied items and circles are lures
-- Final stimuli will be provided by Nuttida and replace placeholders
+- **Total**: 100 Image files + 100 Lure files = **200 total image files**
+
+### Study Phase Stimulus Selection
+
+- **Each block contains exactly one item from each of the 10 categories**
+- **No repeats across blocks**: Each of the 100 stimuli appears exactly once across all 10 experimental blocks
+- Example: Block 1 might have Apple (FRUIT), Carrot (VEGETABLE), Chair (BIG_OBJECT), etc.
+- Example: Block 2 might have Banana (FRUIT), Kale (VEGETABLE), Bench (BIG_OBJECT), etc.
 
 ### Recognition Trial Distribution
 
-- **50% studied images** (targets): Original images from study phase
-- **50% lure images**: Similar but not identical versions
-- Each of the 10 studied images from a block appears exactly once in recognition (5 as studied, 5 as lures)
+- All 10 studied images from each block appear in the recognition phase
+- **50% show the studied image** (original Image version): These are "studied" trials
+- **50% show the lure version** (Lure version of the **same object** as the studied item): These are "lure" trials
+  - **Important**: Lures correspond to the same category/object as the studied image (e.g., if `Image_041.jpg` was studied, the lure would be `Lure_041.jpg`, not a random lure from a different object)
+- Each of the 10 studied images appears exactly once in recognition (5 as studied images, 5 as lures)
+
+### Practice Block Stimuli
+
+- Practice block uses **5 placeholder shape stimuli** from the PLACEHOLDERS folder
+- Practice stimuli are not replaced with real stimuli (kept as simple shapes for practice)
 
 ---
 
@@ -141,7 +161,9 @@ The closer the final answer is to the correct answer, the more points earned.
 
 ### Bonus Points
 
-- **Social Collaboration Bonus**: 0.5 bonus points
+- **Social Collaboration Bonus**: Randomly drawn from normal distribution (0.5-0.75 in 0.05 increments)
+  - Possible values: 0.50, 0.55, 0.60, 0.65, 0.70, 0.75
+  - Drawn from normal distribution centered at 0.625
 - **Condition**: Awarded 50% of the time when participant switches (randomly determined)
 - **Independent of correctness**: Bonus can be awarded even if switching leads to incorrect answer
 
@@ -163,7 +185,8 @@ The closer the final answer is to the correct answer, the more points earned.
    - Points earned this trial displayed
 
 2. **Social Reinforcement** (50% chance if switched):
-   - Separate screen: "Thanks for working with your partner! You receive a 0.5 bonus point!"
+   - Separate screen: "Thanks for working with your partner! You receive a [X] bonus point!"
+   - The bonus amount (0.50-0.75) is randomly determined each time
    - Shown regardless of whether switching made the answer correct or incorrect
 
 ---
@@ -268,8 +291,9 @@ After each block (including practice), participants answer 2 questions:
 
 - **Displayed at end of experiment**
 - Shows participant ranked 1-5 out of 10 (randomly assigned rank)
-- **Anonymized fake participant names**: P01-P10
+- **Anonymized participant names**: P01-P10
 - Participant shown as "[ID] (you)" at their rank
+- Based on total points earned across all experimental blocks
 
 ### Transition Screens
 
@@ -283,9 +307,11 @@ After each block (including practice), participants answer 2 questions:
 
 ### Stimulus Randomization
 
-- **100 stimuli** shuffled and divided into 10 unique groups (10 per block)
+- **100 stimuli** organized by category, with items shuffled within each category
+- **Each block contains exactly one item from each of the 10 categories**
 - Each stimulus appears exactly once across all experimental blocks
 - **First recognition image** is never the same as the last study image
+- Items within each block are randomized for presentation order
 
 ### Trial Randomization
 
@@ -365,7 +391,7 @@ After each block (including practice), participants answer 2 questions:
 3. **Collaboration**: Can switch even if both agree (to match confidence levels)
 4. **Bonus points**: Randomly awarded 50% of the time when switching
 5. **Questions**: Quick questions at end of each block
-6. **Leaderboard**: See how you compare to others at the end. This is made up but is supposed to incentivize participants to perform well. 
+6. **Leaderboard**: See how you compare to others at the end
 
 ### Practice Instructions
 
