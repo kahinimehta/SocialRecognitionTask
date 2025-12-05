@@ -60,7 +60,7 @@ The experiment generates four CSV files:
 
 ### `trial_type`
 - **Type**: String
-- **Description**: Type of trial - either "studied" (original image) or "lure" (lure version)
+- **Description**: Type of trial - either "studied" (original Image version) or "lure" (Lure version of the same object)
 - **Example**: `"studied"`, `"lure"`
 
 ### `is_studied`
@@ -70,8 +70,9 @@ The experiment generates four CSV files:
 
 ### `image_path`
 - **Type**: String
-- **Description**: Full path to the image shown (IMAGE_X.png for studied, LURE_X.png for lures)
-- **Example**: `"PLACEHOLDERS/IMAGE_5.png"`, `"PLACEHOLDERS/LURE_5.png"`
+- **Description**: Full path to the image shown (Image_XXX.jpg for studied, Lure_XXX.jpg for lures)
+  - **Important**: For lures, this is the lure version of the **same object** that was studied (e.g., if `Image_041.jpg` was studied, the lure would be `Lure_041.jpg`, not a random lure from a different object)
+- **Example**: `"STIMULI/FRUIT/Apple/Image_041.jpg"`, `"STIMULI/FRUIT/Apple/Lure_041.jpg"`
 
 ### `image_onset`
 - **Type**: Float (Unix timestamp)
@@ -107,7 +108,7 @@ The experiment generates four CSV files:
 
 ### `participant_slider_timeout`
 - **Type**: Boolean
-- **Description**: True if participant timed out (didn't respond within 5 seconds)
+- **Description**: True if participant timed out (didn't respond within 7 seconds)
 - **Example**: `True`, `False`
 
 ### `participant_slider_stop_time`
@@ -167,7 +168,7 @@ The experiment generates four CSV files:
 
 ### `switch_timeout`
 - **Type**: Boolean
-- **Description**: True if participant timed out on switch/stay decision (didn't respond within 5 seconds)
+- **Description**: True if participant timed out on switch/stay decision (didn't respond within 7 seconds)
 - **Example**: `True`, `False`
 
 ### `decision_onset_time`
@@ -230,12 +231,32 @@ The experiment generates four CSV files:
 - **Description**: Time when the outcome screen (Correct/Incorrect) was displayed
 - **Example**: `1764818206.237804`
 
+### `block_start_time`
+- **Type**: Float (Unix timestamp)
+- **Description**: Time when the block started (when study phase began)
+- **Example**: `1764818000.0`
+
+### `block_end_time`
+- **Type**: Float (Unix timestamp)
+- **Description**: Time when the block ended (after block-end questions)
+- **Example**: `1764818300.0`
+
+### `block_duration_seconds`
+- **Type**: Float (seconds)
+- **Description**: Total duration of the block in seconds (from start of study phase to end of questions)
+- **Example**: `300.5`
+
+### `block_duration_minutes`
+- **Type**: Float (minutes)
+- **Description**: Total duration of the block in minutes
+- **Example**: `5.008`
+
 ### `coins_earned`
 - **Type**: Float
 - **Description**: Points earned this trial (based on Euclidean distance from correct answer)
   - Formula: `1.0 - euclidean_distance(final_answer, ground_truth)`
   - Range: 0.0 to 1.0
-  - Includes correctness points + social feedback bonus (0.5 if social feedback shown)
+  - Includes correctness points + social feedback bonus (randomly 0.5-0.75 if social feedback shown)
 - **Example**: `0.6857638888888889`, `0.0`, `1.0`
 
 ### `social_feedback`
@@ -337,5 +358,6 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 - Block 0 is the practice block (5 trials), blocks 1-10 are experimental blocks (10 trials each)
 - Questions are asked after each block (including practice block)
 - Points are calculated based on Euclidean distance: `points = 1.0 - distance(final_answer, ground_truth)`
-- Social feedback bonus is 0.5 points (awarded 50% of the time when switching)
+- Social feedback bonus is randomly drawn from a normal distribution (0.5-0.75 in 0.05 increments) and awarded 50% of the time when switching
+- **Block timing**: `block_start_time`, `block_end_time`, and `block_duration_seconds`/`block_duration_minutes` are added to all trials within a block. These values are updated at the end of each block, so they represent the complete block duration from study phase start to questions completion.
 
