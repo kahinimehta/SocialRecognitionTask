@@ -1,0 +1,12 @@
+participant_id,block,maximize_goal,trust_rating,trust_rt,question1_timeout,question2_timeout
+kini,0,Bonus points,0.0,1.5700111389160156,False,False
+kini,1,Both,0.14930555555555558,2.5725529193878174,False,False
+kini,2,Correctness,0.22222222222222227,3.746579885482788,False,False
+kini,3,Correctness,0.32986111111111116,2.2388360500335693,False,False
+kini,4,Both,0.19444444444444448,2.1063520908355713,False,False
+kini,5,Correctness,0.2916666666666667,4.040575981140137,False,False
+kini,6,Correctness,0.3940972222222222,1.3826439380645752,False,False
+kini,7,Correctness,0.6788194444444445,1.4197368621826172,False,False
+kini,8,Both,0.6041666666666666,1.2091562747955322,False,False
+kini,9,Both,0.7430555555555555,2.98469614982605,False,False
+kini,10,Correctness,0.4756944444444445,2.918071746826172,False,False
