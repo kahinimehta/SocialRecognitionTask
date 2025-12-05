@@ -77,25 +77,25 @@ These are example CSVs produced by running the task with test parameters. Your r
 
 ---
 
-#### **`recognition_study_isa_20251203_235247.csv`**
+#### **`recognition_study_*.csv`**
 Study-phase data.  
 Each row = one study trial.
 
 ---
 
-#### **`recognition_trials_isa_20251203_235247.csv`**
+#### **`recognition_trials_*.csv`**
 Recognition-phase (main task) data.  
 Each row = one recognition trial.
 
 ---
 
-#### **`recognition_questions_kini_20251204_003…csv`**
+#### **`recognition_questions_*.csv`**
 Block-end questionnaire data.  
 Each row = one block.
 
 ---
 
-#### **`recognition_summary_kini_20251204_003…csv`**
+#### **`recognition_summary_*.csv`**
 Summary of experiment time
 
 ---
