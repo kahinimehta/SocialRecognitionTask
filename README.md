@@ -9,7 +9,6 @@ This repository contains the full PsychoPy implementation, documentation, and ex
 #### **`social_recognition_memory_task.py`**
 Main PsychoPy script for the entire experiment.
 
-- Generates placeholder stimuli (colored circles/squares) if actual images are not provided.
 - Runs the full procedure:  
   - Instructions  
   - Practice block  
@@ -62,7 +61,7 @@ Use this file when analyzing data.
 ### 3. Demo / Media
 
 #### **`Demo.mp4`**
-Short screen recording demonstrating:
+Short screen recording from early version demonstrating:
 
 - Study trial flow  
 - Recognition slider interaction  
@@ -94,6 +93,10 @@ Each row = one recognition trial.
 Block-end questionnaire data.  
 Each row = one block.
 
+---
+
+#### **`recognition_summary_kini_20251204_003…csv`**
+Summary of experiment time
 
 ---
 Stimuli used: 
