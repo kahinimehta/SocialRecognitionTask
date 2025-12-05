@@ -1,5 +1,5 @@
 from psychopy import visual, core, event
-import os, random, time
+import os, random, time, re
 import numpy as np
 import csv
 from datetime import datetime
@@ -93,8 +93,144 @@ def generate_placeholder_stimuli(num_stimuli=100, output_dir="PLACEHOLDERS"):
     print(f"  - {num_to_swap} pairs swapped (squares=studied, circles=lures)")
     print(f"  - {num_stimuli - num_to_swap} pairs normal (circles=studied, squares=lures)")
 
-# Generate placeholders if they don't exist
+# =========================
+#  LOAD REAL STIMULI
+# =========================
+STIMULI_DIR = "STIMULI"
 PLACEHOLDER_DIR = "PLACEHOLDERS"
+
+# Category mapping: each category has 10 objects, numbered sequentially
+CATEGORY_MAPPING = {
+    "BIG_ANIMAL": (1, 10),      # 001-010
+    "BIG_OBJECT": (11, 20),     # 011-020
+    "BIRD": (21, 30),           # 021-030
+    "FOOD": (31, 40),           # 031-040
+    "FRUIT": (41, 50),          # 041-050
+    "INSECT": (51, 60),         # 051-060
+    "SMALL_ANIMAL": (61, 70),   # 061-070
+    "SMALL_OBJECT": (71, 80),   # 071-080
+    "VEGETABLE": (81, 90),      # 081-090
+    "VEHICLE": (91, 100),       # 091-100
+}
+
+CATEGORY_NAMES = list(CATEGORY_MAPPING.keys())
+
+def get_stimulus_path(stimulus_num, is_lure=False, use_real_stimuli=True):
+    """Get path to stimulus image
+    
+    Args:
+        stimulus_num: Stimulus number (1-100)
+        is_lure: True for lure, False for image
+        use_real_stimuli: True to use real stimuli, False for placeholders
+    
+    Returns:
+        Full path to image file
+    """
+    if use_real_stimuli:
+        # Find which category this stimulus belongs to
+        for category, (start, end) in CATEGORY_MAPPING.items():
+            if start <= stimulus_num <= end:
+                # Find the object folder within this category
+                category_dir = os.path.join(STIMULI_DIR, category)
+                if os.path.exists(category_dir):
+                    # List all object folders
+                    object_folders = [f for f in os.listdir(category_dir) 
+                                     if os.path.isdir(os.path.join(category_dir, f))]
+                    # Find the object that corresponds to this stimulus number
+                    object_index = stimulus_num - start
+                    if 0 <= object_index < len(object_folders):
+                        object_folder = sorted(object_folders)[object_index]
+                        if is_lure:
+                            filename = f"Lure_{stimulus_num:03d}.jpg"
+                        else:
+                            filename = f"Image_{stimulus_num:03d}.jpg"
+                        return os.path.join(category_dir, object_folder, filename)
+        
+        # Fallback: try direct path
+        if is_lure:
+            filename = f"Lure_{stimulus_num:03d}.jpg"
+        else:
+            filename = f"Image_{stimulus_num:03d}.jpg"
+        # Search all categories
+        for category in CATEGORY_NAMES:
+            category_dir = os.path.join(STIMULI_DIR, category)
+            if os.path.exists(category_dir):
+                for obj_folder in os.listdir(category_dir):
+                    obj_path = os.path.join(category_dir, obj_folder)
+                    if os.path.isdir(obj_path):
+                        file_path = os.path.join(obj_path, filename)
+                        if os.path.exists(file_path):
+                            return file_path
+        
+        # If not found, fall back to placeholder
+        print(f"Warning: Real stimulus {stimulus_num} not found, using placeholder")
+        use_real_stimuli = False
+    
+    # Use placeholder
+    if is_lure:
+        return os.path.join(PLACEHOLDER_DIR, f"LURE_{stimulus_num}.png")
+    else:
+        return os.path.join(PLACEHOLDER_DIR, f"IMAGE_{stimulus_num}.png")
+
+def get_stimuli_by_category():
+    """Get all stimuli organized by category
+    
+    Returns:
+        dict: {category_name: [list of stimulus numbers]}
+    """
+    stimuli_by_category = {}
+    for category, (start, end) in CATEGORY_MAPPING.items():
+        stimuli_by_category[category] = list(range(start, end + 1))
+    return stimuli_by_category
+
+def select_study_stimuli_one_per_category():
+    """Select 10 stimuli for study phase: one from each category
+    
+    Returns:
+        list: 10 stimulus numbers (one from each category)
+    """
+    stimuli_by_category = get_stimuli_by_category()
+    selected = []
+    for category, stimulus_nums in stimuli_by_category.items():
+        # Randomly select one from this category
+        selected.append(random.choice(stimulus_nums))
+    return selected
+
+def assign_stimuli_to_blocks():
+    """Assign 100 stimuli to 10 blocks ensuring:
+    - Each block has exactly one item from each of the 10 categories
+    - No stimulus appears more than once across all blocks
+    
+    Returns:
+        list: List of 10 lists, each containing 10 stimulus numbers
+    """
+    # Get all stimuli organized by category
+    stimuli_by_category = get_stimuli_by_category()
+    
+    # Shuffle items within each category
+    for category in stimuli_by_category:
+        random.shuffle(stimuli_by_category[category])
+    
+    # Assign to blocks: each block gets one item from each category
+    # This ensures no repeats (since we use each category's items exactly once)
+    blocks = []
+    category_names = list(CATEGORY_MAPPING.keys())
+    
+    for block_num in range(10):
+        block_stimuli = []
+        for category in category_names:
+            # Get the item at position block_num from this category
+            item_index = block_num
+            stimulus_num = stimuli_by_category[category][item_index]
+            block_stimuli.append(stimulus_num)
+        
+        # Shuffle the order within the block for randomization
+        random.shuffle(block_stimuli)
+        blocks.append(block_stimuli)
+    
+    return blocks
+
+# Generate placeholders if they don't exist (for practice block)
 # Force regeneration to ensure swap logic is applied
 # Check if directory exists and has the right number of files
 if not os.path.exists(PLACEHOLDER_DIR) or len([f for f in os.listdir(PLACEHOLDER_DIR) if f.endswith('.png')]) < 200:
@@ -393,7 +529,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             # Show timeout alert
             timeout_alert = visual.TextStim(
                 win,
-                text="Time's up! A random answer was selected. This will be logged as an invalid trial. ",
+                    text="Time's up! A random answer was selected. This will be logged as an invalid trial.",
                 color='red',
                 height=0.06,
                 pos=(0, 0)
@@ -626,24 +762,52 @@ def run_study_phase(studied_images, block_num):
 # =========================
 #  RECOGNITION TRIAL
 # =========================
+def extract_stimulus_number(image_path):
+    """Extract stimulus number from image path (handles both real and placeholder paths)
+    
+    Args:
+        image_path: Path to image file (e.g., "STIMULI/FRUIT/Apple/Image_041.jpg" or "PLACEHOLDERS/IMAGE_41.png")
+    
+    Returns:
+        int: Stimulus number (1-100)
+    """
+    basename = os.path.basename(image_path)
+    # Try to extract number from filename patterns like Image_041.jpg, IMAGE_41.png, Lure_041.jpg, etc.
+    # Match patterns like Image_041, IMAGE_41, Lure_041, LURE_41
+    match = re.search(r'(?:Image|IMAGE|Lure|LURE)[_ ]*(\d+)', basename, re.IGNORECASE)
+    if match:
+        return int(match.group(1))
+    # Fallback: try to extract any number from filename
+    match = re.search(r'(\d+)', basename)
+    if match:
+        return int(match.group(1))
+    raise ValueError(f"Could not extract stimulus number from path: {image_path}")
+
 def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied, 
-                         participant_first, ai_collaborator, placeholder_dir, experiment_start_time=None, max_trials=10, total_points=0.0):
+                         participant_first, ai_collaborator, stimuli_dir, experiment_start_time=None, max_trials=10, total_points=0.0, block_start_time=None):
     """
     Run a single recognition trial
-    NOTE: Recognition phase shows BOTH studied images (IMAGE_X.png) AND lures (LURE_X.png)
-    - If is_studied=True: shows IMAGE_X.png
-    - If is_studied=False: shows LURE_X.png (corresponding lure)
+    NOTE: Recognition phase shows BOTH studied images (Image_XXX.jpg) AND lures (Lure_XXX.jpg)
+    - If is_studied=True: shows Image_XXX.jpg
+    - If is_studied=False: shows Lure_XXX.jpg (corresponding lure)
     """
     trial_data = {}
     
+    # Extract stimulus number from the studied image path
+    stimulus_num = extract_stimulus_number(studied_image_path)
+    
     # Determine which image to show (studied or lure)
+    # Check if we're using real stimuli (path contains STIMULI) or placeholders
+    use_real_stimuli = STIMULI_DIR in os.path.abspath(studied_image_path) or (
+        stimuli_dir and STIMULI_DIR in os.path.abspath(stimuli_dir)
+    )
+    
     if is_studied:
-        image_path = studied_image_path  # Shows IMAGE_X.png
+        image_path = studied_image_path  # Shows Image_XXX.jpg or IMAGE_XXX.png
         trial_type = "studied"
     else:
-        # Get corresponding lure - shows LURE_X.png
-        img_num = os.path.basename(studied_image_path).replace('IMAGE_', '').replace('.png', '')
-        image_path = os.path.join(placeholder_dir, f"LURE_{img_num}.png")
+        # Get corresponding lure - shows Lure_XXX.jpg or LURE_XXX.png
+        image_path = get_stimulus_path(stimulus_num, is_lure=True, use_real_stimuli=use_real_stimuli)
         trial_type = "lure"
     
     # Load image
@@ -1332,6 +1496,9 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
     
     redraw_q1()
     
+    frame_count = 0
+    last_activation_time = time.time()
+    
     while selected_option is None:
         elapsed = time.time() - start_time
         if elapsed >= timeout:
@@ -1339,6 +1506,17 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
             selected_option = random.choice(options)
             q1_elapsed = elapsed
             break
+        
+        frame_count += 1
+        current_time = time.time()
+        
+        # Periodically reactivate window to maintain focus (every 50ms)
+        if current_time - last_activation_time > 0.05:
+            try:
+                win.winHandle.activate()
+                last_activation_time = current_time
+            except:
+                pass
         
         try:
             mouse_pos = mouse.getPos()
@@ -1360,8 +1538,11 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
         except:
             pass
         
-        redraw_q1()
-        core.wait(0.01)
+        # Refresh screen periodically to process events (every 33ms = 30Hz)
+        if frame_count % 33 == 0:
+            redraw_q1()
+        else:
+            core.wait(0.001)  # Very short wait for responsiveness
     
     # Brief pause between questions
     core.wait(0.5)
@@ -1414,6 +1595,24 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
     start_time = time.time()
     trust_response_time = None
     
+    # Submit button
+    submit_button = visual.Rect(
+        win,
+        width=0.3,
+        height=0.08,
+        pos=(0, -0.25),
+        fillColor='lightblue',
+        lineColor='black',
+        lineWidth=2
+    )
+    submit_text = visual.TextStim(
+        win,
+        text="Submit",
+        color='black',
+        height=0.04,
+        pos=(0, -0.25)
+    )
+    
     def redraw_q2():
         question2_text.draw()
         slider_line.draw()
@@ -1421,9 +1620,14 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
         slider_handle.draw()
         left_label.draw()
         right_label.draw()
+        submit_button.draw()
+        submit_text.draw()
         win.flip()
     
     redraw_q2()
+    
+    frame_count = 0
+    last_activation_time = time.time()
     
     while trust_response_time is None:
         elapsed = time.time() - start_time
@@ -1432,11 +1636,34 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
             trust_response_time = elapsed
             break
         
+        frame_count += 1
+        current_time = time.time()
+        
+        # Periodically reactivate window to maintain focus (every 50ms)
+        if current_time - last_activation_time > 0.05:
+            try:
+                win.winHandle.activate()
+                last_activation_time = current_time
+            except:
+                pass
+        
         try:
             mouse_pos = mouse.getPos()
             mouse_buttons = mouse.getPressed()
             
             if mouse_buttons[0]:  # Mouse button pressed
+                # Check if clicking on submit button
+                button_pos = submit_button.pos
+                button_size = submit_button.size
+                if (abs(mouse_pos[0] - button_pos[0]) < button_size[0]/2 and
+                    abs(mouse_pos[1] - button_pos[1]) < button_size[1]/2):
+                    # Submit clicked - record response time
+                    trust_response_time = time.time() - start_time
+                    submit_button.fillColor = 'green'
+                    redraw_q2()
+                    core.wait(0.3)
+                    break
+                
                 # Check if clicking on slider
                 handle_x = -0.4 + trust_value * 0.8
                 if abs(mouse_pos[0] - handle_x) < 0.1 and abs(mouse_pos[1]) < 0.05:
@@ -1447,15 +1674,15 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
                     new_value = (mouse_pos[0] + 0.4) / 0.8
                     trust_value = max(0.0, min(1.0, new_value))
             else:
-                if slider_dragging:
-                    # Mouse released - record response time
-                    trust_response_time = time.time() - start_time
                 slider_dragging = False
         except:
             pass
         
-        redraw_q2()
-        core.wait(0.01)
+        # Refresh screen periodically to process events (every 33ms = 30Hz)
+        if frame_count % 33 == 0:
+            redraw_q2()
+        else:
+            core.wait(0.001)  # Very short wait for responsiveness
     
     # Save to CSV
     if questions_file is None:
@@ -1567,7 +1794,19 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
         color = 'red'
     
     # Calculate social feedback bonus (separate from correctness points)
-    social_bonus = 0.5 if show_social_feedback else 0.0
+    # Randomly draw from normal distribution: 0.5-0.75 in 0.05 increments
+    if show_social_feedback:
+        # Generate from normal distribution centered at 0.625 (midpoint of 0.5-0.75)
+        # Use std of 0.06 to get good spread across range
+        bonus_raw = np.random.normal(loc=0.625, scale=0.06)
+        # Round to nearest 0.05 increment
+        bonus_rounded = round(bonus_raw / 0.05) * 0.05
+        # Clamp to 0.5-0.75 range
+        social_bonus = max(0.5, min(0.75, bonus_rounded))
+        # Round to 2 decimal places for consistency
+        social_bonus = round(social_bonus, 2)
+    else:
+        social_bonus = 0.0
     total_points_this_trial = correctness_points + social_bonus
     
     # Show outcome with points (only show points earned this trial, not total)
@@ -1581,7 +1820,7 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
     if show_social_feedback:
         reinforcement_text = visual.TextStim(
             win,
-            text="Thanks for working with your partner!\n\nYou receive a 0.5 bonus point!",
+            text=f"Thanks for working with your partner!\n\nYou receive a {social_bonus:.2f} bonus point!",
             color='blue',
             height=0.06,
             pos=(0, 0),
@@ -1599,9 +1838,16 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
 # =========================
 #  BLOCK STRUCTURE
 # =========================
-def run_block(block_num, studied_images, participant_first, ai_collaborator, placeholder_dir, num_trials=None, experiment_start_time=None, participant_id=None, study_file=None, trial_file=None):
-    """Run a single block: study phase + recognition trials"""
+def run_block(block_num, studied_images, participant_first, ai_collaborator, stimuli_dir, num_trials=None, experiment_start_time=None, participant_id=None, study_file=None, trial_file=None):
+    """Run a single block: study phase + recognition trials
+    
+    Args:
+        stimuli_dir: Directory containing stimuli (STIMULI_DIR for real stimuli, PLACEHOLDER_DIR for practice)
+    """
     all_trial_data = []
+    
+    # Record block start time
+    block_start_time = time.time()
     
     # Determine number of trials (default to number of studied images, or use num_trials if provided)
     if num_trials is None:
@@ -1665,22 +1911,22 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, pla
     random.shuffle(trial_sequence)
     
     # Ensure first trial is not the same as last study image
-    # Check the actual image that will be shown (IMAGE_X.png for studied, LURE_X.png for lures)
+    # Check the actual image that will be shown (Image_XXX.jpg for studied, Lure_XXX.jpg for lures)
     if last_study_image and len(trial_sequence) > 1:
-        # Get the base image number from last study image
-        last_study_base = os.path.basename(last_study_image).replace('IMAGE_', '').replace('.png', '')
+        # Get the stimulus number from last study image
+        last_study_stim_num = extract_stimulus_number(last_study_image)
         
         # Check first trial - get what image will actually be shown
         first_trial_img_path, first_is_studied = trial_sequence[0][1], trial_sequence[0][2]
-        first_trial_base = os.path.basename(first_trial_img_path).replace('IMAGE_', '').replace('.png', '')
+        first_trial_stim_num = extract_stimulus_number(first_trial_img_path)
         
-        # If first trial shows the same base image as last study (regardless of studied/lure), swap it
-        if first_trial_base == last_study_base:
+        # If first trial shows the same stimulus as last study (regardless of studied/lure), swap it
+        if first_trial_stim_num == last_study_stim_num:
             # Find a different trial to swap with (one that doesn't match last study)
             for i in range(1, len(trial_sequence)):
                 swap_trial_img_path = trial_sequence[i][1]
-                swap_trial_base = os.path.basename(swap_trial_img_path).replace('IMAGE_', '').replace('.png', '')
-                if swap_trial_base != last_study_base:
+                swap_trial_stim_num = extract_stimulus_number(swap_trial_img_path)
+                if swap_trial_stim_num != last_study_stim_num:
                     trial_sequence[0], trial_sequence[i] = trial_sequence[i], trial_sequence[0]
                     break
     
@@ -1693,8 +1939,15 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, pla
     for trial_num, img_path, is_studied in trial_sequence:
         trial_data, points_earned = run_recognition_trial(
             trial_num, block_num, img_path, is_studied,
-            participant_first, ai_collaborator, placeholder_dir, experiment_start_time, max_trials=num_trials, total_points=total_points
+            participant_first, ai_collaborator, stimuli_dir, experiment_start_time, max_trials=num_trials, total_points=total_points,
+            block_start_time=block_start_time
         )
+        # Add block timing (end time and duration will be updated at end of block)
+        trial_data['block_start_time'] = block_start_time
+        trial_data['block_end_time'] = None  # Will be updated at end of block
+        trial_data['block_duration_seconds'] = None  # Will be updated at end of block
+        trial_data['block_duration_minutes'] = None  # Will be updated at end of block
+        
         all_trial_data.append(trial_data)
         total_points += points_earned  # Includes correctness + social feedback
         
@@ -1717,7 +1970,63 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, pla
             run_block.questions_file = f"recognition_questions_{participant_id}_{timestamp}.csv"
         ask_block_questions(block_num, participant_id, questions_file=run_block.questions_file, timeout=7.0)
     
+    # Record block end time and calculate duration
+    block_end_time = time.time()
+    block_duration = block_end_time - block_start_time
+    
+    # Update block timing information in all trial data
+    for trial_data in all_trial_data:
+        trial_data['block_end_time'] = block_end_time
+        trial_data['block_duration_seconds'] = block_duration
+        trial_data['block_duration_minutes'] = block_duration / 60.0
+    
+    # Update the CSV file with block timing for all trials in this block
+    if participant_id and trial_file and os.path.exists(trial_file):
+        update_block_timing_in_csv(trial_file, block_num, block_start_time, block_end_time, block_duration)
+    
     return study_data, all_trial_data, study_file, trial_file, total_points
+
+# =========================
+#  UPDATE BLOCK TIMING IN CSV
+# =========================
+def update_block_timing_in_csv(trial_file, block_num, block_start_time, block_end_time, block_duration):
+    """Update CSV file with block timing information for all trials in a block"""
+    try:
+        # Read all rows from CSV
+        rows = []
+        fieldnames = None
+        with open(trial_file, 'r', newline='') as f:
+            reader = csv.DictReader(f)
+            fieldnames = reader.fieldnames
+            rows = list(reader)
+        
+        # Update rows for this block
+        updated_count = 0
+        for row in rows:
+            if int(row.get('block', -1)) == block_num:
+                row['block_start_time'] = block_start_time
+                row['block_end_time'] = block_end_time
+                row['block_duration_seconds'] = block_duration
+                row['block_duration_minutes'] = block_duration / 60.0
+                updated_count += 1
+        
+        # Write updated rows back to CSV
+        if updated_count > 0:
+            # Ensure timing fields are in fieldnames
+            timing_fields = ['block_start_time', 'block_end_time', 'block_duration_seconds', 'block_duration_minutes']
+            if fieldnames:
+                for field in timing_fields:
+                    if field not in fieldnames:
+                        fieldnames.append(field)
+            
+            with open(trial_file, 'w', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            
+            print(f"✓ Updated block {block_num} timing in CSV ({updated_count} trials)")
+    except Exception as e:
+        print(f"Warning: Could not update block timing in CSV: {e}")
 
 # =========================
 #  DATA SAVING
@@ -1785,51 +2094,57 @@ def run_experiment():
     mouse.setVisible(True)
     mouse.setPos((0, 0))  # Reset mouse position
     
-    # Draw and flip multiple times to ensure window is ready
-    for _ in range(3):
-        start_screen.draw()
-        win.flip()
-        core.wait(0.05)
+    # Draw and flip once to ensure window is ready (removed multiple draws for faster start)
+    start_screen.draw()
+    win.flip()
     
-    # Wait for mouse click anywhere on screen (more responsive)
+    # Clear any existing events before waiting for click
+    event.clearEvents()
+    mouse.clickReset()
+    
+    # Wait for mouse click anywhere on screen (optimized for maximum responsiveness)
     clicked = False
-    prev_mouse_buttons = [False, False, False]
+    frame_count = 0
+    last_activation_time = time.time()
+    
     while not clicked:
-        try:
-            # Check for mouse button release (more reliable than press)
-            mouse_buttons = mouse.getPressed()
-            # Detect click on release (button was down, now up)
-            if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                clicked = True
-                break
-            # Also accept if button is currently pressed
-            if mouse_buttons[0]:
-                clicked = True
-                break
-            prev_mouse_buttons = mouse_buttons.copy()
-        except (AttributeError, Exception):
-            # Handle macOS event errors gracefully
+        frame_count += 1
+        
+        # Periodically reactivate window to maintain focus (every 50ms for responsiveness)
+        current_time = time.time()
+        time_since_activation = current_time - last_activation_time
+        
+        if time_since_activation > 0.05:  # Every 50ms
             try:
-                event.clearEvents()
+                win.winHandle.activate()  # Bring window back to front if it lost focus
+                last_activation_time = current_time
             except:
                 pass
-            prev_mouse_buttons = [False, False, False]
         
-        # Also check for space key as backup
+        # Refresh screen periodically to process events and catch clicks (every 33ms = 30Hz)
+        if frame_count % 33 == 0:
+            start_screen.draw()
+            win.flip()  # Process window events
+        
+        # Check for mouse click (most responsive - checks immediately on press)
         try:
-            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
-            if 'space' in keys:
+            if mouse.getPressed()[0]:  # Left button pressed
                 clicked = True
                 break
-            elif 'escape' in keys:
-                core.quit()
-        except:
+        except (AttributeError, Exception):
+            # Handle macOS event errors gracefully
             pass
         
-        # Redraw screen periodically to keep it responsive
-        start_screen.draw()
-        win.flip()
-        core.wait(0.02)  # Shorter wait for more responsive detection
+        # Check for keyboard input as backup
+        keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+        if 'space' in keys:
+            clicked = True
+            break
+        if 'escape' in keys:
+            core.quit()
+        
+        # Very short wait for maximum responsiveness (1ms polling)
+        core.wait(0.001)
     
     mouse.setVisible(False)
     event.clearEvents()
@@ -1850,17 +2165,21 @@ def run_experiment():
     # Instructions - broken into smaller chunks with formatting
     show_instructions(
         "Welcome to the Social Recognition Memory Task!\n\n"
-        "In this task, you will study images and then test your memory\n"
+        "In this task, you will study complex images and then test your memory\n"
         "by working with a partner.\n\n"
+        "First, you'll do a practice block with simple shapes.\n"
+        "Then, the actual task will use complex images (objects, animals, and scenes).\n\n"
         "Press SPACE to continue.",
         header_color='darkblue',
         body_color='black'
     )
     
     show_instructions(
-        "HOW IT WORKS:\n\n"
-        "1. STUDY PHASE: You'll see images one at a time.\n"
-        "   Try to remember them.\n\n"
+        "HOW IT WORKS (Actual Task):\n\n"
+        "1. STUDY PHASE: You'll see complex images one at a time.\n"
+        "   These images include various objects, animals, and scenes.\n"
+        "   Try to remember them carefully.\n\n"
+        "(Note: Practice will use simple shapes first)\n\n"
         "Press SPACE to continue.",
         header_color='darkgreen',
         body_color='black'
@@ -1868,9 +2187,10 @@ def run_experiment():
     
     show_instructions(
         "RECOGNITION PHASE:\n\n"
-        "You'll see images again.\n\n"
+        "You'll see complex images again.\n\n"
         "Some images will be OLD (from the study phase).\n"
         "Some images will be NEW (you haven't seen them).\n\n"
+        "Pay close attention - some images may look similar!\n\n"
         "Press SPACE to continue.",
         header_color='darkgreen',
         body_color='black'
@@ -1936,7 +2256,10 @@ def run_experiment():
     # Detailed practice instructions
     show_instructions(
         "PRACTICE BLOCK\n\n"
-        "You will study 5 images, then test your memory with your partner.\n\n"
+        "For practice, you will see 5 simple shapes (circles and squares).\n\n"
+        "The actual task will use complex images (objects, animals, and scenes),\n"
+        "but practice uses simple shapes to help you learn the task.\n\n"
+        "You will study 5 shapes, then test your memory with your partner.\n\n"
         "This is just for practice, but go as quick as you can!\n\n"
         "Press SPACE to begin practice.",
         header_color='darkred',
@@ -2033,7 +2356,7 @@ def run_experiment():
     try:
         practice_study, practice_trials, study_file, trial_file, practice_points = run_block(
             0, practice_images, participant_first=True, 
-            ai_collaborator=ai_collaborator, placeholder_dir=PLACEHOLDER_DIR, num_trials=5,
+            ai_collaborator=ai_collaborator, stimuli_dir=PLACEHOLDER_DIR, num_trials=5,
             experiment_start_time=experiment_start_time, participant_id=participant_id,
             study_file=study_file, trial_file=trial_file
         )
@@ -2053,6 +2376,8 @@ def run_experiment():
     show_instructions(
         "Practice complete!\n\n"
         "Now we'll begin the experimental blocks.\n\n"
+        "Remember: You'll now see complex images (objects, animals, and scenes)\n"
+        "instead of simple shapes.\n\n"
         "Press SPACE to continue.",
         header_color='darkgreen',
         body_color='black'
@@ -2061,8 +2386,10 @@ def run_experiment():
     # Rules reminder before starting the actual game - split into 2 pages
     show_instructions(
         "QUICK REMINDER - KEY RULES (Part 1):\n\n"
-        "1. STUDY PHASE: Remember each image carefully\n\n"
+        "1. STUDY PHASE: Remember each complex image carefully\n"
+        "   You'll see images of various objects, animals, and scenes.\n\n"
         "2. RECOGNITION PHASE:\n"
+        "   - You'll see complex images again\n"
         "   - Rate your confidence on the slider\n"
         "   - LEFT = OLD (studied), RIGHT = NEW (not studied)\n"
         "   - Click and drag the slider, then click SUBMIT\n\n"
@@ -2131,21 +2458,14 @@ def run_experiment():
         # Shuffle to randomize order
         random.shuffle(block_conditions)
         
-        # Ensure each of the 100 stimuli appears exactly once across all 10 blocks
-        # Shuffle all 100 stimulus indices and divide into 10 groups of 10
-        all_stimulus_indices = list(range(1, 101))  # 1-100
-        random.shuffle(all_stimulus_indices)
-        
-        # Divide into 10 blocks (each with 10 unique stimuli)
-        stimulus_assignments = []
-        for i in range(10):
-            block_stimuli = all_stimulus_indices[i*10:(i+1)*10]
-            stimulus_assignments.append(block_stimuli)
+        # Assign stimuli to blocks: each block has one item from each category, no repeats
+        stimulus_assignments = assign_stimuli_to_blocks()
         
         for block_num in range(1, 11):
-            # Use pre-assigned stimuli for this block (ensures each appears exactly once)
+            # Use pre-assigned stimuli for this block (ensures one per category, no repeats)
             selected_indices = stimulus_assignments[block_num - 1]
-            studied_images = [os.path.join(PLACEHOLDER_DIR, f"IMAGE_{i}.png") for i in selected_indices]
+            # Use real stimuli paths instead of placeholders
+            studied_images = [get_stimulus_path(i, is_lure=False, use_real_stimuli=True) for i in selected_indices]
             
             # Get counterbalanced conditions for this block
             participant_first, block_accuracy = block_conditions[block_num - 1]
@@ -2154,10 +2474,11 @@ def run_experiment():
             block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy)
             turn_order = "Participant first" if participant_first else "AI first"
             print(f"Block {block_num}: {turn_order}, AI accuracy = {block_accuracy*100:.0f}%")
+            print(f"  Stimuli: {selected_indices}")
             
             study_data, trial_data, study_file, trial_file, block_points = run_block(
                 block_num, studied_images, participant_first,
-                block_ai_collaborator, PLACEHOLDER_DIR, num_trials=10,
+                block_ai_collaborator, STIMULI_DIR, num_trials=10,
                 experiment_start_time=experiment_start_time, participant_id=participant_id,
                 study_file=study_file, trial_file=trial_file
             )
@@ -2171,7 +2492,7 @@ def run_experiment():
             # Break between blocks
             if block_num < 10:
                 show_instructions(
-                    f"Block {block_num} complete!\n\n"
+                    f"Great job!\n\n"
                     "Take a short break.\n\n"
                     "Press SPACE when ready for the next block.",
                     header_color='darkgreen',
