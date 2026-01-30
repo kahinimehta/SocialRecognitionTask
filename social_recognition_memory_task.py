@@ -157,9 +157,9 @@ def get_input_method():
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                     except:
                         # Fallback to manual calculation
-                        hit_margin = 150
-                        button1_x, button1_y = -320, -80
-                        button1_width, button1_height = 520, 180
+                        hit_margin = 150/720*0.75
+                        button1_x, button1_y = -320/720*0.6, -80/720*0.6
+                        button1_width, button1_height = 520/720*0.75, 180/720*0.75
                         if (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
                             button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin):
                             if t > minRT:
@@ -215,35 +215,35 @@ def get_input_method():
                                         mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
             except Exception as e:
                 pass
+            
+            # Safe event.getKeys() handling - ensure keys is never empty array issue
+            try:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:  # Check keys is not empty first
+                    return None  # Signal to exit - window will be closed in finally
+            except (AttributeError, Exception):
+                pass  # Ignore event errors
+            
+            core.wait(0.001)  # Very fast polling
         
-        # Safe event.getKeys() handling - ensure keys is never empty array issue
-        try:
-            keys = event.getKeys(keyList=['escape'])
-            if keys and 'escape' in keys:  # Check keys is not empty first
-                return None  # Signal to exit - window will be closed in finally
-        except (AttributeError, Exception):
-            pass  # Ignore event errors
-        
-        core.wait(0.001)  # Very fast polling
-        
-        # Show confirmation - use pixel units to match temp window
+        # Show confirmation - use height units to match temp window
         confirm_text = visual.TextStim(
             temp_win,
             text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
             color='black',
-            height=40/720,
-            pos=(0, 100/720),
-            wrapWidth=1000/720,
+            height=40/720*0.75,
+            pos=(0, 100/720*0.6),
+            wrapWidth=1000/720*0.75,
             units='height'
         )
         
         # Create continue button for temp window - use height units
-        cont_w = 300/720
-        cont_h = 80/720
+        cont_w = 300/720*0.75
+        cont_h = 80/720*0.75
         cont_x = 0
-        cont_y = -150/720
+        cont_y = -150/720*0.6
         continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y), units='height')
-        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720, pos=(cont_x, cont_y), units='height')
+        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
         
         clicked = False
         event.clearEvents()  # Clear any pending events
@@ -370,7 +370,9 @@ if result is None:
     print("Input method selection cancelled. Exiting...")
     core.quit()
     exit(0)
+
 print(f"Input method selected: {'TOUCH SCREEN' if result else 'MOUSE/TRACKPAD'}")
+print(f"Result value: {result}, Type: {type(result)}")
 
 # Create main window with appropriate settings - use try/finally pattern
 win = None
@@ -378,28 +380,33 @@ try:
     import time
     # Brief delay to ensure temp window is fully closed
     print("Waiting before creating main window...")
-    time.sleep(0.1)  # Small delay to ensure clean transition
+    time.sleep(0.2)  # Additional delay to ensure temp window is fully closed
     
     print("Creating main window...")
-    # Create window in windowed mode with larger size for better visibility
+    # Create window in fullscreen mode
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
+        print("Attempting to create fullscreen window...")
         win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=True, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
+        print("Fullscreen window created successfully")
     except Exception as e:
-        # If window creation fails, try with alternative explicit size
+        # If fullscreen fails, try windowed mode as fallback
         import traceback
         traceback.print_exc()
-        print("Trying with alternative size (1280, 720)...")
+        print(f"Fullscreen window creation failed: {e}")
+        print("Trying windowed mode as fallback...")
         time.sleep(0.1)  # Reduced delay
         try:
-            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=True, viewPos=(0, 0))
+            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
             win.flip()
-            print("Main window created with size (1280, 720)")
+            print("Windowed mode window created successfully")
         except Exception as e2:
-            print(f"Error: Could not create window ({e2})")
+            print(f"Error: Could not create window in either mode ({e2})")
+            import traceback
+            traceback.print_exc()
             print("Exiting...")
             core.quit()
             exit(1)
