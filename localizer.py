@@ -481,50 +481,74 @@ def get_participant_id():
 
     # Adjust positions for touch screen to avoid overlap
     # Layout: prompt at top, input below, buttons below input, keyboard at bottom
-    if USE_TOUCH_SCREEN:
-        id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.35))
-        input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.25))
-    else:
-        id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.3))
-        input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.1))
+    print("Creating text stimuli...")
+    try:
+        if USE_TOUCH_SCREEN:
+            print("Creating touch screen text stimuli...")
+            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.35))
+            print("id_prompt created")
+            input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.25))
+            print("input_display created")
+        else:
+            print("Creating mouse/trackpad text stimuli...")
+            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.3))
+            print("id_prompt created")
+            input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.1))
+            print("input_display created")
+    except Exception as e:
+        print(f"ERROR creating text stimuli: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
     if USE_TOUCH_SCREEN:
-        # On-screen keyboard layout (no number row)
-        keyboard_rows = [
-            ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-            ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-            ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
-        ]
-        
-        keyboard_buttons = []
-        start_y = -0.15  # Move keyboard lower to avoid overlap with buttons
-        row_spacing = 0.12
-        
-        for row_idx, row in enumerate(keyboard_rows):
-            row_buttons = []
-            num_keys = len(row)
-            start_x = -(num_keys - 1) * 0.08 / 2
+        print("Creating keyboard buttons...")
+        try:
+            # On-screen keyboard layout (no number row)
+            keyboard_rows = [
+                ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+                ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+                ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+            ]
             
-            for col_idx, key in enumerate(row):
-                x_pos = start_x + col_idx * 0.08
-                y_pos = start_y - row_idx * row_spacing
+            keyboard_buttons = []
+            start_y = -0.15  # Move keyboard lower to avoid overlap with buttons
+            row_spacing = 0.12
+            
+            print(f"Creating {len(keyboard_rows)} keyboard rows...")
+            for row_idx, row in enumerate(keyboard_rows):
+                print(f"Creating row {row_idx} with {len(row)} keys...")
+                row_buttons = []
+                num_keys = len(row)
+                start_x = -(num_keys - 1) * 0.08 / 2
                 
-                button = visual.Rect(win, width=0.07, height=0.08, fillColor='lightgray', 
-                                    lineColor='black', pos=(x_pos, y_pos))
-                text = visual.TextStim(win, text=key, color='black', height=0.04, pos=(x_pos, y_pos))
-                row_buttons.append((button, text, key, x_pos, y_pos))
+                for col_idx, key in enumerate(row):
+                    x_pos = start_x + col_idx * 0.08
+                    y_pos = start_y - row_idx * row_spacing
+                    
+                    button = visual.Rect(win, width=0.07, height=0.08, fillColor='lightgray', 
+                                        lineColor='black', pos=(x_pos, y_pos))
+                    text = visual.TextStim(win, text=key, color='black', height=0.04, pos=(x_pos, y_pos))
+                    row_buttons.append((button, text, key, x_pos, y_pos))
+                
+                keyboard_buttons.append(row_buttons)
             
-            keyboard_buttons.append(row_buttons)
-        
-        # Special buttons - arranged horizontally between input and keyboard
-        button_y_pos = 0.05  # Position between input (0.25) and keyboard start (-0.15)
-        backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', 
-                                      lineColor='black', lineWidth=2, pos=(-0.25, button_y_pos))
-        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025, pos=(-0.25, button_y_pos))
-        
-        continue_button = visual.Rect(win, width=0.3, height=0.1, fillColor='lightgreen', 
-                                      lineColor='black', lineWidth=2, pos=(0.25, button_y_pos))
-        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025, pos=(0.25, button_y_pos))
+            print("Creating special buttons...")
+            # Special buttons - arranged horizontally between input and keyboard
+            button_y_pos = 0.05  # Position between input (0.25) and keyboard start (-0.15)
+            backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', 
+                                          lineColor='black', lineWidth=2, pos=(-0.25, button_y_pos))
+            backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025, pos=(-0.25, button_y_pos))
+            
+            continue_button = visual.Rect(win, width=0.3, height=0.1, fillColor='lightgreen', 
+                                          lineColor='black', lineWidth=2, pos=(0.25, button_y_pos))
+            continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025, pos=(0.25, button_y_pos))
+            print("All keyboard buttons created successfully")
+        except Exception as e:
+            print(f"ERROR creating keyboard buttons: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     def redraw():
         id_prompt.draw()
