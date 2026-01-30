@@ -2,6 +2,27 @@ from psychopy import visual, core, event
 import os, random, time
 import csv
 from datetime import datetime
+import sys
+import traceback
+
+# Set up exception hook to catch all unhandled exceptions
+def exception_handler(exc_type, exc_value, exc_traceback):
+    """Handle unhandled exceptions"""
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    print("="*60)
+    print("UNHANDLED EXCEPTION!")
+    print("="*60)
+    traceback.print_exception(exc_type, exc_value, exc_traceback)
+    print("="*60)
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
+
+sys.excepthook = exception_handler
 
 # =========================
 #  SETUP
@@ -374,22 +395,41 @@ CATEGORY_MAPPING = {
 
 # Ask for input method first
 print("Getting input method...")
+result = None
 try:
     result = get_input_method()
     print(f"Input method result: {result}")
+    sys.stdout.flush()
     print(f"Input method type: {type(result)}")
+    sys.stdout.flush()
 except Exception as e:
     print(f"ERROR in get_input_method(): {e}")
     import traceback
     traceback.print_exc()
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
     core.quit()
     exit(1)
 
 if result is None:
     print("Input method selection cancelled. Exiting...")
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
     core.quit()
     exit(0)
+
 print(f"Input method selected: {'TOUCH SCREEN' if result else 'MOUSE/TRACKPAD'}")
+sys.stdout.flush()
+print(f"Result value: {result}, Type: {type(result)}")
+sys.stdout.flush()
+print("About to create main window...")
+sys.stdout.flush()
 
 def get_category_for_stimulus(stimulus_num):
     """Get the category name for a given stimulus number"""
@@ -1296,68 +1336,215 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
 # Create main window with appropriate settings - use try/finally pattern
 win = None
 try:
+    print("="*60)
+    sys.stdout.flush()
+    print("STARTING WINDOW CREATION")
+    sys.stdout.flush()
+    print("="*60)
+    sys.stdout.flush()
+    
+    import time
     # Brief delay to ensure temp window is fully closed
-    time.sleep(0.1)  # Small delay to ensure clean transition
+    print("Waiting before creating main window...")
+    sys.stdout.flush()
+    time.sleep(0.2)  # Additional delay to ensure temp window is fully closed
     
     print("Creating main window...")
-    
-    # Create window in windowed mode with larger size for better visibility
+    sys.stdout.flush()
+    # Create window in fullscreen mode
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
+        print("Attempting to create fullscreen window...")
+        sys.stdout.flush()
         win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=True, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
+        print("Fullscreen window created successfully")
+        sys.stdout.flush()
     except Exception as e:
-        # If window creation fails, try with alternative explicit size
+        # If fullscreen fails, try windowed mode as fallback
         import traceback
         traceback.print_exc()
-        print("Trying with alternative size (1280, 720)...")
+        print(f"Fullscreen window creation failed: {e}")
+        sys.stdout.flush()
+        print("Trying windowed mode as fallback...")
+        sys.stdout.flush()
         time.sleep(0.1)  # Reduced delay
         try:
-            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=True, viewPos=(0, 0))
+            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
             win.flip()
-            print("Main window created with size (1280, 720)")
+            print("Windowed mode window created successfully")
+            sys.stdout.flush()
         except Exception as e2:
-            print(f"Error: Could not create window ({e2})")
+            print("="*60)
+            print(f"ERROR: Could not create window in either mode ({e2})")
+            print("="*60)
             import traceback
             traceback.print_exc()
-            print("Exiting...")
+            print("Press Enter to exit...")
+            try:
+                input()
+            except:
+                pass
             core.quit()
             exit(1)
     
     # Verify window was created successfully
     if win is None:
-        print("Error: Failed to create main window - win is None")
+        print("="*60)
+        print("ERROR: Failed to create main window - win is None")
+        print("="*60)
+        print("Press Enter to exit...")
+        try:
+            input()
+        except:
+            pass
         core.quit()
         exit(1)
+    
+    print(f"Window created successfully: {win}")
+    sys.stdout.flush()
     
     # Ensure window is visible and ready
     try:
         win.flip()
         core.wait(0.1)  # Brief wait to ensure window is fully ready
-        print("Main window created successfully and ready")
+        print("Main window created successfully")
+        sys.stdout.flush()
     except Exception as e:
         print(f"Error preparing window: {e}")
         import traceback
         traceback.print_exc()
-        if win is not None:
-            try:
-                win.close()
-            except:
-                pass
         core.quit()
         exit(1)
+    
+    # Force window to front on macOS
+    try:
+        import platform
+        if platform.system() == 'Darwin':  # macOS
+            try:
+                win.winHandle.activate()
+            except:
+                pass
+    except:
+        pass
+
+    # Initial flip to ensure window is ready
+    print("Performing initial window flip...")
+    sys.stdout.flush()
+    try:
+        win.flip()
+        print("Initial flip successful")
+        sys.stdout.flush()
+    except Exception as e:
+        print(f"ERROR during initial flip: {e}")
+        sys.stdout.flush()
+        raise
+    core.wait(0.1)
+    
+    # Test that window can draw something simple
+    print("Testing window with simple draw...")
+    sys.stdout.flush()
+    try:
+        test_text = visual.TextStim(win, text="Test", color='black', height=0.05*0.75, pos=(0, 0))
+        test_text.draw()
+        win.flip()
+        print("Window draw test successful")
+        sys.stdout.flush()
+        core.wait(0.1)
+    except Exception as e:
+        print(f"ERROR during window draw test: {e}")
+        sys.stdout.flush()
+        import traceback
+        traceback.print_exc()
+        raise
     
     # Verify window is ready before continuing
     if win is None:
-        print("Error: Window is None after creation - cannot continue")
-        core.quit()
-        exit(1)
+        print("="*60)
+        print("CRITICAL ERROR: win is None after window creation attempt")
+        print("="*60)
+        raise RuntimeError("Main window creation failed - win is None")
     
     print("Window verification complete, proceeding to experiment...")
+    sys.stdout.flush()
     print(f"Window object: {win}")
+    sys.stdout.flush()
     print(f"Window type: {type(win)}")
+    sys.stdout.flush()
+    print("Main window setup complete. Window is ready.")
+    sys.stdout.flush()
+    print("="*60)
+    sys.stdout.flush()
+    print("WINDOW CREATION SUCCESSFUL")
+    sys.stdout.flush()
+    print("="*60)
+    sys.stdout.flush()
+    
+except Exception as e:
+    print("="*60)
+    sys.stdout.flush()
+    print("EXCEPTION CAUGHT IN WINDOW CREATION")
+    sys.stdout.flush()
+    print("="*60)
+    sys.stdout.flush()
+    print(f"ERROR creating main window: {e}")
+    sys.stdout.flush()
+    print(f"Error type: {type(e).__name__}")
+    sys.stdout.flush()
+    import traceback
+    traceback.print_exc()
+    print("="*60)
+    sys.stdout.flush()
+    print("CRITICAL ERROR: Failed to create main window")
+    sys.stdout.flush()
+    print("="*60)
+    sys.stdout.flush()
+    if win is not None:
+        try:
+            win.close()
+        except:
+            pass
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
+    try:
+        core.quit()
+    except:
+        pass
+    exit(1)
+except SystemExit:
+    print("SystemExit caught - program is exiting")
+    raise
+except:
+    print("="*60)
+    sys.stdout.flush()
+    print("UNKNOWN EXCEPTION CAUGHT IN WINDOW CREATION")
+    sys.stdout.flush()
+    print("="*60)
+    sys.stdout.flush()
+    import traceback
+    traceback.print_exc()
+    print("="*60)
+    sys.stdout.flush()
+    if win is not None:
+        try:
+            win.close()
+        except:
+            pass
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
+    try:
+        core.quit()
+    except:
+        pass
+    exit(1)
     
     # =========================
     #  MAIN EXPERIMENT
@@ -1446,7 +1633,7 @@ try:
         
         # Load and display image
         try:
-            img = visual.ImageStim(win, image=stimulus['path'], size=(0.8, 0.8))
+            img = visual.ImageStim(win, image=stimulus['path'], size=(0.8*0.75, 0.8*0.75))
             img.draw()
             win.flip()
             
@@ -1564,24 +1751,37 @@ try:
     
     # Clean up on successful completion
     print("Experiment completed successfully")
+    sys.stdout.flush()
     if win is not None:
         try:
             win.close()
         except Exception:
             pass
-    core.quit()
+    try:
+        core.quit()
+    except:
+        pass
 
 except Exception as e:
     # Catch any unhandled exceptions in the main experiment
-    print(f"\n{'='*60}")
-    print(f"CAUGHT EXCEPTION in main experiment block!")
+    print("="*60)
+    sys.stdout.flush()
+    print("EXCEPTION CAUGHT IN MAIN EXPERIMENT BLOCK")
+    sys.stdout.flush()
+    print("="*60)
+    sys.stdout.flush()
     print(f"Exception: {e}")
+    sys.stdout.flush()
     print(f"Error type: {type(e).__name__}")
+    sys.stdout.flush()
     print(f"Window state: win = {win}")
+    sys.stdout.flush()
     import traceback
     print("Full traceback:")
+    sys.stdout.flush()
     traceback.print_exc()
-    print(f"{'='*60}\n")
+    print("="*60)
+    sys.stdout.flush()
     print("Press Enter to see error details...")
     try:
         input()
@@ -1592,7 +1792,39 @@ except Exception as e:
             win.close()
         except Exception:
             pass
-    core.quit()
+    try:
+        core.quit()
+    except:
+        pass
+    exit(1)
+except SystemExit:
+    print("SystemExit caught in main experiment")
+    raise
+except:
+    print("="*60)
+    sys.stdout.flush()
+    print("UNKNOWN EXCEPTION CAUGHT IN MAIN EXPERIMENT BLOCK")
+    sys.stdout.flush()
+    print("="*60)
+    sys.stdout.flush()
+    import traceback
+    traceback.print_exc()
+    print("="*60)
+    sys.stdout.flush()
+    if win is not None:
+        try:
+            win.close()
+        except Exception:
+            pass
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
+    try:
+        core.quit()
+    except:
+        pass
     exit(1)
 finally:
     # Cleanup - this block always executes

@@ -8,6 +8,13 @@ import math
 import sys
 import traceback
 
+# Force stdout to flush after each print
+def print_flush(*args, **kwargs):
+    print(*args, **kwargs)
+    sys.stdout.flush()
+
+# Use print_flush for critical messages, but keep regular print for compatibility
+
 # Set up exception hook to catch all unhandled exceptions
 def exception_handler(exc_type, exc_value, exc_traceback):
     """Handle unhandled exceptions"""
@@ -410,6 +417,12 @@ print("About to create main window...")
 # Create main window with appropriate settings - use try/finally pattern
 win = None
 try:
+    print("="*60)
+    sys.stdout.flush()
+    print("STARTING WINDOW CREATION")
+    sys.stdout.flush()
+    print("="*60)
+    sys.stdout.flush()
     import time
     # Brief delay to ensure temp window is fully closed
     print("Waiting before creating main window...")
@@ -480,7 +493,13 @@ try:
         pass
 
     # Initial flip to ensure window is ready
-    win.flip()
+    print("Performing initial window flip...")
+    try:
+        win.flip()
+        print("Initial flip successful")
+    except Exception as e:
+        print(f"ERROR during initial flip: {e}")
+        raise
     core.wait(0.1)
     
     # Verify window is ready before continuing
@@ -490,10 +509,31 @@ try:
         print("="*60)
         raise RuntimeError("Main window creation failed - win is None")
     
+    # Test that window can draw something simple
+    print("Testing window with simple draw...")
+    try:
+        test_text = visual.TextStim(win, text="Test", color='black', height=0.05*0.75, pos=(0, 0))
+        test_text.draw()
+        win.flip()
+        print("Window draw test successful")
+        core.wait(0.1)
+    except Exception as e:
+        print(f"ERROR during window draw test: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
+    
     print("Main window setup complete. Window is ready.")
+    print("="*60)
+    print("WINDOW CREATION SUCCESSFUL")
+    print("="*60)
     
 except Exception as e:
+    print("="*60)
+    print("EXCEPTION CAUGHT IN WINDOW CREATION")
+    print("="*60)
     print(f"ERROR creating main window: {e}")
+    print(f"Error type: {type(e).__name__}")
     import traceback
     traceback.print_exc()
     print("="*60)
@@ -509,7 +549,35 @@ except Exception as e:
         input()
     except:
         pass
-    core.quit()
+    try:
+        core.quit()
+    except:
+        pass
+    exit(1)
+except SystemExit:
+    print("SystemExit caught - program is exiting")
+    raise
+except:
+    print("="*60)
+    print("UNKNOWN EXCEPTION CAUGHT IN WINDOW CREATION")
+    print("="*60)
+    import traceback
+    traceback.print_exc()
+    print("="*60)
+    if win is not None:
+        try:
+            win.close()
+        except:
+            pass
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
+    try:
+        core.quit()
+    except:
+        pass
     exit(1)
 
 # =========================
@@ -793,30 +861,42 @@ else:
 # =========================
 #  BASIC VISUAL ELEMENTS
 # =========================
-print("Creating basic visual elements...")
+print("="*60)
+print("STARTING BASIC VISUAL ELEMENTS CREATION")
+print("="*60)
 instr = None
 fixation = None
 feedback_txt = None
 mouse = None
 
 try:
+    print(f"Checking win before creating elements: win = {win}, type = {type(win)}")
     if win is None:
         raise RuntimeError("Cannot create visual elements - win is None")
     
     print(f"Window status: {win}, type: {type(win)}")
+    print("Creating instr...")
     instr = visual.TextStim(win, text="", color='black', height=0.04*0.75, wrapWidth=1.5*0.75, pos=(0, 0))
     print("instr created")
+    print("Creating fixation...")
     fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75, pos=(0, 0))
     print("fixation created")
+    print("Creating feedback_txt...")
     feedback_txt = visual.TextStim(win, text="", color='black', height=0.05*0.75, pos=(0, 0))
     print("feedback_txt created")
+    print("Creating mouse...")
     mouse = event.Mouse(win=win)
     print("mouse created")
     print("Basic visual elements created successfully")
+    print("="*60)
+    print("BASIC VISUAL ELEMENTS CREATION SUCCESSFUL")
+    print("="*60)
 except Exception as e:
     print("="*60)
-    print(f"ERROR creating basic visual elements: {e}")
+    print("EXCEPTION CAUGHT IN BASIC VISUAL ELEMENTS CREATION")
     print("="*60)
+    print(f"ERROR creating basic visual elements: {e}")
+    print(f"Error type: {type(e).__name__}")
     import traceback
     traceback.print_exc()
     print("="*60)
@@ -830,7 +910,35 @@ except Exception as e:
             win.close()
         except:
             pass
-    core.quit()
+    try:
+        core.quit()
+    except:
+        pass
+    exit(1)
+except SystemExit:
+    print("SystemExit caught in visual elements creation")
+    raise
+except:
+    print("="*60)
+    print("UNKNOWN EXCEPTION CAUGHT IN BASIC VISUAL ELEMENTS CREATION")
+    print("="*60)
+    import traceback
+    traceback.print_exc()
+    print("="*60)
+    if win is not None:
+        try:
+            win.close()
+        except:
+            pass
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
+    try:
+        core.quit()
+    except:
+        pass
     exit(1)
 
 def get_log_directory():
