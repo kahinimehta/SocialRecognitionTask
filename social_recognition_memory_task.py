@@ -302,9 +302,82 @@ fixation = visual.TextStim(win, text="+", color='black', height=0.08, pos=(0, 0)
 feedback_txt = visual.TextStim(win, text="", color='black', height=0.05, pos=(0, 0))
 mouse = event.Mouse(win=win)
 
+# Global variable to store input method preference
+USE_TOUCH_SCREEN = False
+
+def get_log_directory():
+    """Get the directory for log files based on input method"""
+    if USE_TOUCH_SCREEN:
+        log_dir = "../LOG_FILES"
+        # Create directory if it doesn't exist
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        return log_dir
+    else:
+        return "."  # Current directory for click/mouse
+
+def is_test_participant(participant_id):
+    """Check if participant ID contains 'test' (case-insensitive)"""
+    if participant_id is None:
+        return False
+    return "test" in participant_id.lower()
+
 # =========================
 #  HELPER FUNCTIONS
 # =========================
+def get_input_method():
+    """Ask user whether they're using touch screen (1) or click screen (2)"""
+    global USE_TOUCH_SCREEN
+    
+    prompt_text = visual.TextStim(
+        win,
+        text="What input method are you using?\n\n"
+             "Press 1 for TOUCH SCREEN\n"
+             "Press 2 for CLICK/MOUSE",
+        color='black',
+        height=0.06,
+        pos=(0, 0),
+        wrapWidth=1.4
+    )
+    
+    prompt_text.draw()
+    win.flip()
+    
+    event.clearEvents()
+    selected = None
+    
+    while selected is None:
+        keys = event.getKeys(keyList=['1', '2', 'escape'])
+        if '1' in keys:
+            USE_TOUCH_SCREEN = True
+            selected = 'touch'
+            break
+        elif '2' in keys:
+            USE_TOUCH_SCREEN = False
+            selected = 'click'
+            break
+        elif 'escape' in keys:
+            core.quit()
+        
+        core.wait(0.05)
+    
+    # Show confirmation
+    confirm_text = visual.TextStim(
+        win,
+        text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}\n\n"
+             "Press SPACE to continue.",
+        color='black',
+        height=0.06,
+        pos=(0, 0),
+        wrapWidth=1.4
+    )
+    
+    confirm_text.draw()
+    win.flip()
+    wait_for_space()
+    
+    return USE_TOUCH_SCREEN
+
 def wait_for_space(redraw_func=None):
     """Wait for space key press"""
     event.clearEvents()
@@ -456,7 +529,8 @@ def load_image_stimulus(image_path):
 #  SLIDER FOR OLD-NEW RATING
 # =========================
 def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_num=None, max_trials=10, timeout=7.0):
-    """Get slider response from participant using click-and-drag slider with submit button"""
+    """Get slider response from participant using click-and-drag slider with submit button
+    Works with both touch screen and mouse input"""
     # Create slider visual elements
     slider_line = visual.Line(
         win,
@@ -493,13 +567,14 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04, pos=(0, -0.35))
     
     mouse.setVisible(True)
-    # Don't set mouse position on macOS - it causes errors
-    # Mouse will start wherever it is
-    try:
-        mouse.setPos((0, -0.2))  # Start mouse at center
-    except (AttributeError, Exception):
-        # macOS compatibility - skip setPos if it fails
-        pass
+    # Don't set mouse position on macOS or touch screens - it causes errors
+    # Mouse will start wherever it is, touch position is determined by user
+    if not USE_TOUCH_SCREEN:
+        try:
+            mouse.setPos((0, -0.2))  # Start mouse at center
+        except (AttributeError, Exception):
+            # macOS compatibility - skip setPos if it fails
+            pass
     
     slider_value = 0.5  # Start at center (0.5)
     start_time = time.time()
@@ -553,11 +628,12 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             # Handle macOS event handling issues - try to recover
             try:
                 event.clearEvents()
-                # Try to reset mouse
-                try:
-                    mouse.setPos(mouse_pos)  # Keep current position
-                except:
-                    pass
+                # Try to reset mouse (only for non-touch screens)
+                if not USE_TOUCH_SCREEN:
+                    try:
+                        mouse.setPos(mouse_pos)  # Keep current position
+                    except:
+                        pass
             except:
                 pass
             # Keep using previous mouse state instead of defaulting
@@ -571,14 +647,25 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             except:
                 pass
         
-        # Check if mouse is clicking on slider handle or near slider line
+        # Check if mouse/touch is clicking on slider handle or near slider line
         handle_distance = ((mouse_pos[0] - slider_handle.pos[0])**2 + (mouse_pos[1] - slider_handle.pos[1])**2)**0.5
         on_slider_line = abs(mouse_pos[1] - (-0.2)) < 0.05  # Within 0.05 of slider line y-position
         
-        # Start dragging if clicked on handle or slider line
+        # For touch screen: larger touch area, immediate response
+        # For mouse: smaller click area
+        touch_threshold = 0.08 if USE_TOUCH_SCREEN else 0.05
+        
+        # Start dragging if clicked/touched on handle or slider line
         if mouse_buttons[0] and not prev_mouse_buttons[0]:
-            if handle_distance < 0.05 or (on_slider_line and -0.4 <= mouse_pos[0] <= 0.4):
+            if handle_distance < touch_threshold or (on_slider_line and -0.4 <= mouse_pos[0] <= 0.4):
                 dragging = True
+                # For touch screen, immediately update position when touched
+                if USE_TOUCH_SCREEN:
+                    x_pos = max(-0.4, min(0.4, mouse_pos[0]))
+                    slider_value = (x_pos + 0.4) / 0.8
+                    slider_handle.pos = (x_pos, -0.2)
+                    if abs(slider_value - 0.5) > 0.01:
+                        has_moved = True
         
         if dragging and mouse_buttons[0]:
             # Constrain to slider line (x from -0.4 to 0.4)
@@ -602,13 +689,16 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         
         prev_dragging = dragging
         
-        # Check if submit button is clicked (on mouse release)
+        # Check if submit button is clicked/touched (on mouse/touch release)
         submit_x, submit_y = submit_button.pos
         submit_width, submit_height = submit_button.width, submit_button.height
-        submit_clicked = (submit_x - submit_width/2 <= mouse_pos[0] <= submit_x + submit_width/2 and
-                         submit_y - submit_height/2 <= mouse_pos[1] <= submit_y + submit_height/2)
+        # For touch screen, use slightly larger hit area
+        hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+        submit_clicked = (submit_x - submit_width/2 - hit_margin <= mouse_pos[0] <= submit_x + submit_width/2 + hit_margin and
+                         submit_y - submit_height/2 - hit_margin <= mouse_pos[1] <= submit_y + submit_height/2 + hit_margin)
         
         # Only allow submit if slider has been moved from center
+        # For touch screen, also allow immediate submit on touch release
         if prev_mouse_buttons[0] and not mouse_buttons[0] and submit_clicked and has_moved:
             slider_commit_time = time.time()
             break
@@ -732,30 +822,47 @@ class AICollaborator:
 # =========================
 def run_study_phase(studied_images, block_num):
     """
-    Show study phase: images back-to-back
+    Show study phase: images back-to-back with jittered fixations
     NOTE: Study phase ONLY shows studied images (IMAGE_X.png), never lures
     """
     study_data = []
+    image_duration = 1.0  # Show each image for 1 second
     
     for i, img_path in enumerate(studied_images, 1):
-        show_fixation(0.5)
+        # Jittered fixation between images (0.25-0.75 seconds)
+        if i > 1:  # No fixation before first image
+            fixation_duration = random.uniform(0.25, 0.75)
+            fixation_onset = time.time()
+            show_fixation(fixation_duration)
+            fixation_offset = time.time()
+        else:
+            fixation_duration = None
+            fixation_onset = None
+            fixation_offset = None
         
         # Load and display image
         img_stim = load_image_stimulus(img_path)
         img_stim.draw()
         win.flip()
         
-        onset_time = time.time()
-        core.wait(2.0)  # Show each image for 2 seconds
+        image_onset = time.time()
+        core.wait(image_duration)  # Show each image for 1 second
+        image_offset = time.time()
         
         study_data.append({
             "block": block_num,
             "phase": "study",
             "trial": i,
             "image_path": img_path,
-            "onset_time": onset_time
+            "image_onset": image_onset,
+            "image_offset": image_offset,
+            "image_duration": image_duration,
+            "fixation_onset": fixation_onset,
+            "fixation_offset": fixation_offset,
+            "fixation_duration": fixation_duration
         })
     
+    # Final fixation after last image
     show_fixation(1.0)
     return study_data
 
@@ -969,21 +1076,12 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "euclidean_participant_to_ai": abs(participant_value - ai_confidence)
         }
     
-    # Show outcome (50% social feedback if switched, regardless of correctness)
-    # Bonus points are awarded 50% of the time when switching, independent of whether
-    # switching made them correct or incorrect
+    # Show outcome
     outcome_time = time.time()
-    # Only show social feedback 50% of the time when they switch (regardless of correctness)
-    if switch_decision == "switch":
-        show_social = random.random() < 0.5
-    else:
-        show_social = False
     # Calculate points based on euclidean distance (passed to show_trial_outcome)
-    points_earned, social_feedback_time = show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, show_social_feedback=show_social, total_points=total_points)
+    points_earned = show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, total_points=total_points)
     trial_data["outcome_time"] = outcome_time
     trial_data["coins_earned"] = points_earned  # Keep CSV field name for compatibility
-    trial_data["social_feedback"] = show_social
-    trial_data["social_feedback_time"] = social_feedback_time
     
     return trial_data, points_earned
 
@@ -1318,11 +1416,12 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
             # Handle macOS event handling issues - try to recover
             try:
                 event.clearEvents()
-                # Try to reset mouse
-                try:
-                    mouse.setPos(mouse_pos)  # Keep current position
-                except:
-                    pass
+                # Try to reset mouse (only for non-touch screens)
+                if not USE_TOUCH_SCREEN:
+                    try:
+                        mouse.setPos(mouse_pos)  # Keep current position
+                    except:
+                        pass
             except:
                 pass
             # Keep using previous mouse state instead of defaulting
@@ -1341,14 +1440,16 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         # Check stay button
         stay_x, stay_y = stay_button.pos
         stay_width, stay_height = stay_button.width, stay_button.height
-        stay_clicked = (stay_x - stay_width/2 <= mouse_pos[0] <= stay_x + stay_width/2 and
-                       stay_y - stay_height/2 <= mouse_pos[1] <= stay_y + stay_height/2)
+        # For touch screen, use slightly larger hit area
+        hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+        stay_clicked = (stay_x - stay_width/2 - hit_margin <= mouse_pos[0] <= stay_x + stay_width/2 + hit_margin and
+                       stay_y - stay_height/2 - hit_margin <= mouse_pos[1] <= stay_y + stay_height/2 + hit_margin)
         
         # Check switch button
         switch_x, switch_y = switch_button.pos
         switch_width, switch_height = switch_button.width, switch_button.height
-        switch_clicked = (switch_x - switch_width/2 <= mouse_pos[0] <= switch_x + switch_width/2 and
-                         switch_y - switch_height/2 <= mouse_pos[1] <= switch_y + switch_height/2)
+        switch_clicked = (switch_x - switch_width/2 - hit_margin <= mouse_pos[0] <= switch_x + switch_width/2 + hit_margin and
+                         switch_y - switch_height/2 - hit_margin <= mouse_pos[1] <= switch_y + switch_height/2 + hit_margin)
         
         # Check for mouse button release on buttons
         if prev_mouse_buttons[0] and not mouse_buttons[0]:
@@ -1460,7 +1561,7 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
         wrapWidth=1.4
     )
     
-    options = ["Correctness", "Bonus points", "Both", "Other"]
+    options = ["Correctness", "Both", "Other"]
     option_buttons = []
     option_y_positions = [0.1, -0.05, -0.2, -0.35]
     
@@ -1522,12 +1623,14 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
             mouse_pos = mouse.getPos()
             mouse_buttons = mouse.getPressed()
             
-            if mouse_buttons[0]:  # Left click
+            if mouse_buttons[0]:  # Left click or touch
+                # For touch screen, use slightly larger hit area
+                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
                 for button, text, opt_text in option_buttons:
                     button_pos = button.pos
                     button_size = button.size
-                    if (abs(mouse_pos[0] - button_pos[0]) < button_size[0]/2 and
-                        abs(mouse_pos[1] - button_pos[1]) < button_size[1]/2):
+                    if (abs(mouse_pos[0] - button_pos[0]) < button_size[0]/2 + hit_margin and
+                        abs(mouse_pos[1] - button_pos[1]) < button_size[1]/2 + hit_margin):
                         selected_option = opt_text
                         q1_elapsed = elapsed
                         # Visual feedback
@@ -1651,26 +1754,29 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
             mouse_pos = mouse.getPos()
             mouse_buttons = mouse.getPressed()
             
-            if mouse_buttons[0]:  # Mouse button pressed
-                # Check if clicking on submit button
+            if mouse_buttons[0]:  # Mouse button pressed or touch
+                # For touch screen, use slightly larger hit area
+                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+                # Check if clicking/touching on submit button
                 button_pos = submit_button.pos
                 button_size = submit_button.size
-                if (abs(mouse_pos[0] - button_pos[0]) < button_size[0]/2 and
-                    abs(mouse_pos[1] - button_pos[1]) < button_size[1]/2):
-                    # Submit clicked - record response time
+                if (abs(mouse_pos[0] - button_pos[0]) < button_size[0]/2 + hit_margin and
+                    abs(mouse_pos[1] - button_pos[1]) < button_size[1]/2 + hit_margin):
+                    # Submit clicked/touched - record response time
                     trust_response_time = time.time() - start_time
                     submit_button.fillColor = 'green'
                     redraw_q2()
                     core.wait(0.3)
                     break
                 
-                # Check if clicking on slider
+                # Check if clicking/touching on slider
                 handle_x = -0.4 + trust_value * 0.8
-                if abs(mouse_pos[0] - handle_x) < 0.1 and abs(mouse_pos[1]) < 0.05:
+                touch_threshold = 0.12 if USE_TOUCH_SCREEN else 0.1
+                if abs(mouse_pos[0] - handle_x) < touch_threshold and abs(mouse_pos[1]) < 0.05:
                     slider_dragging = True
                 
                 if slider_dragging:
-                    # Update slider value based on mouse X position
+                    # Update slider value based on mouse/touch X position
                     new_value = (mouse_pos[0] + 0.4) / 0.8
                     trust_value = max(0.0, min(1.0, new_value))
             else:
@@ -1687,7 +1793,13 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
     # Save to CSV
     if questions_file is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        questions_file = f"recognition_questions_{participant_id}_{timestamp}.csv"
+        log_dir = get_log_directory()
+        questions_file = os.path.join(log_dir, f"recognition_questions_{participant_id}_{timestamp}.csv")
+    
+    # Skip saving if test participant
+    if is_test_participant(participant_id):
+        print(f"⚠ Test participant detected - skipping file save for block {block_num} questions")
+        return {"participant_id": participant_id, "block": block_num, "maximize_goal": selected_option, "trust_rating": trust_value, "trust_rt": trust_response_time if trust_response_time else timeout, "question1_timeout": q1_elapsed >= timeout if q1_elapsed else False, "question2_timeout": trust_response_time is None or (trust_response_time >= timeout)}, None
     
     file_exists = os.path.exists(questions_file)
     question_data = {
@@ -1771,10 +1883,8 @@ def show_leaderboard(participant_id, total_points):
     redraw()
     wait_for_space(redraw_func=redraw)
 
-def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, show_social_feedback=False, total_points=0):
+def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, total_points=0):
     """Show trial outcome with points based on euclidean distance"""
-    social_feedback_time = None
-    
     # Calculate correctness points based on euclidean distance from correct answer
     # Points = 1 - distance, so closer answers get more points (max 1.0, min 0.0)
     euclidean_distance = abs(final_answer - correct_answer)
@@ -1793,22 +1903,6 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
         outcome_text = "Incorrect"
         color = 'red'
     
-    # Calculate social feedback bonus (separate from correctness points)
-    # Randomly draw from normal distribution: 0.5-0.75 in 0.05 increments
-    if show_social_feedback:
-        # Generate from normal distribution centered at 0.625 (midpoint of 0.5-0.75)
-        # Use std of 0.06 to get good spread across range
-        bonus_raw = np.random.normal(loc=0.625, scale=0.06)
-        # Round to nearest 0.05 increment
-        bonus_rounded = round(bonus_raw / 0.05) * 0.05
-        # Clamp to 0.5-0.75 range
-        social_bonus = max(0.5, min(0.75, bonus_rounded))
-        # Round to 2 decimal places for consistency
-        social_bonus = round(social_bonus, 2)
-    else:
-        social_bonus = 0.0
-    total_points_this_trial = correctness_points + social_bonus
-    
     # Show outcome with points (only show points earned this trial, not total)
     outcome_text_full = f"{outcome_text}\n\nPoints earned this trial: {correctness_points_rounded:.2f}"
     outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06, pos=(0, 0), wrapWidth=1.4)
@@ -1816,24 +1910,8 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
     win.flip()
     core.wait(1.5)
     
-    # Show social reinforcement 50% of the time if they switched (regardless of correctness)
-    if show_social_feedback:
-        reinforcement_text = visual.TextStim(
-            win,
-            text=f"Thanks for working with your partner!\n\nYou receive a {social_bonus:.2f} bonus point!",
-            color='blue',
-            height=0.06,
-            pos=(0, 0),
-            wrapWidth=1.2
-        )
-        reinforcement_text.draw()
-        win.flip()
-        # Record time right when the feedback screen is displayed
-        social_feedback_time = time.time()
-        core.wait(2.0)
-    
-    # Return total points (correctness + social bonus)
-    return total_points_this_trial, social_feedback_time
+    # Return points earned this trial
+    return correctness_points
 
 # =========================
 #  BLOCK STRUCTURE
@@ -1933,7 +2011,7 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
     # Renumber trials after shuffling
     trial_sequence = [(i+1, img_path, is_studied) for i, (_, img_path, is_studied) in enumerate(trial_sequence)]
     
-    total_points = 0.0  # Track total points (correctness + social feedback)
+    total_points = 0.0  # Track total points (correctness only)
     max_possible_points = float(num_trials)  # Max points from correctness only (1.0 per trial)
     
     for trial_num, img_path, is_studied in trial_sequence:
@@ -1949,7 +2027,7 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
         trial_data['block_duration_minutes'] = None  # Will be updated at end of block
         
         all_trial_data.append(trial_data)
-        total_points += points_earned  # Includes correctness + social feedback
+        total_points += points_earned  # Includes correctness only
         
         # Save data after each trial (not each block)
         if participant_id:
@@ -1967,7 +2045,8 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
         # Use a consistent questions file name (create once, reuse)
         if not hasattr(run_block, 'questions_file'):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            run_block.questions_file = f"recognition_questions_{participant_id}_{timestamp}.csv"
+            log_dir = get_log_directory()
+            run_block.questions_file = os.path.join(log_dir, f"recognition_questions_{participant_id}_{timestamp}.csv")
         ask_block_questions(block_num, participant_id, questions_file=run_block.questions_file, timeout=7.0)
     
     # Record block end time and calculate duration
@@ -1981,7 +2060,7 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
         trial_data['block_duration_minutes'] = block_duration / 60.0
     
     # Update the CSV file with block timing for all trials in this block
-    if participant_id and trial_file and os.path.exists(trial_file):
+    if participant_id and trial_file and os.path.exists(trial_file) and not is_test_participant(participant_id):
         update_block_timing_in_csv(trial_file, block_num, block_start_time, block_end_time, block_duration)
     
     return study_data, all_trial_data, study_file, trial_file, total_points
@@ -2034,10 +2113,16 @@ def update_block_timing_in_csv(trial_file, block_num, block_start_time, block_en
 def save_data_incremental(all_study_data, all_trial_data, participant_id,
                           study_file=None, trial_file=None):
     """Save data incrementally"""
+    # Skip saving if test participant
+    if is_test_participant(participant_id):
+        print(f"⚠ Test participant detected - skipping file save")
+        return None, None
+    
     if study_file is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        study_file = f"recognition_study_{participant_id}_{timestamp}.csv"
-        trial_file = f"recognition_trials_{participant_id}_{timestamp}.csv"
+        log_dir = get_log_directory()
+        study_file = os.path.join(log_dir, f"recognition_study_{participant_id}_{timestamp}.csv")
+        trial_file = os.path.join(log_dir, f"recognition_trials_{participant_id}_{timestamp}.csv")
     
     # Save study data
     if all_study_data and len(all_study_data) > 0:
@@ -2092,7 +2177,11 @@ def run_experiment():
     )
     
     mouse.setVisible(True)
-    mouse.setPos((0, 0))  # Reset mouse position
+    if not USE_TOUCH_SCREEN:
+        try:
+            mouse.setPos((0, 0))  # Reset mouse position
+        except:
+            pass  # May fail on some systems
     
     # Draw and flip once to ensure window is ready (removed multiple draws for faster start)
     start_screen.draw()
@@ -2151,6 +2240,9 @@ def run_experiment():
     
     # Small delay to ensure window is ready
     core.wait(0.5)
+    
+    # Ask for input method (touch screen or click/mouse)
+    get_input_method()
     
     # Record experiment start time
     experiment_start_time = time.time()
@@ -2241,9 +2333,7 @@ def run_experiment():
     )
     
     show_instructions(
-        "BONUS POINTS & REWARDS:\n\n"
-        "If you choose to work with your partner and switch your answer,\n"
-        "you will get a 0.5 bonus point 50% of the time (randomly).\n\n"
+        "REWARDS:\n\n"
         "You'll see your points after each trial.\n\n"
         "At the end of each block, you'll be asked 2 quick questions.\n\n"
         "At the end of the game, you'll see a leaderboard showing how\n"
@@ -2408,8 +2498,7 @@ def run_experiment():
         "4. SCORING:\n"
         "   - Points based on how close your final answer is to correct\n"
         "   - More confident + correct = more points\n"
-        "   - More confident + wrong = fewer points\n"
-        "   - Bonus: Switch to get 0.5 bonus point (50% chance)\n\n"
+        "   - More confident + wrong = fewer points\n\n"
         "5. QUESTIONS:\n"
         "   - At the end of each block, you'll answer 2 quick questions\n\n"
         "Press SPACE to begin the experiment.",
@@ -2532,20 +2621,25 @@ def run_experiment():
     )
     
     # Save total task time to a summary file
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    summary_file = f"recognition_summary_{participant_id}_{timestamp}.csv"
-    with open(summary_file, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=['participant_id', 'experiment_start_time', 'experiment_end_time', 'total_task_time_seconds', 'total_task_time_minutes'])
-        writer.writeheader()
-        writer.writerow({
-            'participant_id': participant_id,
-            'experiment_start_time': experiment_start_time,
-            'experiment_end_time': experiment_end_time,
-            'total_task_time_seconds': total_task_time,
-            'total_task_time_minutes': total_task_time / 60.0
-        })
-    print(f"✓ Summary data saved to {summary_file}")
-    print(f"  Total task time: {total_task_time/60:.2f} minutes ({total_task_time:.1f} seconds)")
+    if not is_test_participant(participant_id):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_dir = get_log_directory()
+        summary_file = os.path.join(log_dir, f"recognition_summary_{participant_id}_{timestamp}.csv")
+        with open(summary_file, 'w', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=['participant_id', 'experiment_start_time', 'experiment_end_time', 'total_task_time_seconds', 'total_task_time_minutes'])
+            writer.writeheader()
+            writer.writerow({
+                'participant_id': participant_id,
+                'experiment_start_time': experiment_start_time,
+                'experiment_end_time': experiment_end_time,
+                'total_task_time_seconds': total_task_time,
+                'total_task_time_minutes': total_task_time / 60.0
+            })
+        print(f"✓ Summary data saved to {summary_file}")
+        print(f"  Total task time: {total_task_time/60:.2f} minutes ({total_task_time:.1f} seconds)")
+    else:
+        print(f"⚠ Test participant detected - skipping summary file save")
+        print(f"  Total task time: {total_task_time/60:.2f} minutes ({total_task_time:.1f} seconds)")
     
     win.close()
 

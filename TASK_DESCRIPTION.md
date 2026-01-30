@@ -72,7 +72,9 @@ This task examines how participants collaborate with an AI partner during a reco
 
 - Participants view **10 images** sequentially
 - **No responses required**
-- Images appear one at a time
+- Each image is shown for **1 second**
+- **Jittered fixations** (0.25-0.75 seconds) appear between images
+- Image presentation timings are recorded (onset, offset, duration, fixation duration)
 - Participants are instructed to remember each image carefully
 
 ### Phase 2: Recognition Phase
@@ -159,20 +161,11 @@ Points are earned based on **Euclidean distance** between the final answer and t
 
 The closer the final answer is to the correct answer, the more points earned.
 
-### Bonus Points
-
-- **Social Collaboration Bonus**: Randomly drawn from normal distribution (0.5-0.75 in 0.05 increments)
-  - Possible values: 0.50, 0.55, 0.60, 0.65, 0.70, 0.75
-  - Drawn from normal distribution centered at 0.625
-- **Condition**: Awarded 50% of the time when participant switches (randomly determined)
-- **Independent of correctness**: Bonus can be awarded even if switching leads to incorrect answer
-
 ### Point Display
 
 - **After each trial**: Shows points earned for that trial only
 - **End of each block**: Shows total points earned / maximum possible points
-  - Maximum excludes social feedback bonus
-  - Total includes correctness points + social feedback bonuses
+  - Points are based solely on correctness (Euclidean distance from correct answer)
 
 ---
 
@@ -215,8 +208,6 @@ The closer the final answer is to the correct answer, the more points earned.
 
 #### Interaction Data
 - **Euclidean Distance**: Between participant and AI slider values
-- **Social Feedback**: Whether bonus was given (True/False)
-- **Social Feedback Time**: Time when social feedback screen appears
 - **Outcome Time**: Time when outcome screen appears
 - **Timeout Flags**: Whether participant timed out on slider or switch/stay decision
 
@@ -280,7 +271,7 @@ After each block (including practice), participants answer 2 questions:
 
 1. **Multiple Choice** (7 seconds):
    - "What were you trying to maximize?"
-   - Options: Correctness, Bonus points, Both, Other
+   - Options: Correctness, Both, Other
 
 2. **Slider Question** (7 seconds):
    - "How much did you trust your partner?"
@@ -378,7 +369,6 @@ After each block (including practice), participants answer 2 questions:
 
 - **Not fully counterbalanced**: Some manipulation combinations may occur more frequently
 - **AI accuracy**: Fixed at block level, not trial level
-- **Social feedback**: Randomly awarded (50% chance), not tied to actual performance
 
 ---
 

@@ -34,10 +34,35 @@ The experiment generates four CSV files:
 - **Description**: Full path to the studied image file (always IMAGE_X.png, never lures)
 - **Example**: `"PLACEHOLDERS/IMAGE_5.png"`
 
-### `onset_time`
+### `image_onset`
 - **Type**: Float (Unix timestamp)
 - **Description**: Time when the image was displayed (in seconds since epoch)
 - **Example**: `1764818171.2572181`
+
+### `image_offset`
+- **Type**: Float (Unix timestamp)
+- **Description**: Time when the image was removed from display (in seconds since epoch)
+- **Example**: `1764818172.2572181`
+
+### `image_duration`
+- **Type**: Float (seconds)
+- **Description**: Duration the image was displayed (always 1.0 second)
+- **Example**: `1.0`
+
+### `fixation_onset`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when the fixation cross appeared before this image (None for first image)
+- **Example**: `1764818170.5`, `None`
+
+### `fixation_offset`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when the fixation cross was removed (None for first image)
+- **Example**: `1764818171.0`, `None`
+
+### `fixation_duration`
+- **Type**: Float (seconds) or None
+- **Description**: Duration of the fixation cross before this image (randomly jittered between 0.25-0.75 seconds, None for first image)
+- **Example**: `0.523456789`, `None`
 
 ---
 
@@ -288,7 +313,7 @@ The **recognition_questions_[participant_id]_[timestamp].csv** file contains res
 ### `maximize_goal`
 - **Type**: String
 - **Description**: Response to "What were you trying to maximize?"
-- **Possible values**: `"Correctness"`, `"Bonus points"`, `"Both"`, `"Other"`
+- **Possible values**: `"Correctness"`, `"Both"`, `"Other"`
 - **Example**: `"Both"`, `"Correctness"`
 
 ### `trust_rating`
@@ -358,6 +383,6 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 - Block 0 is the practice block (5 trials), blocks 1-10 are experimental blocks (10 trials each)
 - Questions are asked after each block (including practice block)
 - Points are calculated based on Euclidean distance: `points = 1.0 - distance(final_answer, ground_truth)`
-- Social feedback bonus is randomly drawn from a normal distribution (0.5-0.75 in 0.05 increments) and awarded 50% of the time when switching
+- **Study phase**: Images are shown for 1 second each, with jittered fixations (0.25-0.75 seconds) between images
 - **Block timing**: `block_start_time`, `block_end_time`, and `block_duration_seconds`/`block_duration_minutes` are added to all trials within a block. These values are updated at the end of each block, so they represent the complete block duration from study phase start to questions completion.
 
