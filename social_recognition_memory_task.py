@@ -35,12 +35,12 @@ def get_input_method():
     # Create temporary window - handle partial initialization
     temp_win = None
     try:
-        # Use pixel units to sidestep fragile height→pixel conversion path
+        # Use height units for fullscreen compatibility
         temp_win = visual.Window(
             size=(1280, 720),
             color='white',
-            units='pix',
-            fullscr=False,
+            units='height',
+            fullscr=True,
             allowGUI=True
         )
         temp_win.flip()
@@ -50,50 +50,50 @@ def get_input_method():
             text="What input method are you using?\n\n"
                  "Touch or click the button below:",
             color='black',
-            height=30,
-            pos=(0, 200),
-            wrapWidth=1000,
-            units='pix'
+            height=30/720,
+            pos=(0, 200/720),
+            wrapWidth=1000/720,
+            units='height'
         )
         
-        # Create button 1 (TOUCH SCREEN) - pixel units
+        # Create button 1 (TOUCH SCREEN) - height units
         button1 = visual.Rect(
             temp_win,
-            width=520,
-            height=180,
+            width=520/720,
+            height=180/720,
             fillColor='lightgreen',
             lineColor='black',
-            pos=(-320, -80),
-            lineWidth=1,
-            units='pix'
+            pos=(-320/720, -80/720),
+            lineWidth=1/720,
+            units='height'
         )
         button1_text = visual.TextStim(
             temp_win, 
             text="TOUCH SCREEN\n(Tap with finger)", 
             color='black', 
-            height=24, 
-            pos=(-320, -80),
-            units='pix'
+            height=24/720, 
+            pos=(-320/720, -80/720),
+            units='height'
         )
         
-        # Create button 2 (MOUSE/TRACKPAD) - pixel units
+        # Create button 2 (MOUSE/TRACKPAD) - height units
         button2 = visual.Rect(
             temp_win,
-            width=520,
-            height=180,
+            width=520/720,
+            height=180/720,
             fillColor='lightblue',
             lineColor='black',
-            pos=(320, -80),
-            lineWidth=1,
-            units='pix'
+            pos=(320/720, -80/720),
+            lineWidth=1/720,
+            units='height'
         )
         button2_text = visual.TextStim(
             temp_win, 
             text="MOUSE/TRACKPAD\n(Click or tap)", 
             color='black', 
-            height=24, 
-            pos=(320, -80),
-            units='pix'
+            height=24/720, 
+            pos=(320/720, -80/720),
+            units='height'
         )
         
         mouse_temp = event.Mouse(win=temp_win)
@@ -195,9 +195,9 @@ def get_input_method():
                                         mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                         except:
                             # Fallback to manual calculation
-                            hit_margin = 150
-                            button2_x, button2_y = 320, -80
-                            button2_width, button2_height = 520, 180
+                            hit_margin = 150/720
+                            button2_x, button2_y = 320/720, -80/720
+                            button2_width, button2_height = 520/720, 180/720
                             if (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
                                 button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin):
                                 if t > minRT:
@@ -231,19 +231,19 @@ def get_input_method():
             temp_win,
             text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
             color='black',
-            height=40,
-            pos=(0, 100),
-            wrapWidth=1000,
-            units='pix'
+            height=40/720,
+            pos=(0, 100/720),
+            wrapWidth=1000/720,
+            units='height'
         )
         
-        # Create continue button for temp window - use pixel units
-        cont_w = 300
-        cont_h = 80
+        # Create continue button for temp window - use height units
+        cont_w = 300/720
+        cont_h = 80/720
         cont_x = 0
-        cont_y = -150
-        continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y), units='pix')
-        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30, pos=(cont_x, cont_y), units='pix')
+        cont_y = -150/720
+        continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y), units='height')
+        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720, pos=(cont_x, cont_y), units='height')
         
         clicked = False
         event.clearEvents()  # Clear any pending events
@@ -294,9 +294,9 @@ def get_input_method():
                                     mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
                     except:
                         # Fallback to manual calculation
-                        hit_margin = 50
-                        button_x, button_y = 0.0, -150.0
-                        button_width, button_height = 300, 80
+                        hit_margin = 50/720
+                        button_x, button_y = 0.0, -150.0/720
+                        button_width, button_height = 300/720, 80/720
                         if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
                             if t_cont > minRT_cont:
@@ -332,9 +332,9 @@ def get_input_method():
             temp_win,
             text="Loading...",
             color='black',
-            height=50,
+            height=50/720,
             pos=(0, 0),
-            units='pix'
+            units='height'
         )
         transition_text.draw()
         temp_win.flip()
@@ -385,7 +385,7 @@ try:
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=True, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
     except Exception as e:
@@ -395,7 +395,7 @@ try:
         print("Trying with alternative size (1280, 720)...")
         time.sleep(0.1)  # Reduced delay
         try:
-            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=True, viewPos=(0, 0))
             win.flip()
             print("Main window created with size (1280, 720)")
         except Exception as e2:
