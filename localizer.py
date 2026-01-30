@@ -527,7 +527,6 @@ def get_participant_id():
         continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025, pos=(0.25, button_y_pos))
 
     def redraw():
-        bg.draw()  # Draw background first
         id_prompt.draw()
         input_display.text = input_id if input_id else "_"
         input_display.draw()
@@ -797,7 +796,6 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     )
     
     def draw_screen():
-        bg.draw()  # Draw background first
         # Draw additional stimuli first (e.g., instructions)
         if additional_stimuli:
             for stim in additional_stimuli:
@@ -1281,13 +1279,13 @@ try:
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1350, 900), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        win = visual.Window(size=(2700, 1700), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Main window created with size (1350, 900)")
+        print("Main window created with size (2700, 1700)")
     except Exception as e:
         # If window creation fails, try with alternative explicit size
-        print(f"Warning: Could not create window with size (1350, 900) ({e})")
+        print(f"Warning: Could not create window with size (2700, 1700) ({e})")
         import traceback
         traceback.print_exc()
         print("Trying with alternative size (1280, 720)...")
@@ -1336,15 +1334,6 @@ try:
     print("Window verification complete, proceeding to experiment...")
     print(f"Window object: {win}")
     print(f"Window type: {type(win)}")
-    
-    # Create full-window background rectangle for fake fullscreen effect
-    bg = visual.Rect(
-        win,
-        width=win.size[0],
-        height=win.size[1],
-        fillColor='black',
-        lineColor='black'
-    )
     
     # =========================
     #  MAIN EXPERIMENT
@@ -1395,7 +1384,6 @@ try:
         wrapWidth=1.4
     )
 
-    bg.draw()  # Draw background first
     instructions.draw()
     win.flip()
     wait_for_button("BEGIN", additional_stimuli=[instructions])
@@ -1435,7 +1423,6 @@ try:
         # Load and display image
         try:
             img = visual.ImageStim(win, image=stimulus['path'], size=(0.8, 0.8))
-            bg.draw()  # Draw background first
             img.draw()
             win.flip()
             
@@ -1520,7 +1507,6 @@ try:
         wrapWidth=1.4
     )
 
-    bg.draw()  # Draw background first
     completion_text.draw()
     win.flip()
     wait_for_button("EXIT", additional_stimuli=[completion_text])

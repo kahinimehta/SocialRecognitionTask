@@ -385,13 +385,13 @@ try:
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1350, 900), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        win = visual.Window(size=(2700, 1700), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Main window created with size (1350, 900)")
+        print("Main window created with size (2700, 1700)")
     except Exception as e:
         # If window creation fails, try with alternative explicit size
-        print(f"Warning: Could not create window with size (1350, 900) ({e})")
+        print(f"Warning: Could not create window with size (2700, 1700) ({e})")
         import traceback
         traceback.print_exc()
         print("Trying with alternative size (1280, 720)...")
@@ -442,15 +442,6 @@ try:
     # Verify window is ready before continuing
     if win is None:
         raise RuntimeError("Main window creation failed - win is None")
-    
-    # Create full-window background rectangle for fake fullscreen effect
-    bg = visual.Rect(
-        win,
-        width=win.size[0],
-        height=win.size[1],
-        fillColor='black',
-        lineColor='black'
-    )
     
 except Exception as e:
     print(f"Error creating main window: {e}")
@@ -794,7 +785,6 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
     
     # Draw initial screen once (button should be included in redraw_func)
     def draw_screen():
-        bg.draw()  # Draw background first
         if redraw_func:
             try:
                 redraw_func()
@@ -1150,7 +1140,6 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
     event.clearEvents()
 
 def show_fixation(duration=1.0):
-    bg.draw()  # Draw background first
     fixation.draw()
     win.flip()
     core.wait(duration)
@@ -1559,7 +1548,6 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                 height=0.06,
                 pos=(0, 0)
             )
-            bg.draw()  # Draw background first
             if image_stim:
                 image_stim.draw()
             timeout_alert.draw()
@@ -1797,7 +1785,6 @@ def run_study_phase(studied_images, block_num):
         
         # Load and display image
         img_stim = load_image_stimulus(img_path)
-        bg.draw()  # Draw background first
         img_stim.draw()
         win.flip()
         
@@ -1878,7 +1865,6 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     
     # Show image
     show_fixation(0.5)
-    bg.draw()  # Draw background first
     img_stim.draw()
     win.flip()
     image_onset = time.time()
@@ -2089,7 +2075,6 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         partner_handle.pos = (current_x, -0.2)
         
         # Draw everything
-        bg.draw()  # Draw background first
         if image_stim:
             image_stim.draw()
         partner_text.draw()
@@ -2127,7 +2112,6 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         core.wait(0.1)
         
         submit_button.fillColor = 'lightgray'
-        bg.draw()  # Draw background first
         if image_stim:
             image_stim.draw()
         partner_text.draw()
@@ -2147,7 +2131,6 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         label = "NEW"
     partner_text.text = f"Your partner rates: {label}"
     
-    bg.draw()  # Draw background first
     if image_stim:
         image_stim.draw()
     partner_text.draw()
@@ -2346,7 +2329,6 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     height=0.06,
                     pos=(0, -0.35)  # Lower to avoid overlap with buttons
                 )
-                bg.draw()  # Draw background first
                 decision_prompt.draw()
                 if image_stim:
                     # Position image between slider and buttons
@@ -3197,7 +3179,6 @@ def run_experiment():
             pass  # May fail on some systems
     
     # Draw initial screen
-    bg.draw()  # Draw background first
     start_screen.draw()
     start_button.draw()
     start_button_text.draw()
