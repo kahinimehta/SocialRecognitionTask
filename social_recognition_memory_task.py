@@ -8,45 +8,6 @@ import math
 import sys
 import traceback
 
-def calculate_distance(pos1, pos2):
-    """Calculate Euclidean distance between two positions"""
-    try:
-        dx = float(pos1[0]) - float(pos2[0])
-        dy = float(pos1[1]) - float(pos2[1])
-        return math.sqrt(dx*dx + dy*dy)
-    except (ValueError, TypeError, IndexError):
-        return float('inf')  # Return large distance if positions are invalid
-
-def get_stimulus_bounds(stimulus):
-    """Get hit detection bounds from stimulus geometry"""
-    try:
-        pos = stimulus.pos
-        size = stimulus.size
-        if hasattr(stimulus, 'width') and hasattr(stimulus, 'height'):
-            width = stimulus.width
-            height = stimulus.height
-        elif isinstance(size, (list, tuple)) and len(size) >= 2:
-            width = size[0]
-            height = size[1]
-        else:
-            width = size if isinstance(size, (int, float)) else 0.1
-            height = size if isinstance(size, (int, float)) else 0.1
-        
-        x, y = float(pos[0]), float(pos[1])
-        w, h = float(width), float(height)
-        return (x - w/2, x + w/2, y - h/2, y + h/2)
-    except Exception as e:
-        print(f"Warning: Could not get stimulus bounds: {e}", file=sys.stderr)
-        return None
-
-def point_in_bounds(x, y, bounds, margin=0.0):
-    """Check if point is within bounds with optional margin"""
-    if bounds is None:
-        return False
-    x_min, x_max, y_min, y_max = bounds
-    return (x_min - margin <= x <= x_max + margin and 
-            y_min - margin <= y <= y_max + margin)
-
 # Force stdout to flush after each print
 def print_flush(*args, **kwargs):
     print(*args, **kwargs)
@@ -78,7 +39,6 @@ sys.excepthook = exception_handler
 # =========================
 # Global variable to store input method preference (set before window creation)
 USE_TOUCH_SCREEN = False
-participant_id = None  # Will be set after window creation
 
 def safe_window_close(window):
     """Safely close a window, checking if it's still valid to prevent NoneType errors"""
@@ -182,17 +142,6 @@ def get_input_method():
         event.clearEvents()
         selected = None
         
-        # TOUCH DETECTION PARAMETERS
-        MOVEMENT_THRESHOLD = 0.01  # Minimum distance to consider movement (in height units)
-        MIN_MOVEMENT_DISTANCE = 0.005  # Minimum movement to register as touch
-        MOVEMENT_PERSISTENCE_FRAMES = 2  # Require movement for 2 consecutive frames
-        DEBOUNCE_TIME = 0.15  # Ignore new touches for 150ms after a touch
-        
-        # Get button bounds from stimulus geometry
-        button1_bounds = get_stimulus_bounds(button1)
-        button2_bounds = get_stimulus_bounds(button2)
-        hit_margin = 0.02  # Small margin for easier tapping
-        
         # POSITION-CHANGE DETECTION: Store initial mouse position
         mouserec = mouse_temp.getPos()
         try:
@@ -204,17 +153,8 @@ def get_input_method():
         minRT = 0.05  # Minimum response time
         clock = core.Clock()
         clock.reset()
-        last_touch_time = 0.0  # For debouncing
-        movement_frames = 0  # Track consecutive frames with movement
-        last_movement_pos = (mouserec_x, mouserec_y)  # Track last movement position
-        
-        # Clear events at fixed interval instead of every frame
-        last_event_clear = clock.getTime()
-        EVENT_CLEAR_INTERVAL = 0.2  # Clear events every 200ms
         
         while selected is None:
-            current_time = clock.getTime()
-            
             # Check for escape key FIRST, before clearing events
             try:
                 keys = event.getKeys(keyList=['escape'])
@@ -232,92 +172,105 @@ def get_input_method():
                     mouseloc_x, mouseloc_y = 0.0, 0.0
                 
                 t = clock.getTime()
+                # Don't clear events here - clear at end of loop iteration
                 
-                # Check debounce - ignore touches too soon after last touch
-                if t - last_touch_time < DEBOUNCE_TIME:
+                # Check if mouse position has changed (touch moved)
+                if mouseloc_x == mouserec_x and mouseloc_y == mouserec_y:
+                    # Position hasn't changed, just redraw
                     draw_selection_screen()
-                    core.wait(0.01)  # Increased polling frequency
-                    continue
-                
-                # Calculate distance from reference position
-                distance = calculate_distance((mouseloc_x, mouseloc_y), (mouserec_x, mouserec_y))
-                
-                # Check if movement exceeds threshold (not exact equality)
-                if distance > MOVEMENT_THRESHOLD:
-                    # Check if movement is significant enough
-                    movement_distance = calculate_distance((mouseloc_x, mouseloc_y), last_movement_pos)
-                    if movement_distance > MIN_MOVEMENT_DISTANCE:
-                        movement_frames += 1
-                        last_movement_pos = (mouseloc_x, mouseloc_y)
-                    else:
-                        movement_frames = 0  # Reset if movement is too small
                 else:
-                    movement_frames = 0  # Reset if below threshold
-                
-                # Only process touch if movement persisted across frames
-                if movement_frames >= MOVEMENT_PERSISTENCE_FRAMES:
-                    # Check button 1 using stimulus geometry
-                    button1_hit = False
+                    # Position has changed - check if touch is within any button
+                    # Check button 1
                     try:
-                        button1_hit = button1.contains(mouseloc)
-                    except (AttributeError, RuntimeError):
-                        # Fallback to geometry-based detection
-                        button1_hit = point_in_bounds(mouseloc_x, mouseloc_y, button1_bounds, hit_margin)
-                    
-                    if button1_hit:
-                        if t > minRT:
-                            USE_TOUCH_SCREEN = True
-                            selected = 'touch'
-                            button1.fillColor = 'green'
-                            draw_selection_screen()
-                            last_touch_time = t  # Update debounce time
-                            core.wait(0.05)
-                            break
-                        # Don't reset reference position here - only reset after successful touch or no-hit movement
-                    
-                    # Check button 2 if button 1 wasn't hit
-                    if not button1_hit and selected is None:
-                        button2_hit = False
-                        try:
-                            button2_hit = button2.contains(mouseloc)
-                        except (AttributeError, RuntimeError):
-                            # Fallback to geometry-based detection
-                            button2_hit = point_in_bounds(mouseloc_x, mouseloc_y, button2_bounds, hit_margin)
-                        
-                        if button2_hit:
+                        if button1.contains(mouseloc):
                             if t > minRT:
-                                USE_TOUCH_SCREEN = False
-                                selected = 'click'
-                                button2.fillColor = 'blue'
+                                USE_TOUCH_SCREEN = True
+                                selected = 'touch'
+                                button1.fillColor = 'green'
                                 draw_selection_screen()
-                                last_touch_time = t  # Update debounce time
                                 core.wait(0.05)
                                 break
+                            else:
+                                mouserec = mouse_temp.getPos()
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                    except Exception as e:
+                        # Fallback to manual calculation
+                        print(f"ERROR in button1.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
+                        hit_margin = 150/720*0.75
+                        button1_x, button1_y = -320/720*0.6, -80/720*0.6
+                        button1_width, button1_height = 520/720*0.75, 180/720*0.75
+                        if (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
+                            button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin):
+                            if t > minRT:
+                                USE_TOUCH_SCREEN = True
+                                selected = 'touch'
+                                button1.fillColor = 'green'
+                                draw_selection_screen()
+                                core.wait(0.05)
+                                break
+                            else:
+                                mouserec = mouse_temp.getPos()
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                     
-                    # If movement detected but no button hit, reset reference position to re-anchor
+                    # Check button 2
                     if selected is None:
-                        mouserec = mouse_temp.getPos()
                         try:
-                            mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                            movement_frames = 0  # Reset movement tracking
-                        except (ValueError, TypeError, IndexError) as e:
-                            print(f"Warning: Could not parse mouse position after movement: {e}", file=sys.stderr)
-                else:
-                    # No significant movement, just redraw
-                    draw_selection_screen()
-                
-            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
-                # Log specific errors instead of silently ignoring
-                print(f"Warning: Error in input method selection loop: {e}", file=sys.stderr)
-                # Continue loop instead of breaking
+                            if button2.contains(mouseloc):
+                                if t > minRT:
+                                    USE_TOUCH_SCREEN = False
+                                    selected = 'click'
+                                    button2.fillColor = 'blue'
+                                    draw_selection_screen()
+                                    core.wait(0.05)
+                                    break
+                                else:
+                                    mouserec = mouse_temp.getPos()
+                                    try:
+                                        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                    except (ValueError, TypeError, IndexError) as e:
+                                        print(f"Warning: Could not parse mouse position after button2 check: {e}", file=sys.stderr)
+                                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                        except Exception as e:
+                            # Fallback to manual calculation
+                            print(f"ERROR in button2.contains() fallback: {repr(e)}", file=sys.stderr)
+                            traceback.print_exc()
+                            hit_margin = 150/720*0.75
+                            button2_x, button2_y = 320/720*0.6, -80/720*0.6
+                            button2_width, button2_height = 520/720*0.75, 180/720*0.75
+                            if (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
+                                button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin):
+                                if t > minRT:
+                                    USE_TOUCH_SCREEN = False
+                                    selected = 'click'
+                                    button2.fillColor = 'blue'
+                                    draw_selection_screen()
+                                    core.wait(0.05)
+                                    break
+                                else:
+                                    mouserec = mouse_temp.getPos()
+                                    try:
+                                        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                    except:
+                                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+            except Exception as e:
+                pass
             
-            # Clear events at fixed interval, not every frame
-            if current_time - last_event_clear >= EVENT_CLEAR_INTERVAL:
-                event.clearEvents()
-                last_event_clear = current_time
+            # Safe event.getKeys() handling - ensure keys is never empty array issue
+            try:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:  # Check keys is not empty first
+                    return None  # Signal to exit - window will be closed in finally
+            except (AttributeError, Exception):
+                pass  # Ignore event errors
             
-            # Increased polling frequency for stability
-            core.wait(0.01)  # 10ms polling instead of 1ms
+            core.wait(0.001)  # Very fast polling
         
         # Show confirmation - use height units to match temp window
         confirm_text = visual.TextStim(
@@ -339,108 +292,82 @@ def get_input_method():
         continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
         
         clicked = False
-        
-        # TOUCH DETECTION PARAMETERS
-        MOVEMENT_THRESHOLD = 0.01  # Minimum distance to consider movement
-        MIN_MOVEMENT_DISTANCE = 0.005  # Minimum movement to register
-        MOVEMENT_PERSISTENCE_FRAMES = 2  # Require movement for 2 consecutive frames
-        DEBOUNCE_TIME = 0.15  # Ignore new touches for 150ms after a touch
-        
-        # Get button bounds from stimulus geometry
-        continue_button_bounds = get_stimulus_bounds(continue_button)
-        hit_margin_cont = 0.02
+        event.clearEvents()  # Clear any pending events
         
         # POSITION-CHANGE DETECTION: Store initial mouse position
         mouserec_cont = mouse_temp.getPos()
         try:
             mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-        except (ValueError, TypeError, IndexError) as e:
-            print(f"Warning: Could not parse initial continue button mouse position: {e}", file=sys.stderr)
+        except:
             mouserec_cont_x, mouserec_cont_y = 0.0, 0.0
         
         minRT_cont = 0.05  # Minimum response time
         clock_cont = core.Clock()
         clock_cont.reset()
-        last_touch_time_cont = 0.0  # For debouncing
-        movement_frames_cont = 0  # Track consecutive frames with movement
-        last_movement_pos_cont = (mouserec_cont_x, mouserec_cont_y)
-        
-        # Clear events at fixed interval
-        last_event_clear_cont = clock_cont.getTime()
-        EVENT_CLEAR_INTERVAL = 0.2  # Clear events every 200ms
         
         while not clicked:
-            current_time_cont = clock_cont.getTime()
-            
             confirm_text.draw()
             continue_button.draw()
             continue_text.draw()
             temp_win.flip()
             
-            # Check for escape key FIRST
-            try:
-                keys = event.getKeys(keyList=['escape'])
-                if keys and 'escape' in keys:
-                    return None
-            except (AttributeError, RuntimeError) as e:
-                print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
-            
             try:
                 mouseloc_cont = mouse_temp.getPos()
                 try:
                     mouseloc_cont_x, mouseloc_cont_y = float(mouseloc_cont[0]), float(mouseloc_cont[1])
-                except (ValueError, TypeError, IndexError) as e:
-                    print(f"Warning: Could not parse continue button mouse position: {e}", file=sys.stderr)
+                except:
                     mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
                 
                 t_cont = clock_cont.getTime()
+                # Check for escape key FIRST, before clearing events
+                try:
+                    keys = event.getKeys(keyList=['escape'])
+                    if keys and 'escape' in keys:
+                        return None
+                except (AttributeError, RuntimeError) as e:
+                    print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
                 
-                # Check debounce
-                if t_cont - last_touch_time_cont < DEBOUNCE_TIME:
-                    core.wait(0.01)
-                    continue
+                # Don't clear events here - clear at end of loop iteration
                 
-                # Calculate distance from reference position
-                distance_cont = calculate_distance((mouseloc_cont_x, mouseloc_cont_y), (mouserec_cont_x, mouserec_cont_y))
-                
-                # Check if movement exceeds threshold
-                if distance_cont > MOVEMENT_THRESHOLD:
-                    movement_distance_cont = calculate_distance((mouseloc_cont_x, mouseloc_cont_y), last_movement_pos_cont)
-                    if movement_distance_cont > MIN_MOVEMENT_DISTANCE:
-                        movement_frames_cont += 1
-                        last_movement_pos_cont = (mouseloc_cont_x, mouseloc_cont_y)
-                    else:
-                        movement_frames_cont = 0
+                # Check if mouse position has changed (touch moved)
+                if mouseloc_cont_x == mouserec_cont_x and mouseloc_cont_y == mouserec_cont_y:
+                    # Position hasn't changed, continue loop
+                    pass
                 else:
-                    movement_frames_cont = 0
-                
-                # Only process touch if movement persisted across frames
-                if movement_frames_cont >= MOVEMENT_PERSISTENCE_FRAMES:
-                    # Check button using stimulus geometry
-                    button_hit = False
+                    # Position has changed - check if touch is within button
                     try:
-                        button_hit = continue_button.contains(mouseloc_cont)
-                    except (AttributeError, RuntimeError):
-                        button_hit = point_in_bounds(mouseloc_cont_x, mouseloc_cont_y, continue_button_bounds, hit_margin_cont)
-                    
-                    if button_hit:
-                        if t_cont > minRT_cont:
-                            clicked = True
-                            last_touch_time_cont = t_cont  # Update debounce time
-                            break
-                    else:
-                        # Movement detected but no button hit - reset reference position to re-anchor
-                        mouserec_cont = mouse_temp.getPos()
-                        try:
-                            mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-                            movement_frames_cont = 0
-                        except (ValueError, TypeError, IndexError) as e:
-                            print(f"Warning: Could not parse mouse position after movement: {e}", file=sys.stderr)
-                
-            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
-                print(f"Warning: Error in continue button loop: {e}", file=sys.stderr)
+                        if continue_button.contains(mouseloc_cont):
+                            if t_cont > minRT_cont:
+                                clicked = True
+                                break
+                            else:
+                                mouserec_cont = mouse_temp.getPos()
+                                try:
+                                    mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+                                except:
+                                    mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+                    except Exception as e:
+                        # Fallback to manual calculation
+                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
+                        hit_margin = 50/720*0.75
+                        button_x, button_y = 0.0, -150.0/720*0.6
+                        button_width, button_height = 300/720*0.75, 80/720*0.75
+                        if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
+                            if t_cont > minRT_cont:
+                                clicked = True
+                                break
+                            else:
+                                mouserec_cont = mouse_temp.getPos()
+                                try:
+                                    mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+                                except:
+                                    mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+            except Exception as e:
+                pass
             
-            # Check for space key
+            # Check for space key (escape already checked at start of loop)
             try:
                 keys = event.getKeys(keyList=['space'])
                 if keys and 'space' in keys:
@@ -449,13 +376,11 @@ def get_input_method():
             except (AttributeError, RuntimeError) as e:
                 print(f"Warning: Error checking space key: {e}", file=sys.stderr)
             
-            # Clear events at fixed interval
-            if current_time_cont - last_event_clear_cont >= EVENT_CLEAR_INTERVAL:
-                event.clearEvents()
-                last_event_clear_cont = current_time_cont
+            # Clear events AFTER checking keys
+            event.clearEvents()
             
-            # Increased polling frequency for stability
-            core.wait(0.01)  # 10ms polling
+            # Reduced polling delay for faster touch response
+            core.wait(0.001)  # Very fast polling
         
         mouse_temp.setVisible(False)
         
@@ -481,15 +406,9 @@ def get_input_method():
         if temp_win is not None:
             try:
                 temp_win.close()
-                # Give the system time to fully close the window
-                time.sleep(0.1)
-            except Exception as e:
-                print(f"ERROR closing temp window: {repr(e)}", file=sys.stderr)
-                traceback.print_exc()
-                # Still wait a bit even if close failed
-                time.sleep(0.1)
-        # Additional delay to ensure temp window is fully closed before main window creation
-        time.sleep(0.1)  # Total delay: 0.1 (from close) + 0.1 (here) = 0.2 seconds
+            except Exception:
+                pass
+        time.sleep(0.2)  # Reduced delay from 0.5 to 0.2 for faster transition
 
 # Ask for input method first
 print("Getting input method...")
@@ -505,14 +424,9 @@ except Exception as e:
     print("Press Enter to exit...")
     try:
         input()
-    except Exception as e:
-        print(f"ERROR in get_input_method() exception handler: {repr(e)}", file=sys.stderr)
-        traceback.print_exc()
-    try:
-        core.quit()
-    except Exception as e:
-        print(f"ERROR calling core.quit(): {repr(e)}", file=sys.stderr)
-        traceback.print_exc()
+    except:
+        pass
+    core.quit()
     exit(1)
 
 if result is None:
@@ -643,37 +557,6 @@ try:
     print("WINDOW CREATION SUCCESSFUL")
     print("="*60)
     
-    # =========================
-    #  MAIN EXPERIMENT SETUP
-    # =========================
-
-    # Get participant ID
-    global participant_id
-    print("About to call get_participant_id()...")
-    print(f"USE_TOUCH_SCREEN = {USE_TOUCH_SCREEN}")
-    try:
-        print("Entering get_participant_id() function...")
-        participant_id = get_participant_id()
-        print(f"Got participant ID: {participant_id}")
-    except Exception as e:
-        print(f"ERROR in get_participant_id(): {e}")
-        print(f"Error type: {type(e).__name__}")
-        import traceback
-        traceback.print_exc()
-        print("This error was caught - will exit now")
-        if win is not None:
-            try:
-                win.close()
-            except Exception as e:
-                print(f"ERROR calling win.close(): {repr(e)}", file=sys.stderr)
-                traceback.print_exc()
-        try:
-            core.quit()
-        except Exception as e:
-            print(f"ERROR calling core.quit(): {repr(e)}", file=sys.stderr)
-            traceback.print_exc()
-        exit(1)
-    
 except Exception as e:
     print("="*60)
     print("EXCEPTION CAUGHT IN WINDOW CREATION")
@@ -694,24 +577,17 @@ except Exception as e:
     print("Press Enter to exit...")
     try:
         input()
-    except Exception as e:
-        print(f"ERROR in input() call: {repr(e)}", file=sys.stderr)
-        traceback.print_exc()
+    except:
+        pass
     try:
         core.quit()
-    except Exception as e:
-        print(f"ERROR calling core.quit(): {repr(e)}", file=sys.stderr)
-        traceback.print_exc()
+    except:
+        pass
     exit(1)
-except SystemExit as se:
-    print("SystemExit caught - program is exiting", file=sys.stderr)
-    sys.stderr.flush()
-    print(f"SystemExit value: {se}", file=sys.stderr)
-    sys.stderr.flush()
+except SystemExit:
     print("SystemExit caught - program is exiting")
-    sys.stdout.flush()
     raise
-except BaseException as be:
+except:
     print("="*60)
     print("UNKNOWN EXCEPTION CAUGHT IN WINDOW CREATION")
     print("="*60)
@@ -727,14 +603,12 @@ except BaseException as be:
     print("Press Enter to exit...")
     try:
         input()
-    except Exception as e:
-        print(f"ERROR in input() call: {repr(e)}", file=sys.stderr)
-        traceback.print_exc()
+    except:
+        pass
     try:
         core.quit()
-    except Exception as e:
-        print(f"ERROR calling core.quit(): {repr(e)}", file=sys.stderr)
-        traceback.print_exc()
+    except:
+        pass
     exit(1)
 
 # =========================
@@ -1092,14 +966,12 @@ except:
     print("Press Enter to exit...")
     try:
         input()
-    except Exception as e:
-        print(f"ERROR in input() call: {repr(e)}", file=sys.stderr)
-        traceback.print_exc()
+    except:
+        pass
     try:
         core.quit()
-    except Exception as e:
-        print(f"ERROR calling core.quit(): {repr(e)}", file=sys.stderr)
-        traceback.print_exc()
+    except:
+        pass
     exit(1)
 
 def get_log_directory():
@@ -1160,116 +1032,87 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
     clicked = False
     
     if USE_TOUCH_SCREEN:
-        # TOUCH DETECTION PARAMETERS
-        MOVEMENT_THRESHOLD = 0.01  # Minimum distance to consider movement
-        MIN_MOVEMENT_DISTANCE = 0.005  # Minimum movement to register
-        MOVEMENT_PERSISTENCE_FRAMES = 2  # Require movement for 2 consecutive frames
-        DEBOUNCE_TIME = 0.15  # Ignore new touches for 150ms after a touch
-        
-        # Get button bounds from stimulus geometry
-        continue_button_bounds_wait = get_stimulus_bounds(continue_button)
-        hit_margin_wait = 0.02
-        
         # Position-change detection for touchscreens
         mouserec = mouse.getPos()
         try:
             mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-        except (ValueError, TypeError, IndexError) as e:
-            print(f"Warning: Could not parse initial mouse position in wait_for_button: {e}", file=sys.stderr)
+        except:
             mouserec_x, mouserec_y = 0.0, 0.0
         
         minRT = 0.2  # Minimum response time
         clock = core.Clock()
         clock.reset()
-        last_touch_time_wait = 0.0
-        movement_frames_wait = 0
-        last_movement_pos_wait = (mouserec_x, mouserec_y)
-        
-        # Clear events at fixed interval
-        last_event_clear_wait = clock.getTime()
-        EVENT_CLEAR_INTERVAL = 0.2
         
         while not clicked:
-            current_time_wait = clock.getTime()
-            
             try:
                 mouseloc = mouse.getPos()
                 try:
                     mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
-                except (ValueError, TypeError, IndexError) as e:
-                    print(f"Warning: Could not parse mouse position in wait_for_button: {e}", file=sys.stderr)
+                except:
                     mouseloc_x, mouseloc_y = 0.0, 0.0
                 
                 t = clock.getTime()
                 
-                # Check debounce
-                if t - last_touch_time_wait < DEBOUNCE_TIME:
+                # Check if mouse position has changed (touch moved)
+                if mouseloc_x == mouserec_x and mouseloc_y == mouserec_y:
+                    # Position hasn't changed, just redraw
                     draw_screen()
-                    core.wait(0.01)
-                    continue
-                
-                # Calculate distance from reference position
-                distance_wait = calculate_distance((mouseloc_x, mouseloc_y), (mouserec_x, mouserec_y))
-                
-                # Check if movement exceeds threshold (not exact equality)
-                if distance_wait > MOVEMENT_THRESHOLD:
-                    movement_distance_wait = calculate_distance((mouseloc_x, mouseloc_y), last_movement_pos_wait)
-                    if movement_distance_wait > MIN_MOVEMENT_DISTANCE:
-                        movement_frames_wait += 1
-                        last_movement_pos_wait = (mouseloc_x, mouseloc_y)
-                    else:
-                        movement_frames_wait = 0
                 else:
-                    movement_frames_wait = 0
-                
-                # Only process touch if movement persisted across frames
-                if movement_frames_wait >= MOVEMENT_PERSISTENCE_FRAMES:
-                    # Movement detected - check if touch is within button
-                    button_hit_wait = False
+                    # Position has changed - check if touch is within button
                     try:
-                        button_hit_wait = continue_button.contains(mouseloc)
-                    except (AttributeError, RuntimeError):
-                        button_hit_wait = point_in_bounds(mouseloc_x, mouseloc_y, continue_button_bounds_wait, hit_margin_wait)
-                    
-                    if button_hit_wait:
-                        if t > minRT:
-                            continue_button.fillColor = 'lightgreen'
-                            draw_screen()
-                            last_touch_time_wait = t  # Update debounce time
-                            core.wait(0.2)
-                            clicked = True
-                            break
-                    else:
-                        # Movement detected but no button hit - reset reference position to re-anchor
-                        mouserec = mouse.getPos()
-                        try:
-                            mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                            movement_frames_wait = 0
-                        except (ValueError, TypeError, IndexError) as e:
-                            print(f"Warning: Could not parse mouse position after movement: {e}", file=sys.stderr)
-                else:
-                    # No significant movement, just redraw
-                    draw_screen()
+                        if continue_button.contains(mouseloc):
+                            if t > minRT:
+                                continue_button.fillColor = 'lightgreen'
+                                draw_screen()
+                                core.wait(0.2)
+                                clicked = True
+                                break
+                            else:
+                                mouserec = mouse.getPos()
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                    except Exception as e:
+                        # Fallback to manual calculation
+                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
+                        hit_margin = 0.02
+                        button_x, button_y = 0.0, -0.35
+                        button_width, button_height = 0.3, 0.1
+                        if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
+                            if t > minRT:
+                                continue_button.fillColor = 'lightgreen'
+                                draw_screen()
+                                core.wait(0.2)
+                                clicked = True
+                                break
+                            else:
+                                mouserec = mouse.getPos()
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                 
-            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
-                print(f"Warning: Error in wait_for_button touch screen loop: {e}", file=sys.stderr)
-            
-            # Check keys AFTER processing touch
-            try:
-                keys = event.getKeys(keyList=['space'], timeStamped=False)
-                if keys and 'space' in keys:
-                    clicked = True
-                    break
-            except (AttributeError, RuntimeError) as e:
-                print(f"Warning: Error checking space key in wait_for_button: {e}", file=sys.stderr)
-            
-            # Clear events at fixed interval
-            if current_time_wait - last_event_clear_wait >= EVENT_CLEAR_INTERVAL:
+                # Redraw every frame
+                draw_screen()
                 event.clearEvents()
-                last_event_clear_wait = current_time_wait
+                core.wait(0.001)  # Very fast polling
+            except Exception:
+                pass
             
-            # Increased polling frequency for stability
-            core.wait(0.01)  # 10ms polling
+            # Safe event.getKeys() handling
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if keys:
+                    if 'space' in keys:
+                        clicked = True
+                        break
+                    elif 'escape' in keys:
+                        core.quit()
+            except (AttributeError, Exception):
+                pass
     else:
         # Standard mouse click detection for non-touch screens
         prev_mouse_buttons = [False, False, False]
@@ -3548,9 +3391,8 @@ def run_experiment():
     try:
         win.winHandle.activate()  # Bring window to front (macOS)
         core.wait(0.2)  # Give window time to activate and gain focus
-    except Exception as e:
-        print(f"Warning: Could not activate window: {e}", file=sys.stderr)
-        # This is not critical, continue anyway
+    except:
+        pass
     
     # Clear any existing events before starting
     try:
@@ -3588,9 +3430,8 @@ def run_experiment():
     if not USE_TOUCH_SCREEN:
         try:
             mouse.setPos((0, 0))  # Reset mouse position
-        except Exception as e:
-            print(f"Warning: Could not reset mouse position: {e}", file=sys.stderr)
-            # May fail on some systems, continue anyway
+        except:
+            pass  # May fail on some systems
     
     # Draw initial screen
     start_screen.draw()
@@ -3701,15 +3542,11 @@ def run_experiment():
     # Small delay to ensure window is ready
     core.wait(0.5)
     
-    # Input method and participant_id were already collected after window creation
+    # Input method was already asked before window creation
     # Record experiment start time
     experiment_start_time = time.time()
     
-    # participant_id is already set from the main try block (before run_experiment() is called)
-    global participant_id
-    if participant_id is None:
-        print("ERROR: participant_id is None! It should have been set before run_experiment() was called.")
-        raise RuntimeError("participant_id is None")
+    participant_id = get_participant_id()
     
     # Initialize file names once for the entire experiment
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
