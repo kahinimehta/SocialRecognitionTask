@@ -426,10 +426,15 @@ if result is None:
 
 print(f"Input method selected: {'TOUCH SCREEN' if result else 'MOUSE/TRACKPAD'}")
 sys.stdout.flush()
+sys.stderr.flush()
 print(f"Result value: {result}, Type: {type(result)}")
 sys.stdout.flush()
+sys.stderr.flush()
 print("About to create main window...")
 sys.stdout.flush()
+sys.stderr.flush()
+print("DEBUG: About to define helper functions before window creation", file=sys.stderr)
+sys.stderr.flush()
 
 def get_category_for_stimulus(stimulus_num):
     """Get the category name for a given stimulus number"""
@@ -1334,8 +1339,12 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
     return (answer, timed_out, response_time)
 
 # Create main window with appropriate settings - use try/finally pattern
+print("DEBUG: About to start window creation block", file=sys.stderr)
+sys.stderr.flush()
 win = None
 try:
+    print("DEBUG: Inside try block, about to print STARTING WINDOW CREATION", file=sys.stderr)
+    sys.stderr.flush()
     print("="*60)
     sys.stdout.flush()
     sys.stderr.flush()
@@ -1350,7 +1359,12 @@ try:
     # Brief delay to ensure temp window is fully closed
     print("Waiting before creating main window...")
     sys.stdout.flush()
+    sys.stderr.flush()
+    print("DEBUG: About to sleep 0.2 seconds", file=sys.stderr)
+    sys.stderr.flush()
     time.sleep(0.2)  # Additional delay to ensure temp window is fully closed
+    print("DEBUG: Finished sleeping, about to create window", file=sys.stderr)
+    sys.stderr.flush()
     
     print("Creating main window...")
     sys.stdout.flush()
@@ -1360,6 +1374,8 @@ try:
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
         print("About to call visual.Window()...", file=sys.stderr)
+        sys.stderr.flush()
+        print("DEBUG: Right before visual.Window() call", file=sys.stderr)
         sys.stderr.flush()
         print("Attempting to create fullscreen window...")
         sys.stdout.flush()
@@ -1772,7 +1788,13 @@ except Exception as e:
     except:
         pass
     exit(1)
-except:
+except BaseException as be:
+    print("="*60, file=sys.stderr)
+    print("UNKNOWN EXCEPTION CAUGHT IN MAIN EXPERIMENT BLOCK", file=sys.stderr)
+    print(f"Exception type: {type(be).__name__}", file=sys.stderr)
+    print(f"Exception value: {be}", file=sys.stderr)
+    print("="*60, file=sys.stderr)
+    sys.stderr.flush()
     print("="*60)
     sys.stdout.flush()
     print("UNKNOWN EXCEPTION CAUGHT IN MAIN EXPERIMENT BLOCK")
@@ -1780,6 +1802,8 @@ except:
     print("="*60)
     sys.stdout.flush()
     import traceback
+    traceback.print_exc(file=sys.stderr)
+    sys.stderr.flush()
     traceback.print_exc()
     print("="*60)
     sys.stdout.flush()
