@@ -27,13 +27,25 @@ def get_input_method():
         wrapWidth=1.4
     )
     
-    # Create button 1 (TOUCH SCREEN)
-    button1 = visual.Rect(temp_win, width=0.25, height=0.12, fillColor='lightgreen', lineColor='black', pos=(-0.3, -0.1))
-    button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=(-0.3, -0.1))
+    # Create button 1 (TOUCH SCREEN) - use size parameter to avoid broadcasting issues
+    button1 = visual.Rect(
+        temp_win, 
+        size=[0.25, 0.12], 
+        fillColor='lightgreen', 
+        lineColor='black', 
+        pos=[-0.3, -0.1]
+    )
+    button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=[-0.3, -0.1])
     
-    # Create button 2 (CLICK/MOUSE)
-    button2 = visual.Rect(temp_win, width=0.25, height=0.12, fillColor='lightblue', lineColor='black', pos=(0.3, -0.1))
-    button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.05, pos=(0.3, -0.1))
+    # Create button 2 (CLICK/MOUSE) - use size parameter to avoid broadcasting issues
+    button2 = visual.Rect(
+        temp_win, 
+        size=[0.25, 0.12], 
+        fillColor='lightblue', 
+        lineColor='black', 
+        pos=[0.3, -0.1]
+    )
+    button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.05, pos=[0.3, -0.1])
     
     mouse_temp = event.Mouse(win=temp_win)
     mouse_temp.setVisible(True)
@@ -134,9 +146,9 @@ def get_input_method():
         wrapWidth=1.4
     )
     
-    # Create continue button for temp window
-    continue_button = visual.Rect(temp_win, width=0.3, height=0.1, fillColor='lightblue', lineColor='black', pos=(0, -0.3))
-    continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(0, -0.3))
+    # Create continue button for temp window - use size parameter to avoid broadcasting issues
+    continue_button = visual.Rect(temp_win, size=[0.3, 0.1], fillColor='lightblue', lineColor='black', pos=[0, -0.3])
+    continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=[0, -0.3])
     
     clicked = False
     prev_mouse_buttons_cont = [False, False, False]
