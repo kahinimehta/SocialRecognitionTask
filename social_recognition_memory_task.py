@@ -59,18 +59,18 @@ def get_input_method():
         )
         
         # Create button 1 (TOUCH SCREEN) - convert all values to Python native types
-    btn1_w = float(0.25)
-    btn1_h = float(0.12)
-    btn1_x = float(-0.3)
-    btn1_y = float(-0.1)
-    button1 = visual.Rect(
-        temp_win, 
-        width=btn1_w, 
-        height=btn1_h, 
-        fillColor='lightgreen', 
-        lineColor='black', 
-        pos=(btn1_x, btn1_y)
-    )
+        btn1_w = float(0.25)
+        btn1_h = float(0.12)
+        btn1_x = float(-0.3)
+        btn1_y = float(-0.1)
+        button1 = visual.Rect(
+            temp_win, 
+            width=btn1_w, 
+            height=btn1_h, 
+            fillColor='lightgreen', 
+            lineColor='black', 
+            pos=(btn1_x, btn1_y)
+        )
         button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=(btn1_x, btn1_y))
         
         # Create button 2 (CLICK/MOUSE) - convert all values to Python native types
@@ -105,70 +105,70 @@ def get_input_method():
         prev_mouse_buttons = [False, False, False]
         
         while selected is None:
-        try:
-            mouse_buttons = mouse_temp.getPressed()
-            mouse_pos = mouse_temp.getPos()
-            
-            # Convert to floats to handle numpy arrays
             try:
-                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
-                else:
+                mouse_buttons = mouse_temp.getPressed()
+                mouse_pos = mouse_temp.getPos()
+                
+                # Convert to floats to handle numpy arrays
+                try:
+                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                        mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                    else:
+                        mouse_x, mouse_y = 0.0, 0.0
+                except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
-            except (TypeError, ValueError):
-                mouse_x, mouse_y = 0.0, 0.0
-            
-            hit_margin = 0.02
-            
-            # Check button 1
-            button1_x, button1_y = -0.3, -0.1
-            button1_width, button1_height = 0.25, 0.12
-            on_button1 = (button1_x - button1_width/2 - hit_margin <= mouse_x <= button1_x + button1_width/2 + hit_margin and
-                         button1_y - button1_height/2 - hit_margin <= mouse_y <= button1_y + button1_height/2 + hit_margin)
-            
-            # Check button 2
-            button2_x, button2_y = 0.3, -0.1
-            button2_width, button2_height = 0.25, 0.12
-            on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
-                         button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
-            
-            # Check for button release (click completed)
-            if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                if on_button1:
-                    USE_TOUCH_SCREEN = True
-                    selected = 'touch'
-                    button1.fillColor = 'green'
-                    draw_selection_screen()
-                    core.wait(0.3)
-                    break
-                elif on_button2:
-                    USE_TOUCH_SCREEN = False
-                    selected = 'click'
-                    button2.fillColor = 'blue'
-                    draw_selection_screen()
-                    core.wait(0.3)
-                    break
-            
-            # For touch screens, check for press
-            if mouse_buttons[0] and not prev_mouse_buttons[0]:
-                if on_button1:
-                    USE_TOUCH_SCREEN = True
-                    selected = 'touch'
-                    button1.fillColor = 'green'
-                    draw_selection_screen()
-                    core.wait(0.3)
-                    break
-                elif on_button2:
-                    USE_TOUCH_SCREEN = False
-                    selected = 'click'
-                    button2.fillColor = 'blue'
-                    draw_selection_screen()
-                    core.wait(0.3)
-                    break
-            
-            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-        except Exception as e:
-            pass
+                
+                hit_margin = 0.02
+                
+                # Check button 1
+                button1_x, button1_y = -0.3, -0.1
+                button1_width, button1_height = 0.25, 0.12
+                on_button1 = (button1_x - button1_width/2 - hit_margin <= mouse_x <= button1_x + button1_width/2 + hit_margin and
+                             button1_y - button1_height/2 - hit_margin <= mouse_y <= button1_y + button1_height/2 + hit_margin)
+                
+                # Check button 2
+                button2_x, button2_y = 0.3, -0.1
+                button2_width, button2_height = 0.25, 0.12
+                on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
+                             button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
+                
+                # Check for button release (click completed)
+                if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                    if on_button1:
+                        USE_TOUCH_SCREEN = True
+                        selected = 'touch'
+                        button1.fillColor = 'green'
+                        draw_selection_screen()
+                        core.wait(0.3)
+                        break
+                    elif on_button2:
+                        USE_TOUCH_SCREEN = False
+                        selected = 'click'
+                        button2.fillColor = 'blue'
+                        draw_selection_screen()
+                        core.wait(0.3)
+                        break
+                
+                # For touch screens, check for press
+                if mouse_buttons[0] and not prev_mouse_buttons[0]:
+                    if on_button1:
+                        USE_TOUCH_SCREEN = True
+                        selected = 'touch'
+                        button1.fillColor = 'green'
+                        draw_selection_screen()
+                        core.wait(0.3)
+                        break
+                    elif on_button2:
+                        USE_TOUCH_SCREEN = False
+                        selected = 'click'
+                        button2.fillColor = 'blue'
+                        draw_selection_screen()
+                        core.wait(0.3)
+                        break
+                
+                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+            except Exception as e:
+                pass
         
         # Safe event.getKeys() handling - ensure keys is never empty array issue
         try:
@@ -269,8 +269,8 @@ def get_input_method():
                     break
                 elif 'escape' in keys:
                     return None  # Signal to exit
-        except (AttributeError, Exception):
-            pass  # Ignore event errors
+            except (AttributeError, Exception):
+                pass  # Ignore event errors
             core.wait(0.01)
         
         mouse_temp.setVisible(False)

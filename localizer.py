@@ -298,38 +298,23 @@ result = get_input_method()
 if result is None:
     core.quit()
 
-# Create main window with appropriate settings - use try/finally pattern
-win = None
-try:
-    time.sleep(0.5)  # Use time.sleep instead of core.wait since we don't have a window yet
-    
-    # Try creating window with the requested fullscreen setting
-    try:
-        win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=USE_TOUCH_SCREEN)
-    except Exception as e:
-        # If fullscreen fails (especially on macOS), try windowed mode
-        print(f"Warning: Could not create window with fullscr={USE_TOUCH_SCREEN} ({e})")
-        print("Trying windowed mode...")
-        time.sleep(0.3)  # Additional delay
-        win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
-    
     # =========================
     #  STIMULI SETUP
     # =========================
-STIMULI_DIR = "STIMULI"
+    STIMULI_DIR = "STIMULI"
 
-# Category mapping: each category has 10 objects, numbered sequentially
-CATEGORY_MAPPING = {
-    "BIG_ANIMAL": (1, 10),      # 001-010
-    "BIG_OBJECT": (11, 20),     # 011-020
-    "BIRD": (21, 30),           # 021-030
-    "FOOD": (31, 40),           # 031-040
-    "FRUIT": (41, 50),          # 041-050
-    "INSECT": (51, 60),         # 051-060
-    "SMALL_ANIMAL": (61, 70),   # 061-070
-    "SMALL_OBJECT": (71, 80),   # 071-080
-    "VEGETABLE": (81, 90),      # 081-090
-    "VEHICLE": (91, 100),       # 091-100
+    # Category mapping: each category has 10 objects, numbered sequentially
+    CATEGORY_MAPPING = {
+        "BIG_ANIMAL": (1, 10),      # 001-010
+        "BIG_OBJECT": (11, 20),     # 011-020
+        "BIRD": (21, 30),           # 021-030
+        "FOOD": (31, 40),           # 031-040
+        "FRUIT": (41, 50),          # 041-050
+        "INSECT": (51, 60),         # 051-060
+        "SMALL_ANIMAL": (61, 70),   # 061-070
+        "SMALL_OBJECT": (71, 80),   # 071-080
+        "VEGETABLE": (81, 90),      # 081-090
+        "VEHICLE": (91, 100),       # 091-100
 }
 
 def get_category_for_stimulus(stimulus_num):
@@ -870,6 +855,21 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
     
     return (answer, timed_out)
 
+# Create main window with appropriate settings - use try/finally pattern
+win = None
+try:
+    time.sleep(0.5)  # Use time.sleep instead of core.wait since we don't have a window yet
+    
+    # Try creating window with the requested fullscreen setting
+    try:
+        win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=USE_TOUCH_SCREEN)
+    except Exception as e:
+        # If fullscreen fails (especially on macOS), try windowed mode
+        print(f"Warning: Could not create window with fullscr={USE_TOUCH_SCREEN} ({e})")
+        print("Trying windowed mode...")
+        time.sleep(0.3)  # Additional delay
+        win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
+    
     # =========================
     #  MAIN EXPERIMENT
     # =========================
