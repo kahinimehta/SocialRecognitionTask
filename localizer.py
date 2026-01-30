@@ -176,7 +176,12 @@ def category_to_question(category_name):
     # Convert BIG_ANIMAL -> "big animal", etc.
     words = category_name.lower().split('_')
     category_text = ' '.join(words)
-    return f"Was the last object a {category_text}?"
+    
+    # Check if category starts with a vowel sound
+    vowels = ['a', 'e', 'i', 'o', 'u']
+    article = "an" if category_text[0] in vowels else "a"
+    
+    return f"Was the last object {article} {category_text}?"
 
 def get_log_directory():
     """Get the directory for log files based on input method"""
@@ -380,8 +385,13 @@ def get_participant_id():
         
         core.wait(0.01)
 
-def wait_for_button(button_text="CONTINUE"):
-    """Wait for button click/touch"""
+def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
+    """Wait for button click/touch
+    
+    Args:
+        button_text: Text to display on button
+        additional_stimuli: List of visual stimuli to draw before the button (e.g., instructions)
+    """
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
     
@@ -402,6 +412,10 @@ def wait_for_button(button_text="CONTINUE"):
     )
     
     def draw_screen():
+        # Draw additional stimuli first (e.g., instructions)
+        if additional_stimuli:
+            for stim in additional_stimuli:
+                stim.draw()
         continue_button.draw()
         continue_text.draw()
         win.flip()
@@ -486,8 +500,17 @@ def wait_for_button(button_text="CONTINUE"):
     mouse.setVisible(False)
     event.clearEvents()
 
-def ask_category_question(category_name, last_object_name):
-    """Ask category question and return True/False answer"""
+def ask_category_question(category_name, last_object_name, timeout=10.0):
+    """Ask category question and return (answer, timed_out) tuple
+    
+    Args:
+        category_name: Category name for the question
+        last_object_name: Name of the last object shown
+        timeout: Timeout in seconds (default 10.0)
+    
+    Returns:
+        tuple: (answer: bool or None, timed_out: bool)
+    """
     question_text = category_to_question(category_name)
     
     # Create question display
@@ -548,9 +571,18 @@ def ask_category_question(category_name, last_object_name):
     
     answered = False
     answer = None
+    timed_out = False
     prev_mouse_buttons = [False, False, False]
+    clock = core.Clock()
+    clock.reset()
     
     while not answered:
+        # Check for timeout
+        elapsed_time = clock.getTime()
+        if elapsed_time >= timeout:
+            timed_out = True
+            answered = True
+            break
         try:
             mouse_buttons = mouse.getPressed()
             mouse_pos = mouse.getPos()
@@ -630,7 +662,22 @@ def ask_category_question(category_name, last_object_name):
     
     mouse.setVisible(False)
     event.clearEvents()
-    return answer
+    
+    # Show timeout message if timed out
+    if timed_out:
+        timeout_message = visual.TextStim(
+            win,
+            text="Time's up! We've moved on to the next image.",
+            color='red',
+            height=0.06,
+            pos=(0, 0),
+            wrapWidth=1.4
+        )
+        timeout_message.draw()
+        win.flip()
+        core.wait(2.0)  # Show message for 2 seconds
+    
+    return (answer, timed_out)
 
 # =========================
 #  MAIN EXPERIMENT
@@ -665,10 +712,15 @@ instructions = visual.TextStim(
 
 instructions.draw()
 win.flip()
-wait_for_button("BEGIN")
+wait_for_button("BEGIN", additional_stimuli=[instructions])
 
 # Data storage
 localizer_data = []
+csv_file = None
+csv_writer = None
+csv_file_path = None
+fieldnames = None
+first_question_answered = False
 
 # Show images
 for idx, stimulus in enumerate(all_stimuli, 1):
@@ -678,8 +730,8 @@ for idx, stimulus in enumerate(all_stimuli, 1):
         img.draw()
         win.flip()
         
-        # Show image for 2 seconds
-        core.wait(2.0)
+        # Show image for exactly 1 second
+        core.wait(1.0)
         
         # Check if this is the 10th image (or every 10th after the first)
         if idx % 10 == 0:
@@ -688,10 +740,13 @@ for idx, stimulus in enumerate(all_stimuli, 1):
             correct_category = current_stimulus['category']
             
             # Ask the question about this image's category
-            answer = ask_category_question(correct_category, current_stimulus['object_name'])
+            answer, timed_out = ask_category_question(correct_category, current_stimulus['object_name'])
             
             # The correct answer is always True since we're asking about the category this image belongs to
             correct_answer = True
+            
+            # Calculate correct only if not timed out
+            is_correct = (answer == correct_answer) if not timed_out else None
             
             # Record data
             trial_data = {
@@ -702,11 +757,29 @@ for idx, stimulus in enumerate(all_stimuli, 1):
                 'category': current_stimulus['category'],
                 'question_category': correct_category,
                 'question_text': category_to_question(correct_category),
-                'answer': answer,
+                'answer': answer if not timed_out else 'TIMEOUT',
                 'correct_answer': correct_answer,
-                'correct': (answer == correct_answer)
+                'correct': is_correct,
+                'timed_out': timed_out
             }
             localizer_data.append(trial_data)
+            
+            # Create CSV file after first question is answered
+            if not first_question_answered and not is_test_participant(participant_id):
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                log_dir = get_log_directory()
+                csv_file_path = os.path.join(log_dir, f"localizer_{participant_id}_{timestamp}.csv")
+                csv_file = open(csv_file_path, 'w', newline='')
+                fieldnames = list(trial_data.keys())
+                csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                csv_writer.writeheader()
+                first_question_answered = True
+                print(f"✓ Created localizer CSV file: {csv_file_path}")
+            
+            # Write current trial to CSV (including first question)
+            if csv_writer is not None:
+                csv_writer.writerow(trial_data)
+                csv_file.flush()  # Ensure data is written immediately
             
             # Brief pause before next image
             core.wait(0.5)
@@ -731,10 +804,18 @@ completion_text = visual.TextStim(
 
 completion_text.draw()
 win.flip()
-wait_for_button("EXIT")
+wait_for_button("EXIT", additional_stimuli=[completion_text])
 
-# Save data
-if not is_test_participant(participant_id):
+# Close CSV file if it was opened
+if csv_file is not None:
+    csv_file.close()
+    if csv_file_path:
+        print(f"✓ Closed localizer CSV file: {csv_file_path}")
+    else:
+        print(f"✓ Closed localizer CSV file")
+
+# Save data (backup - in case CSV wasn't created incrementally)
+if not is_test_participant(participant_id) and csv_file is None:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_dir = get_log_directory()
     output_file = os.path.join(log_dir, f"localizer_{participant_id}_{timestamp}.csv")
@@ -749,7 +830,7 @@ if not is_test_participant(participant_id):
         print(f"✓ Saved localizer data to {output_file}")
     else:
         print("⚠ No data to save")
-else:
+elif is_test_participant(participant_id):
     print(f"⚠ Test participant detected - skipping file save")
 
 # Close window
