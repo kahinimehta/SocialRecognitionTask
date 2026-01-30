@@ -53,7 +53,7 @@ def get_input_method():
         
         # Create button 1 (TOUCH SCREEN) - large buttons for easy interaction
         # Debug: Print window transform info before creating Rect
-        print("DEBUG sizePix:", temp_win.sizePix)
+        print("DEBUG sizePix:", temp_win.size)
         print("DEBUG units:", temp_win.units)
         print("DEBUG viewPos:", getattr(temp_win, "viewPos", "NOATTR"))
         print("DEBUG winType:", getattr(temp_win, "winType", "NOATTR"))
