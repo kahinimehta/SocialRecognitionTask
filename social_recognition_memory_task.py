@@ -35,11 +35,8 @@ def get_input_method():
     # Create temporary window - handle partial initialization
     temp_win = None
     try:
-        # Try auto-detecting screen size first, fallback to fixed size if that fails
-        try:
-            temp_win = visual.Window(size=None, color='white', units='height', fullscr=False)
-        except:
-            temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
+        # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
+        temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
         
         # Ensure window is fully initialized - draw something first to initialize OpenGL context
         dummy = visual.TextStim(temp_win, text='', color='white', pos=(0, 0))
@@ -308,14 +305,15 @@ try:
     time.sleep(0.5)  # Use time.sleep instead of core.wait since we don't have a window yet
     
     # Create window in windowed mode (not fullscreen)
+    # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     try:
-        win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
+        win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
     except Exception as e:
-        # If window creation fails, try with auto-detected size
-        print(f"Warning: Could not create window ({e})")
-        print("Trying with auto-detected size...")
+        # If window creation fails, try with alternative explicit size
+        print(f"Warning: Could not create window with size (1280, 720) ({e})")
+        print("Trying with alternative size (1024, 768)...")
         time.sleep(0.3)  # Additional delay
-        win = visual.Window(size=None, color='white', units='height', fullscr=False)
+        win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False)
     
     # Force window to front on macOS
     try:
