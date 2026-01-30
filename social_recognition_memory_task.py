@@ -793,10 +793,45 @@ else:
 # =========================
 #  BASIC VISUAL ELEMENTS
 # =========================
-instr = visual.TextStim(win, text="", color='black', height=0.04, wrapWidth=1.5, pos=(0, 0))
-fixation = visual.TextStim(win, text="+", color='black', height=0.08, pos=(0, 0))
-feedback_txt = visual.TextStim(win, text="", color='black', height=0.05, pos=(0, 0))
-mouse = event.Mouse(win=win)
+print("Creating basic visual elements...")
+instr = None
+fixation = None
+feedback_txt = None
+mouse = None
+
+try:
+    if win is None:
+        raise RuntimeError("Cannot create visual elements - win is None")
+    
+    print(f"Window status: {win}, type: {type(win)}")
+    instr = visual.TextStim(win, text="", color='black', height=0.04*0.75, wrapWidth=1.5*0.75, pos=(0, 0))
+    print("instr created")
+    fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75, pos=(0, 0))
+    print("fixation created")
+    feedback_txt = visual.TextStim(win, text="", color='black', height=0.05*0.75, pos=(0, 0))
+    print("feedback_txt created")
+    mouse = event.Mouse(win=win)
+    print("mouse created")
+    print("Basic visual elements created successfully")
+except Exception as e:
+    print("="*60)
+    print(f"ERROR creating basic visual elements: {e}")
+    print("="*60)
+    import traceback
+    traceback.print_exc()
+    print("="*60)
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
+    if win is not None:
+        try:
+            win.close()
+        except:
+            pass
+    core.quit()
+    exit(1)
 
 def get_log_directory():
     """Get the directory for log files based on input method"""
@@ -3750,11 +3785,41 @@ def run_experiment():
 # =========================
 if __name__ == "__main__":
     # Only run experiment if window was successfully created
+    print(f"Checking window status before running experiment: win = {win}")
+    print(f"Checking basic elements: instr={instr}, fixation={fixation}, mouse={mouse}")
+    
     if win is None:
-        print("Error: Cannot run experiment - window was not created successfully")
+        print("="*60)
+        print("ERROR: Cannot run experiment - window was not created successfully")
+        print("win is None - window creation must have failed")
+        print("="*60)
+        print("Press Enter to exit...")
+        try:
+            input()
+        except:
+            pass
         core.quit()
         exit(1)
     
+    if instr is None or fixation is None or mouse is None:
+        print("="*60)
+        print("ERROR: Basic visual elements were not created successfully")
+        print(f"instr={instr}, fixation={fixation}, mouse={mouse}")
+        print("="*60)
+        print("Press Enter to exit...")
+        try:
+            input()
+        except:
+            pass
+        if win is not None:
+            try:
+                win.close()
+            except:
+                pass
+        core.quit()
+        exit(1)
+    
+    print("All checks passed. Starting experiment...")
     try:
         run_experiment()
     except KeyboardInterrupt:
