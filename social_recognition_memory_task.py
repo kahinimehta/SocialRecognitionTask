@@ -1114,8 +1114,8 @@ def get_participant_id():
                 )
                 keyboard_buttons.append((button, button_text, char))
         
-        # Special buttons: Backspace, Space, Continue (larger and more visible)
-        special_y = start_y - len(keyboard_layout) * row_spacing - 0.15
+        # Special buttons: Backspace, Space, Continue (larger and more visible) - positioned at top above keyboard
+        special_y = start_y + 0.25  # Position above the keyboard
         backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', lineColor='black', lineWidth=2, pos=(-0.3, special_y))
         backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.04, pos=(-0.3, special_y))
         

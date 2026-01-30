@@ -487,8 +487,8 @@ def get_participant_id():
             
             keyboard_buttons.append(row_buttons)
         
-        # Special buttons - arranged horizontally (larger and more visible)
-        button_y_pos = start_y - 4 * row_spacing
+        # Special buttons - arranged horizontally at the top (above keyboard, more visible)
+        button_y_pos = start_y + 0.2  # Position above the keyboard
         backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', 
                                       lineColor='black', lineWidth=2, pos=(-0.35, button_y_pos))
         backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.04, pos=(-0.35, button_y_pos))
@@ -634,7 +634,7 @@ def get_participant_id():
                     except:
                         # Fallback to manual calculation
                         hit_margin = 0.08
-                        backspace_x, backspace_y = -0.35, start_y - 4 * row_spacing
+                        backspace_x, backspace_y = -0.35, start_y + 0.2
                         backspace_width, backspace_height = 0.2, 0.1
                         if (backspace_x - backspace_width/2 - hit_margin <= mouseloc_x <= backspace_x + backspace_width/2 + hit_margin and
                             backspace_y - backspace_height/2 - hit_margin <= mouseloc_y <= backspace_y + backspace_height/2 + hit_margin):
@@ -684,9 +684,9 @@ def get_participant_id():
                                     except:
                                         mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                         except:
-                            # Fallback to manual calculation
-                            hit_margin = 0.08
-                            space_x, space_y = -0.05, start_y - 4 * row_spacing
+                        # Fallback to manual calculation
+                        hit_margin = 0.08
+                        space_x, space_y = -0.05, start_y + 0.2
                             space_width, space_height = 0.25, 0.1
                             if (space_x - space_width/2 - hit_margin <= mouseloc_x <= space_x + space_width/2 + hit_margin and
                                 space_y - space_height/2 - hit_margin <= mouseloc_y <= space_y + space_height/2 + hit_margin):
@@ -741,7 +741,7 @@ def get_participant_id():
                         except:
                             # Fallback to manual calculation
                             hit_margin = 0.08
-                            continue_x, continue_y = 0.3, start_y - 4 * row_spacing
+                            continue_x, continue_y = 0.3, start_y + 0.2
                             continue_width, continue_height = 0.3, 0.1
                             if (continue_x - continue_width/2 - hit_margin <= mouseloc_x <= continue_x + continue_width/2 + hit_margin and
                                 continue_y - continue_height/2 - hit_margin <= mouseloc_y <= continue_y + continue_height/2 + hit_margin):
