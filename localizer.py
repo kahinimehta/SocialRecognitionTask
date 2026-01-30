@@ -123,8 +123,9 @@ def get_input_method():
                 except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
                 
-                # Generous hit margin for both touch screens and mouse/trackpad (in pixels)
-                hit_margin = 20
+                # Very generous hit margin for touch screens (in pixels)
+                # Use larger margin for better touch sensitivity
+                hit_margin = 80  # Increased from 20 for better touch sensitivity
                 
                 # Check button 1 (use same dimensions as button creation - pixel units)
                 button1_x, button1_y = -320, -80
@@ -138,38 +139,39 @@ def get_input_method():
                 on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
                              button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
                 
-                # Check for button release (click completed)
-                if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_button1:
-                        USE_TOUCH_SCREEN = True
-                        selected = 'touch'
-                        button1.fillColor = 'green'
-                        draw_selection_screen()
-                        core.wait(0.3)
-                        break
-                    elif on_button2:
-                        USE_TOUCH_SCREEN = False
-                        selected = 'click'
-                        button2.fillColor = 'blue'
-                        draw_selection_screen()
-                        core.wait(0.3)
-                        break
-                
-                # For touch screens, check for press
+                # For touch screens, prioritize press detection (more responsive)
+                # Check for press first (touch screens register immediately on press)
                 if mouse_buttons[0] and not prev_mouse_buttons[0]:
                     if on_button1:
                         USE_TOUCH_SCREEN = True
                         selected = 'touch'
                         button1.fillColor = 'green'
                         draw_selection_screen()
-                        core.wait(0.3)
+                        core.wait(0.2)
                         break
                     elif on_button2:
                         USE_TOUCH_SCREEN = False
                         selected = 'click'
                         button2.fillColor = 'blue'
                         draw_selection_screen()
-                        core.wait(0.3)
+                        core.wait(0.2)
+                        break
+                
+                # Check for button release (click completed) - for mouse/trackpad
+                if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                    if on_button1:
+                        USE_TOUCH_SCREEN = True
+                        selected = 'touch'
+                        button1.fillColor = 'green'
+                        draw_selection_screen()
+                        core.wait(0.2)
+                        break
+                    elif on_button2:
+                        USE_TOUCH_SCREEN = False
+                        selected = 'click'
+                        button2.fillColor = 'blue'
+                        draw_selection_screen()
+                        core.wait(0.2)
                         break
                 
                 prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
@@ -186,23 +188,24 @@ def get_input_method():
             
             core.wait(0.01)
         
-        # Show confirmation
+        # Show confirmation - use pixel units to match temp window
         confirm_text = visual.TextStim(
             temp_win,
-            text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
+            text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
             color='black',
-            height=0.06,
-            pos=(0, 0),
-            wrapWidth=1.4
+            height=40,
+            pos=(0, 100),
+            wrapWidth=1000,
+            units='pix'
         )
         
-        # Create continue button for temp window - use width/height with explicit floats
-        cont_w = float(0.3)
-        cont_h = float(0.1)
-        cont_x = float(0.0)
-        cont_y = float(-0.3)
-        continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y))
-        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(cont_x, cont_y))
+        # Create continue button for temp window - use pixel units
+        cont_w = 300
+        cont_h = 80
+        cont_x = 0
+        cont_y = -150
+        continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y), units='pix')
+        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30, pos=(cont_x, cont_y), units='pix')
         
         clicked = False
         prev_mouse_buttons_cont = [False, False, False]
@@ -235,23 +238,23 @@ def get_input_method():
                         button_x = float(button_pos[0])
                         button_y = float(button_pos[1])
                     else:
-                        # Fallback: ensure we always have valid (x, y)
-                        button_x, button_y = 0.0, -0.3
+                        # Fallback: ensure we always have valid (x, y) in pixels
+                        button_x, button_y = 0.0, -150.0
                         continue_button.pos = (button_x, button_y)  # Fix if broken
                 except (TypeError, ValueError, IndexError):
-                    button_x, button_y = 0.0, -0.3
+                    button_x, button_y = 0.0, -150.0
                     continue_button.pos = (button_x, button_y)  # Fix if broken
                 
                 try:
-                    button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 0.3
-                    button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 0.1
+                    button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 300
+                    button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 80
                     # Ensure size is always valid
                     if button_width <= 0 or button_height <= 0:
-                        button_width, button_height = 0.3, 0.1
+                        button_width, button_height = 300, 80
                 except (TypeError, ValueError):
-                    button_width, button_height = 0.3, 0.1
+                    button_width, button_height = 300, 80
                 
-                hit_margin = 0.02
+                hit_margin = 20  # 20 pixels for touch sensitivity
                 
                 # Check if mouse is on button
                 on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
@@ -288,6 +291,17 @@ def get_input_method():
         
         mouse_temp.setVisible(False)
         
+        # Show a brief transition message before closing
+        transition_text = visual.TextStim(
+            temp_win,
+            text="Loading...",
+            color='black',
+            height=0.08,
+            pos=(0, 0)
+        )
+        transition_text.draw()
+        temp_win.flip()
+        
         # Small delay before closing
         time.sleep(0.1)
         
@@ -300,7 +314,7 @@ def get_input_method():
                 temp_win.close()
             except Exception:
                 pass
-        time.sleep(0.5)  # Delay after closing before creating new window
+        time.sleep(0.2)  # Reduced delay from 0.5 to 0.2 for faster transition
 
 # =========================
 #  STIMULI SETUP (Module-level constants)
@@ -873,7 +887,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
 # Create main window with appropriate settings - use try/finally pattern
 win = None
 try:
-    time.sleep(0.5)  # Use time.sleep instead of core.wait since we don't have a window yet
+    time.sleep(0.2)  # Reduced delay from 0.5 to 0.2 for faster transition
     
     # Create window in windowed mode (not fullscreen)
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)

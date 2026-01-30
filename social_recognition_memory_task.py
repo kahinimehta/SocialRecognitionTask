@@ -126,8 +126,9 @@ def get_input_method():
                 except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
                 
-                # Generous hit margin for both touch screens and mouse/trackpad (in pixels)
-                hit_margin = 20
+                # Very generous hit margin for touch screens (in pixels)
+                # Use larger margin for better touch sensitivity
+                hit_margin = 80  # Increased from 20 for better touch sensitivity
                 
                 # Check button 1 (use same dimensions as button creation - pixel units)
                 button1_x, button1_y = -320, -80
@@ -141,38 +142,39 @@ def get_input_method():
                 on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
                              button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
                 
-                # Check for button release (click completed)
-                if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_button1:
-                        USE_TOUCH_SCREEN = True
-                        selected = 'touch'
-                        button1.fillColor = 'green'
-                        draw_selection_screen()
-                        core.wait(0.3)
-                        break
-                    elif on_button2:
-                        USE_TOUCH_SCREEN = False
-                        selected = 'click'
-                        button2.fillColor = 'blue'
-                        draw_selection_screen()
-                        core.wait(0.3)
-                        break
-                
-                # For touch screens, check for press
+                # For touch screens, prioritize press detection (more responsive)
+                # Check for press first (touch screens register immediately on press)
                 if mouse_buttons[0] and not prev_mouse_buttons[0]:
                     if on_button1:
                         USE_TOUCH_SCREEN = True
                         selected = 'touch'
                         button1.fillColor = 'green'
                         draw_selection_screen()
-                        core.wait(0.3)
+                        core.wait(0.2)
                         break
                     elif on_button2:
                         USE_TOUCH_SCREEN = False
                         selected = 'click'
                         button2.fillColor = 'blue'
                         draw_selection_screen()
-                        core.wait(0.3)
+                        core.wait(0.2)
+                        break
+                
+                # Check for button release (click completed) - for mouse/trackpad
+                if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                    if on_button1:
+                        USE_TOUCH_SCREEN = True
+                        selected = 'touch'
+                        button1.fillColor = 'green'
+                        draw_selection_screen()
+                        core.wait(0.2)
+                        break
+                    elif on_button2:
+                        USE_TOUCH_SCREEN = False
+                        selected = 'click'
+                        button2.fillColor = 'blue'
+                        draw_selection_screen()
+                        core.wait(0.2)
                         break
                 
                 prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
