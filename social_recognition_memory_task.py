@@ -1053,16 +1053,16 @@ def get_participant_id():
                 )
                 keyboard_buttons.append((button, button_text, char))
         
-        # Special buttons: Backspace, Space, Enter
+        # Special buttons: Backspace, Space, Continue
         special_y = start_y - len(keyboard_layout) * row_spacing - 0.15
-        backspace_button = visual.Rect(win, width=0.15, height=button_height, fillColor='lightcoral', lineColor='black', pos=(-0.2, special_y))
-        backspace_text = visual.TextStim(win, text="DEL", color='black', height=0.04, pos=(-0.2, special_y))
+        backspace_button = visual.Rect(win, width=0.2, height=button_height, fillColor='lightcoral', lineColor='black', pos=(-0.3, special_y))
+        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.03, pos=(-0.3, special_y))
         
-        space_button = visual.Rect(win, width=0.3, height=button_height, fillColor='lightgray', lineColor='black', pos=(0, special_y))
-        space_text = visual.TextStim(win, text="SPACE", color='black', height=0.04, pos=(0, special_y))
+        space_button = visual.Rect(win, width=0.25, height=button_height, fillColor='lightgray', lineColor='black', pos=(-0.05, special_y))
+        space_text = visual.TextStim(win, text="SPACE", color='black', height=0.04, pos=(-0.05, special_y))
         
-        enter_button = visual.Rect(win, width=0.15, height=button_height, fillColor='lightgreen', lineColor='black', pos=(0.2, special_y))
-        enter_text = visual.TextStim(win, text="ENTER", color='black', height=0.04, pos=(0.2, special_y))
+        continue_button = visual.Rect(win, width=0.25, height=button_height, fillColor='lightgreen', lineColor='black', pos=(0.25, special_y))
+        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.03, pos=(0.25, special_y))
     
     # Key list for keyboard input (non-touch)
     key_list = ['return', 'backspace', 'space'] + [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(48, 58)]
@@ -1082,13 +1082,15 @@ def get_participant_id():
             backspace_text.draw()
             space_button.draw()
             space_text.draw()
-            enter_button.draw()
-            enter_text.draw()
+            continue_button.draw()
+            continue_text.draw()
         
         win.flip()
     
     redraw()
     event.clearEvents()
+    
+    prev_mouse_buttons_id = [False, False, False]
     
     while True:
         if USE_TOUCH_SCREEN:
@@ -1097,57 +1099,87 @@ def get_participant_id():
                 mouse_buttons = mouse.getPressed()
                 mouse_pos = mouse.getPos()
                 
-                if mouse_buttons[0]:
-                    # Check keyboard buttons
-                    hit_margin = 0.02
+                try:
+                    mouse_x = float(mouse_pos[0])
+                    mouse_y = float(mouse_pos[1])
+                except (TypeError, ValueError):
+                    mouse_x, mouse_y = 0.0, 0.0
+                
+                # Maximized hit margin for touch sensitivity
+                hit_margin = 0.05  # Increased from 0.02
+                clicked = False
+                
+                # Check for new press (touch screens register immediately)
+                if mouse_buttons[0] and not prev_mouse_buttons_id[0]:
+                    # Check keyboard buttons first
                     for button, button_text, char in keyboard_buttons:
                         button_x, button_y = button.pos
                         button_width, button_height = button.width, button.height
-                        if (button_x - button_width/2 - hit_margin <= mouse_pos[0] <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouse_pos[1] <= button_y + button_height/2 + hit_margin):
+                        if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
                             input_id += char
                             button.fillColor = 'lightgreen'
                             redraw()
-                            core.wait(0.1)
+                            core.wait(0.05)  # Reduced delay
                             button.fillColor = 'lightgray'
                             redraw()
+                            clicked = True
                             break
                     
-                    # Check special buttons
-                    button_x, button_y = backspace_button.pos
-                    if (button_x - backspace_button.width/2 - hit_margin <= mouse_pos[0] <= button_x + backspace_button.width/2 + hit_margin and
-                        button_y - backspace_button.height/2 - hit_margin <= mouse_pos[1] <= button_y + backspace_button.height/2 + hit_margin):
-                        input_id = input_id[:-1] if input_id else ""
-                        backspace_button.fillColor = 'red'
-                        redraw()
-                        core.wait(0.1)
-                        backspace_button.fillColor = 'lightcoral'
-                        redraw()
+                    if not clicked:
+                        # Check backspace button
+                        button_x, button_y = backspace_button.pos
+                        button_width, button_height = backspace_button.width, backspace_button.height
+                        if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
+                            input_id = input_id[:-1] if input_id else ""
+                            backspace_button.fillColor = 'red'
+                            redraw()
+                            core.wait(0.05)  # Reduced delay
+                            backspace_button.fillColor = 'lightcoral'
+                            redraw()
+                            clicked = True
                     
-                    button_x, button_y = space_button.pos
-                    if (button_x - space_button.width/2 - hit_margin <= mouse_pos[0] <= button_x + space_button.width/2 + hit_margin and
-                        button_y - space_button.height/2 - hit_margin <= mouse_pos[1] <= button_y + space_button.height/2 + hit_margin):
-                        input_id += ' '
-                        space_button.fillColor = 'lightgreen'
-                        redraw()
-                        core.wait(0.1)
-                        space_button.fillColor = 'lightgray'
-                        redraw()
+                    if not clicked:
+                        # Check space button
+                        button_x, button_y = space_button.pos
+                        button_width, button_height = space_button.width, space_button.height
+                        if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
+                            input_id += ' '
+                            space_button.fillColor = 'lightgreen'
+                            redraw()
+                            core.wait(0.05)  # Reduced delay
+                            space_button.fillColor = 'lightgray'
+                            redraw()
+                            clicked = True
                     
-                    button_x, button_y = enter_button.pos
-                    if (button_x - enter_button.width/2 - hit_margin <= mouse_pos[0] <= button_x + enter_button.width/2 + hit_margin and
-                        button_y - enter_button.height/2 - hit_margin <= mouse_pos[1] <= button_y + enter_button.height/2 + hit_margin):
-                        if input_id.strip():
-                            enter_button.fillColor = 'green'
-                            redraw()
-                            core.wait(0.2)
-                            break
-                        else:
-                            enter_button.fillColor = 'red'
-                            redraw()
-                            core.wait(0.2)
-                            enter_button.fillColor = 'lightgreen'
-                            redraw()
+                    if not clicked:
+                        # Check continue button
+                        button_x, button_y = continue_button.pos
+                        button_width, button_height = continue_button.width, continue_button.height
+                        if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
+                            if input_id.strip():
+                                continue_button.fillColor = 'green'
+                                redraw()
+                                core.wait(0.05)  # Reduced delay
+                                mouse.setVisible(False)
+                                event.clearEvents()
+                                break  # Break from loop, will return below
+                            else:
+                                continue_button.fillColor = 'red'
+                                redraw()
+                                core.wait(0.1)
+                                continue_button.fillColor = 'lightgreen'
+                                redraw()
+                                clicked = True
+                
+                prev_mouse_buttons_id = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+                event.clearEvents()  # Clear events to prevent accumulation
+                
+                # Reduced polling delay
+                core.wait(0.005)  # Faster polling
             except (AttributeError, Exception):
                 pass
         else:
