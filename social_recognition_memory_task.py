@@ -112,6 +112,12 @@ def get_input_method():
         selected = None
         prev_mouse_buttons = [False, False, False]
         
+        # Reset mouse position for hover detection
+        try:
+            mouse_temp.setPos((0, 0))
+        except:
+            pass
+        
         while selected is None:
             try:
                 mouse_buttons = mouse_temp.getPressed()
@@ -144,40 +150,82 @@ def get_input_method():
                 on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
                              button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
                 
-                # For touch screens: detect ANY press on button (more aggressive detection)
-                # Touch screens can register multiple rapid presses, so check current state
+                # HOVER-BASED DETECTION: Check if cursor/touch is within button area
+                # For touch screens: trigger immediately when touch is detected within button bounds
                 if mouse_buttons[0]:
-                    if on_button1 and not prev_mouse_buttons[0]:
-                        USE_TOUCH_SCREEN = True
-                        selected = 'touch'
-                        button1.fillColor = 'green'
-                        draw_selection_screen()
-                        core.wait(0.05)  # Minimal delay for touch screens
-                        break
-                    elif on_button2 and not prev_mouse_buttons[0]:
-                        USE_TOUCH_SCREEN = False
-                        selected = 'click'
-                        button2.fillColor = 'blue'
-                        draw_selection_screen()
-                        core.wait(0.05)  # Minimal delay for touch screens
-                        break
+                    # Check if touch is hovering over button1
+                    try:
+                        if button1.contains(mouse_pos) or on_button1:
+                            if not prev_mouse_buttons[0]:  # Only trigger on new touch
+                                USE_TOUCH_SCREEN = True
+                                selected = 'touch'
+                                button1.fillColor = 'green'
+                                draw_selection_screen()
+                                core.wait(0.05)  # Minimal delay for touch screens
+                                break
+                    except:
+                        if on_button1 and not prev_mouse_buttons[0]:
+                            USE_TOUCH_SCREEN = True
+                            selected = 'touch'
+                            button1.fillColor = 'green'
+                            draw_selection_screen()
+                            core.wait(0.05)
+                            break
+                    
+                    # Check if touch is hovering over button2
+                    try:
+                        if button2.contains(mouse_pos) or on_button2:
+                            if not prev_mouse_buttons[0]:  # Only trigger on new touch
+                                USE_TOUCH_SCREEN = False
+                                selected = 'click'
+                                button2.fillColor = 'blue'
+                                draw_selection_screen()
+                                core.wait(0.05)  # Minimal delay for touch screens
+                                break
+                    except:
+                        if on_button2 and not prev_mouse_buttons[0]:
+                            USE_TOUCH_SCREEN = False
+                            selected = 'click'
+                            button2.fillColor = 'blue'
+                            draw_selection_screen()
+                            core.wait(0.05)
+                            break
                 
                 # Check for button release (click completed) - for mouse/trackpad
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_button1:
-                        USE_TOUCH_SCREEN = True
-                        selected = 'touch'
-                        button1.fillColor = 'green'
-                        draw_selection_screen()
-                        core.wait(0.1)  # Slightly longer for mouse/trackpad
-                        break
-                    elif on_button2:
-                        USE_TOUCH_SCREEN = False
-                        selected = 'click'
-                        button2.fillColor = 'blue'
-                        draw_selection_screen()
-                        core.wait(0.1)  # Slightly longer for mouse/trackpad
-                        break
+                    try:
+                        if button1.contains(mouse_pos) or on_button1:
+                            USE_TOUCH_SCREEN = True
+                            selected = 'touch'
+                            button1.fillColor = 'green'
+                            draw_selection_screen()
+                            core.wait(0.1)  # Slightly longer for mouse/trackpad
+                            break
+                    except:
+                        if on_button1:
+                            USE_TOUCH_SCREEN = True
+                            selected = 'touch'
+                            button1.fillColor = 'green'
+                            draw_selection_screen()
+                            core.wait(0.1)
+                            break
+                    
+                    try:
+                        if button2.contains(mouse_pos) or on_button2:
+                            USE_TOUCH_SCREEN = False
+                            selected = 'click'
+                            button2.fillColor = 'blue'
+                            draw_selection_screen()
+                            core.wait(0.1)  # Slightly longer for mouse/trackpad
+                            break
+                    except:
+                        if on_button2:
+                            USE_TOUCH_SCREEN = False
+                            selected = 'click'
+                            button2.fillColor = 'blue'
+                            draw_selection_screen()
+                            core.wait(0.1)
+                            break
                 
                 prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
             except Exception as e:
@@ -214,6 +262,13 @@ def get_input_method():
         
         clicked = False
         prev_mouse_buttons_cont = [False, False, False]
+        event.clearEvents()  # Clear any pending events
+        
+        # Reset mouse position for hover detection
+        try:
+            mouse_temp.setPos((0, 0))
+        except:
+            pass
         
         while not clicked:
             confirm_text.draw()
@@ -224,6 +279,8 @@ def get_input_method():
             try:
                 mouse_buttons = mouse_temp.getPressed()
                 mouse_pos = mouse_temp.getPos()
+                # Clear events after getting mouse state to prevent accumulation
+                event.clearEvents()
                 
                 # Convert to floats to handle numpy arrays - ensure all values are Python floats
                 try:
@@ -235,39 +292,37 @@ def get_input_method():
                 except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
                 
-                # Get button position and dimensions as Python floats
-                # Get button position - ensure pos is always (x, y) tuple, never empty
+                # HOVER-BASED DETECTION: Check if cursor/touch is within button area
+                # Use contains() method for more reliable detection
                 try:
-                    button_pos = continue_button.pos
-                    if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
-                        button_x = float(button_pos[0])
-                        button_y = float(button_pos[1])
-                    else:
-                        # Fallback: ensure we always have valid (x, y) in pixels
+                    on_button = continue_button.contains(mouse_pos)
+                except:
+                    # Fallback to manual calculation if contains() doesn't work
+                    try:
+                        button_pos = continue_button.pos
+                        if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                            button_x = float(button_pos[0])
+                            button_y = float(button_pos[1])
+                        else:
+                            button_x, button_y = 0.0, -150.0
+                    except:
                         button_x, button_y = 0.0, -150.0
-                        continue_button.pos = (button_x, button_y)  # Fix if broken
-                except (TypeError, ValueError, IndexError):
-                    button_x, button_y = 0.0, -150.0
-                    continue_button.pos = (button_x, button_y)  # Fix if broken
-                
-                try:
-                    button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 300
-                    button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 80
-                    # Ensure size is always valid
-                    if button_width <= 0 or button_height <= 0:
+                    
+                    try:
+                        button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 300
+                        button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 80
+                        if button_width <= 0 or button_height <= 0:
+                            button_width, button_height = 300, 80
+                    except:
                         button_width, button_height = 300, 80
-                except (TypeError, ValueError):
-                    button_width, button_height = 300, 80
+                    
+                    hit_margin = 50  # Maximized hit margin for touch sensitivity
+                    on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                                button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
                 
-                hit_margin = 20  # 20 pixels for touch sensitivity
-                
-                # Check if mouse is on button
-                on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
-                
-                # For touch screens, prioritize press detection (immediate response)
-                if mouse_buttons[0] and not prev_mouse_buttons_cont[0]:
-                    if on_button:
+                # For touch screens: trigger immediately when touch is detected within button bounds
+                if mouse_buttons[0] and on_button:
+                    if not prev_mouse_buttons_cont[0]:  # Only trigger on new press
                         clicked = True
                         break
                 
@@ -326,14 +381,16 @@ def get_input_method():
 # Ask for input method first
 result = get_input_method()
 if result is None:
+    print("Input method selection cancelled. Exiting...")
     core.quit()
+    exit(0)
 
 # Create main window with appropriate settings - use try/finally pattern
 win = None
 try:
     import time
-    # Minimal delay for fastest transition - create window immediately
-    time.sleep(0.05)  # Minimized delay for fastest transition
+    # Brief delay to ensure temp window is fully closed
+    time.sleep(0.1)  # Small delay to ensure clean transition
     
     # Create window in windowed mode (not fullscreen)
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
@@ -355,6 +412,24 @@ try:
             print("Exiting...")
             core.quit()
             exit(1)
+    
+    # Verify window was created successfully
+    if win is None:
+        print("Error: Failed to create main window")
+        core.quit()
+        exit(1)
+    
+    # Ensure window is visible and ready
+    try:
+        win.flip()
+        core.wait(0.1)  # Brief wait to ensure window is fully ready
+        print("Main window created successfully")
+    except Exception as e:
+        print(f"Error preparing window: {e}")
+        import traceback
+        traceback.print_exc()
+        core.quit()
+        exit(1)
     
     # Force window to front on macOS
     try:
@@ -1092,9 +1167,15 @@ def get_participant_id():
     
     prev_mouse_buttons_id = [False, False, False]
     
+    # Reset mouse position for hover detection
+    try:
+        mouse.setPos((0, 0))
+    except:
+        pass
+    
     while True:
         if USE_TOUCH_SCREEN:
-            # Touch screen: check button clicks
+            # Touch screen: check button clicks using hover detection
             try:
                 mouse_buttons = mouse.getPressed()
                 mouse_pos = mouse.getPos()
@@ -1109,71 +1190,124 @@ def get_participant_id():
                 hit_margin = 0.05  # Increased from 0.02
                 clicked = False
                 
-                # Check for new press (touch screens register immediately)
+                # HOVER-BASED DETECTION: Check for new press and if cursor/touch is within button area
                 if mouse_buttons[0] and not prev_mouse_buttons_id[0]:
-                    # Check keyboard buttons first
+                    # Check keyboard buttons first using hover detection
                     for button, button_text, char in keyboard_buttons:
-                        button_x, button_y = button.pos
-                        button_width, button_height = button.width, button.height
-                        if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
-                            input_id += char
-                            button.fillColor = 'lightgreen'
-                            redraw()
-                            core.wait(0.05)  # Reduced delay
-                            button.fillColor = 'lightgray'
-                            redraw()
-                            clicked = True
-                            break
-                    
-                    if not clicked:
-                        # Check backspace button
-                        button_x, button_y = backspace_button.pos
-                        button_width, button_height = backspace_button.width, backspace_button.height
-                        if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
-                            input_id = input_id[:-1] if input_id else ""
-                            backspace_button.fillColor = 'red'
-                            redraw()
-                            core.wait(0.05)  # Reduced delay
-                            backspace_button.fillColor = 'lightcoral'
-                            redraw()
-                            clicked = True
-                    
-                    if not clicked:
-                        # Check space button
-                        button_x, button_y = space_button.pos
-                        button_width, button_height = space_button.width, space_button.height
-                        if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
-                            input_id += ' '
-                            space_button.fillColor = 'lightgreen'
-                            redraw()
-                            core.wait(0.05)  # Reduced delay
-                            space_button.fillColor = 'lightgray'
-                            redraw()
-                            clicked = True
-                    
-                    if not clicked:
-                        # Check continue button
-                        button_x, button_y = continue_button.pos
-                        button_width, button_height = continue_button.width, continue_button.height
-                        if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
-                            if input_id.strip():
-                                continue_button.fillColor = 'green'
+                        # Use contains() method for reliable hover detection
+                        try:
+                            if button.contains(mouse_pos):
+                                input_id += char
+                                button.fillColor = 'lightgreen'
                                 redraw()
                                 core.wait(0.05)  # Reduced delay
-                                mouse.setVisible(False)
-                                event.clearEvents()
-                                break  # Break from loop, will return below
-                            else:
-                                continue_button.fillColor = 'red'
-                                redraw()
-                                core.wait(0.1)
-                                continue_button.fillColor = 'lightgreen'
+                                button.fillColor = 'lightgray'
                                 redraw()
                                 clicked = True
+                                break
+                        except:
+                            # Fallback to manual calculation
+                            button_x, button_y = button.pos
+                            button_width, button_height = button.width, button.height
+                            if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                                button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
+                                input_id += char
+                                button.fillColor = 'lightgreen'
+                                redraw()
+                                core.wait(0.05)
+                                button.fillColor = 'lightgray'
+                                redraw()
+                                clicked = True
+                                break
+                    
+                    if not clicked:
+                        # Check backspace button using hover detection
+                        try:
+                            if backspace_button.contains(mouse_pos):
+                                input_id = input_id[:-1] if input_id else ""
+                                backspace_button.fillColor = 'red'
+                                redraw()
+                                core.wait(0.05)
+                                backspace_button.fillColor = 'lightcoral'
+                                redraw()
+                                clicked = True
+                        except:
+                            # Fallback to manual calculation
+                            button_x, button_y = backspace_button.pos
+                            button_width, button_height = backspace_button.width, backspace_button.height
+                            if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                                button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
+                                input_id = input_id[:-1] if input_id else ""
+                                backspace_button.fillColor = 'red'
+                                redraw()
+                                core.wait(0.05)
+                                backspace_button.fillColor = 'lightcoral'
+                                redraw()
+                                clicked = True
+                    
+                    if not clicked:
+                        # Check space button using hover detection
+                        try:
+                            if space_button.contains(mouse_pos):
+                                input_id += ' '
+                                space_button.fillColor = 'lightgreen'
+                                redraw()
+                                core.wait(0.05)
+                                space_button.fillColor = 'lightgray'
+                                redraw()
+                                clicked = True
+                        except:
+                            # Fallback to manual calculation
+                            button_x, button_y = space_button.pos
+                            button_width, button_height = space_button.width, space_button.height
+                            if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                                button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
+                                input_id += ' '
+                                space_button.fillColor = 'lightgreen'
+                                redraw()
+                                core.wait(0.05)
+                                space_button.fillColor = 'lightgray'
+                                redraw()
+                                clicked = True
+                    
+                    if not clicked:
+                        # Check continue button using hover detection
+                        try:
+                            if continue_button.contains(mouse_pos):
+                                if input_id.strip():
+                                    continue_button.fillColor = 'green'
+                                    redraw()
+                                    core.wait(0.05)
+                                    mouse.setVisible(False)
+                                    event.clearEvents()
+                                    break  # Break from loop, will return below
+                                else:
+                                    continue_button.fillColor = 'red'
+                                    redraw()
+                                    core.wait(0.1)
+                                    continue_button.fillColor = 'lightgreen'
+                                    redraw()
+                                    clicked = True
+                        except:
+                            # Fallback to manual calculation
+                            button_x, button_y = continue_button.pos
+                            button_width, button_height = continue_button.width, continue_button.height
+                            if (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                                button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin):
+                                if input_id.strip():
+                                    continue_button.fillColor = 'green'
+                                    redraw()
+                                    core.wait(0.05)
+                                    mouse.setVisible(False)
+                                    event.clearEvents()
+                                    break
+                                else:
+                                    continue_button.fillColor = 'red'
+                                    redraw()
+                                    core.wait(0.1)
+                                    continue_button.fillColor = 'lightgreen'
+                                    redraw()
+                                    clicked = True
                 
                 prev_mouse_buttons_id = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
                 event.clearEvents()  # Clear events to prevent accumulation
