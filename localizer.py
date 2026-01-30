@@ -113,6 +113,8 @@ def get_input_method():
             try:
                 mouse_buttons = mouse_temp.getPressed()
                 mouse_pos = mouse_temp.getPos()
+                # Clear events after getting mouse state to prevent accumulation
+                event.clearEvents()
                 
                 # Convert to floats to handle numpy arrays
                 try:
@@ -139,22 +141,22 @@ def get_input_method():
                 on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
                              button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
                 
-                # For touch screens, prioritize press detection (more responsive)
-                # Check for press first (touch screens register immediately on press)
-                if mouse_buttons[0] and not prev_mouse_buttons[0]:
-                    if on_button1:
+                # For touch screens: detect ANY press on button (more aggressive detection)
+                # Touch screens can register multiple rapid presses, so check current state
+                if mouse_buttons[0]:
+                    if on_button1 and not prev_mouse_buttons[0]:
                         USE_TOUCH_SCREEN = True
                         selected = 'touch'
                         button1.fillColor = 'green'
                         draw_selection_screen()
-                        core.wait(0.2)
+                        core.wait(0.05)  # Minimal delay for touch screens
                         break
-                    elif on_button2:
+                    elif on_button2 and not prev_mouse_buttons[0]:
                         USE_TOUCH_SCREEN = False
                         selected = 'click'
                         button2.fillColor = 'blue'
                         draw_selection_screen()
-                        core.wait(0.2)
+                        core.wait(0.05)  # Minimal delay for touch screens
                         break
                 
                 # Check for button release (click completed) - for mouse/trackpad
@@ -164,14 +166,14 @@ def get_input_method():
                         selected = 'touch'
                         button1.fillColor = 'green'
                         draw_selection_screen()
-                        core.wait(0.2)
+                        core.wait(0.1)  # Slightly longer for mouse/trackpad
                         break
                     elif on_button2:
                         USE_TOUCH_SCREEN = False
                         selected = 'click'
                         button2.fillColor = 'blue'
                         draw_selection_screen()
-                        core.wait(0.2)
+                        core.wait(0.1)  # Slightly longer for mouse/trackpad
                         break
                 
                 prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
@@ -902,12 +904,21 @@ try:
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
         win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        # Immediately flip to ensure window is ready
+        win.flip()
     except Exception as e:
         # If window creation fails, try with alternative explicit size
         print(f"Warning: Could not create window with size (1280, 720) ({e})")
         print("Trying with alternative size (1024, 768)...")
-        time.sleep(0.3)  # Additional delay
-        win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        time.sleep(0.1)  # Reduced delay
+        try:
+            win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False, viewPos=(0, 0))
+            win.flip()
+        except Exception as e2:
+            print(f"Error: Could not create window ({e2})")
+            print("Exiting...")
+            core.quit()
+            exit(1)
     
     # =========================
     #  MAIN EXPERIMENT
