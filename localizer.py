@@ -57,12 +57,15 @@ def get_input_method():
     temp_win = None
     try:
         # Use height units for fullscreen compatibility
+        # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
             size=(1280, 720),
             color='white',
             units='height',
             fullscr=True,
-            allowGUI=True
+            allowGUI=True,
+            waitBlanking=False,  # Prevent blocking on display sync
+            useFBO=False  # Disable framebuffer objects to prevent hangs
         )
         temp_win.flip()
         
@@ -361,6 +364,11 @@ def get_input_method():
         # Close temp window exactly once in finally block
         if temp_win is not None:
             try:
+                # Ensure window is properly flushed before closing
+                try:
+                    temp_win.flip()
+                except:
+                    pass
                 temp_win.close()
                 # Give the system time to fully close the window
                 time.sleep(0.1)
@@ -370,7 +378,7 @@ def get_input_method():
                 # Still wait a bit even if close failed
                 time.sleep(0.1)
         # Additional delay to ensure temp window is fully closed before main window creation
-        time.sleep(0.1)  # Total delay: 0.1 (from close) + 0.1 (here) = 0.2 seconds
+        time.sleep(0.15)  # Slightly longer delay to ensure window resources are fully released
 
 # =========================
 #  STIMULI SETUP (Module-level constants)
@@ -1381,23 +1389,16 @@ try:
     sys.stderr.flush()
     
     import time
-    # Brief delay to ensure temp window is fully closed
-    print("Waiting before creating main window...")
-    sys.stdout.flush()
-    sys.stderr.flush()
-    # Note: temp window cleanup already includes delays, but add extra safety margin
-    print("DEBUG: About to sleep 0.3 seconds for window cleanup", file=sys.stderr)
-    sys.stderr.flush()
-    time.sleep(0.3)  # Extra delay to ensure temp window is fully closed and system is ready
-    print("DEBUG: Finished sleeping, about to create window", file=sys.stderr)
-    sys.stderr.flush()
-    
+    # Window creation happens exactly 0.4 seconds after continue was clicked
+    # (delay already handled in get_input_method function)
+    # No additional delays needed - proceed immediately to window creation
     print("Creating main window...")
     sys.stdout.flush()
     sys.stderr.flush()
     # Create window in fullscreen mode
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
+    # Add waitBlanking=False and allowGUI=True to prevent hanging
     try:
         print("About to call visual.Window()...", file=sys.stderr)
         sys.stderr.flush()
@@ -1406,7 +1407,17 @@ try:
         print("Attempting to create fullscreen window...")
         sys.stdout.flush()
         sys.stderr.flush()
-        win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=True, viewPos=(0, 0))
+        # Try with timeout protection: use waitBlanking=False to prevent blocking
+        win = visual.Window(
+            size=(1280, 720), 
+            color='white', 
+            units='height', 
+            fullscr=True, 
+            viewPos=(0, 0),
+            waitBlanking=False,  # Prevent blocking on display sync
+            allowGUI=True,  # Ensure GUI is available
+            useFBO=False  # Disable framebuffer objects to prevent hangs
+        )
         print("Window object created, about to flip...", file=sys.stderr)
         sys.stderr.flush()
         # Immediately flip to ensure window is ready
@@ -1430,7 +1441,16 @@ try:
         sys.stdout.flush()
         time.sleep(0.1)  # Reduced delay
         try:
-            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+            win = visual.Window(
+                size=(1280, 720), 
+                color='white', 
+                units='height', 
+                fullscr=False, 
+                viewPos=(0, 0),
+                waitBlanking=False,
+                allowGUI=True,
+                useFBO=False
+            )
             win.flip()
             print("Windowed mode window created successfully")
             sys.stdout.flush()

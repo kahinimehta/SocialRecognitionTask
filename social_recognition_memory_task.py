@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw
 import math
 import sys
 import traceback
+import platform
 
 # Force stdout to flush after each print
 def print_flush(*args, **kwargs):
@@ -66,12 +67,15 @@ def get_input_method():
     temp_win = None
     try:
         # Use height units for fullscreen compatibility
+        # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
             size=(1280, 720),
             color='white',
             units='height',
             fullscr=True,
-            allowGUI=True
+            allowGUI=True,
+            waitBlanking=False,  # Prevent blocking on display sync
+            useFBO=False  # Disable framebuffer objects to prevent hangs
         )
         temp_win.flip()
     
@@ -142,17 +146,8 @@ def get_input_method():
         event.clearEvents()
         selected = None
         
-        # POSITION-CHANGE DETECTION: Store initial mouse position
-        mouserec = mouse_temp.getPos()
-        try:
-            mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-        except (ValueError, TypeError, IndexError) as e:
-            print(f"Warning: Could not parse initial mouse position: {e}", file=sys.stderr)
-            mouserec_x, mouserec_y = 0.0, 0.0
-        
-        minRT = 0.05  # Minimum response time
-        clock = core.Clock()
-        clock.reset()
+        # BUTTON PRESS DETECTION: Track button state for press/release detection
+        prev_mouse_buttons = [False, False, False]
         
         while selected is None:
             # Check for escape key FIRST, before clearing events
@@ -164,6 +159,7 @@ def get_input_method():
                 print(f"Warning: Error checking escape key: {e}", file=sys.stderr)
             
             try:
+                mouse_buttons = mouse_temp.getPressed()
                 mouseloc = mouse_temp.getPos()
                 try:
                     mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
@@ -171,31 +167,18 @@ def get_input_method():
                     print(f"Warning: Could not parse mouse position: {e}", file=sys.stderr)
                     mouseloc_x, mouseloc_y = 0.0, 0.0
                 
-                t = clock.getTime()
-                # Don't clear events here - clear at end of loop iteration
-                
-                # Check if mouse position has changed (touch moved)
-                if mouseloc_x == mouserec_x and mouseloc_y == mouserec_y:
-                    # Position hasn't changed, just redraw
-                    draw_selection_screen()
-                else:
-                    # Position has changed - check if touch is within any button
+                # Check for button release (was pressed, now released)
+                if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                    # Button was released - check which button it was over
                     # Check button 1
                     try:
                         if button1.contains(mouseloc):
-                            if t > minRT:
-                                USE_TOUCH_SCREEN = True
-                                selected = 'touch'
-                                button1.fillColor = 'green'
-                                draw_selection_screen()
-                                core.wait(0.05)
-                                break
-                            else:
-                                mouserec = mouse_temp.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                            USE_TOUCH_SCREEN = True
+                            selected = 'touch'
+                            button1.fillColor = 'green'
+                            draw_selection_screen()
+                            core.wait(0.05)
+                            break
                     except Exception as e:
                         # Fallback to manual calculation
                         print(f"ERROR in button1.contains() fallback: {repr(e)}", file=sys.stderr)
@@ -205,38 +188,23 @@ def get_input_method():
                         button1_width, button1_height = 520/720*0.75, 180/720*0.75
                         if (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
                             button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin):
-                            if t > minRT:
-                                USE_TOUCH_SCREEN = True
-                                selected = 'touch'
-                                button1.fillColor = 'green'
-                                draw_selection_screen()
-                                core.wait(0.05)
-                                break
-                            else:
-                                mouserec = mouse_temp.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                            USE_TOUCH_SCREEN = True
+                            selected = 'touch'
+                            button1.fillColor = 'green'
+                            draw_selection_screen()
+                            core.wait(0.05)
+                            break
                     
                     # Check button 2
                     if selected is None:
                         try:
                             if button2.contains(mouseloc):
-                                if t > minRT:
-                                    USE_TOUCH_SCREEN = False
-                                    selected = 'click'
-                                    button2.fillColor = 'blue'
-                                    draw_selection_screen()
-                                    core.wait(0.05)
-                                    break
-                                else:
-                                    mouserec = mouse_temp.getPos()
-                                    try:
-                                        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                    except (ValueError, TypeError, IndexError) as e:
-                                        print(f"Warning: Could not parse mouse position after button2 check: {e}", file=sys.stderr)
-                                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                                USE_TOUCH_SCREEN = False
+                                selected = 'click'
+                                button2.fillColor = 'blue'
+                                draw_selection_screen()
+                                core.wait(0.05)
+                                break
                         except Exception as e:
                             # Fallback to manual calculation
                             print(f"ERROR in button2.contains() fallback: {repr(e)}", file=sys.stderr)
@@ -246,19 +214,18 @@ def get_input_method():
                             button2_width, button2_height = 520/720*0.75, 180/720*0.75
                             if (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
                                 button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin):
-                                if t > minRT:
-                                    USE_TOUCH_SCREEN = False
-                                    selected = 'click'
-                                    button2.fillColor = 'blue'
-                                    draw_selection_screen()
-                                    core.wait(0.05)
-                                    break
-                                else:
-                                    mouserec = mouse_temp.getPos()
-                                    try:
-                                        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                    except:
-                                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                                USE_TOUCH_SCREEN = False
+                                selected = 'click'
+                                button2.fillColor = 'blue'
+                                draw_selection_screen()
+                                core.wait(0.05)
+                                break
+                
+                # Update previous button state
+                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+                
+                # Redraw screen
+                draw_selection_screen()
             except Exception as e:
                 pass
             
@@ -292,60 +259,42 @@ def get_input_method():
         continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
         
         clicked = False
+        continue_click_time = None  # Record when continue is clicked
         event.clearEvents()  # Clear any pending events
         
-        # POSITION-CHANGE DETECTION: Store initial mouse position
-        mouserec_cont = mouse_temp.getPos()
-        try:
-            mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-        except:
-            mouserec_cont_x, mouserec_cont_y = 0.0, 0.0
-        
-        minRT_cont = 0.05  # Minimum response time
-        clock_cont = core.Clock()
-        clock_cont.reset()
+        # BUTTON PRESS DETECTION: Track button state for press/release detection
+        prev_mouse_buttons_cont = [False, False, False]
         
         while not clicked:
+            # Check for escape key FIRST
+            try:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:
+                    return None
+            except (AttributeError, RuntimeError) as e:
+                print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
+            
             confirm_text.draw()
             continue_button.draw()
             continue_text.draw()
             temp_win.flip()
             
             try:
+                mouse_buttons_cont = mouse_temp.getPressed()
                 mouseloc_cont = mouse_temp.getPos()
                 try:
                     mouseloc_cont_x, mouseloc_cont_y = float(mouseloc_cont[0]), float(mouseloc_cont[1])
                 except:
                     mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
                 
-                t_cont = clock_cont.getTime()
-                # Check for escape key FIRST, before clearing events
-                try:
-                    keys = event.getKeys(keyList=['escape'])
-                    if keys and 'escape' in keys:
-                        return None
-                except (AttributeError, RuntimeError) as e:
-                    print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
-                
-                # Don't clear events here - clear at end of loop iteration
-                
-                # Check if mouse position has changed (touch moved)
-                if mouseloc_cont_x == mouserec_cont_x and mouseloc_cont_y == mouserec_cont_y:
-                    # Position hasn't changed, continue loop
-                    pass
-                else:
-                    # Position has changed - check if touch is within button
+                # Check for button release (was pressed, now released)
+                if prev_mouse_buttons_cont[0] and not mouse_buttons_cont[0]:
+                    # Button was released - check if it was over the continue button
                     try:
                         if continue_button.contains(mouseloc_cont):
-                            if t_cont > minRT_cont:
-                                clicked = True
-                                break
-                            else:
-                                mouserec_cont = mouse_temp.getPos()
-                                try:
-                                    mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-                                except:
-                                    mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+                            continue_click_time = time.time()  # Record exact time of click
+                            clicked = True
+                            break
                     except Exception as e:
                         # Fallback to manual calculation
                         print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
@@ -355,15 +304,12 @@ def get_input_method():
                         button_width, button_height = 300/720*0.75, 80/720*0.75
                         if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
-                            if t_cont > minRT_cont:
-                                clicked = True
-                                break
-                            else:
-                                mouserec_cont = mouse_temp.getPos()
-                                try:
-                                    mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-                                except:
-                                    mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+                            continue_click_time = time.time()  # Record exact time of click
+                            clicked = True
+                            break
+                
+                # Update previous button state
+                prev_mouse_buttons_cont = mouse_buttons_cont.copy() if hasattr(mouse_buttons_cont, 'copy') else list(mouse_buttons_cont)
             except Exception as e:
                 pass
             
@@ -371,6 +317,7 @@ def get_input_method():
             try:
                 keys = event.getKeys(keyList=['space'])
                 if keys and 'space' in keys:
+                    continue_click_time = time.time()  # Record exact time of space key press
                     clicked = True
                     break
             except (AttributeError, RuntimeError) as e:
@@ -396,8 +343,15 @@ def get_input_method():
         transition_text.draw()
         temp_win.flip()
         
-        # Small delay before closing
-        time.sleep(0.1)
+        # Calculate remaining time to reach 0.4 seconds total from continue click
+        if continue_click_time is not None:
+            elapsed = time.time() - continue_click_time
+            remaining = 0.4 - elapsed
+            if remaining > 0:
+                time.sleep(remaining)  # Wait exactly 0.4 seconds from continue click
+        else:
+            # Fallback if time wasn't recorded (shouldn't happen)
+            time.sleep(0.4)
         
         return USE_TOUCH_SCREEN
     
@@ -405,10 +359,21 @@ def get_input_method():
         # Close temp window exactly once in finally block
         if temp_win is not None:
             try:
+                # Ensure window is properly flushed before closing
+                try:
+                    temp_win.flip()
+                except:
+                    pass
                 temp_win.close()
-            except Exception:
-                pass
-        time.sleep(0.2)  # Reduced delay from 0.5 to 0.2 for faster transition
+                # Give the system time to fully close the window
+                time.sleep(0.1)
+            except Exception as e:
+                print(f"ERROR closing temp window: {repr(e)}", file=sys.stderr)
+                traceback.print_exc()
+                # Still wait a bit even if close failed
+                time.sleep(0.1)
+        # Additional delay to ensure temp window is fully closed before main window creation
+        time.sleep(0.1)  # Total delay: 0.1 (from close) + 0.1 (here) = 0.2 seconds
 
 # Ask for input method first
 print("Getting input method...")
@@ -453,17 +418,27 @@ try:
     print("="*60)
     sys.stdout.flush()
     import time
-    # Brief delay to ensure temp window is fully closed
-    print("Waiting before creating main window...")
-    time.sleep(0.2)  # Additional delay to ensure temp window is fully closed
-    
+    # Window creation happens exactly 0.4 seconds after continue was clicked
+    # (delay already handled in get_input_method function)
+    # No additional delays needed - proceed immediately to window creation
     print("Creating main window...")
     # Create window in fullscreen mode
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
+    # Add waitBlanking=False and allowGUI=True to prevent hanging
     try:
         print("Attempting to create fullscreen window...")
-        win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=True, viewPos=(0, 0))
+        # Try with timeout protection: use waitBlanking=False to prevent blocking
+        win = visual.Window(
+            size=(1280, 720), 
+            color='white', 
+            units='height', 
+            fullscr=True, 
+            viewPos=(0, 0),
+            waitBlanking=False,  # Prevent blocking on display sync
+            allowGUI=True,  # Ensure GUI is available
+            useFBO=False  # Disable framebuffer objects to prevent hangs
+        )
         # Immediately flip to ensure window is ready
         win.flip()
         print("Fullscreen window created successfully")
@@ -475,7 +450,16 @@ try:
         print("Trying windowed mode as fallback...")
         time.sleep(0.1)  # Reduced delay
         try:
-            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+            win = visual.Window(
+                size=(1280, 720), 
+                color='white', 
+                units='height', 
+                fullscr=False, 
+                viewPos=(0, 0),
+                waitBlanking=False,
+                allowGUI=True,
+                useFBO=False
+            )
             win.flip()
             print("Windowed mode window created successfully")
         except Exception as e2:
@@ -512,7 +496,6 @@ try:
     
     # Force window to front on macOS
     try:
-        import platform
         if platform.system() == 'Darwin':  # macOS
             try:
                 win.winHandle.activate()
