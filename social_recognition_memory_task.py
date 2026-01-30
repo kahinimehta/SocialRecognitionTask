@@ -371,9 +371,13 @@ def assign_stimuli_to_blocks():
     return blocks
 
 # Generate placeholders if they don't exist (for practice block)
-# Force regeneration to ensure swap logic is applied
+# Skip generation if placeholders already exist
 # Check if directory exists and has the right number of files
-if not os.path.exists(PLACEHOLDER_DIR) or len([f for f in os.listdir(PLACEHOLDER_DIR) if f.endswith('.png')]) < 200:
+placeholder_files = []
+if os.path.exists(PLACEHOLDER_DIR):
+    placeholder_files = [f for f in os.listdir(PLACEHOLDER_DIR) if f.endswith('.png')]
+
+if not os.path.exists(PLACEHOLDER_DIR) or len(placeholder_files) < 200:
     print("Generating placeholder stimuli...")
     # Remove old files if they exist
     if os.path.exists(PLACEHOLDER_DIR):
@@ -385,6 +389,7 @@ if not os.path.exists(PLACEHOLDER_DIR) or len([f for f in os.listdir(PLACEHOLDER
                     pass
     generate_placeholder_stimuli(100, PLACEHOLDER_DIR)
 else:
+    print(f"Placeholder stimuli already exist ({len(placeholder_files)} files). Skipping generation.")
     # Verify that we have both circles and squares by checking a sample
     # If all checked images are the same shape, regenerate
     sample_indices = [1, 25, 50, 75]
@@ -422,17 +427,22 @@ else:
             except:
                 pass
     
-    # If all samples are the same shape, regenerate
+    # If all samples are the same shape, regenerate (only if placeholders don't already exist)
     if all_same_shape and first_shape is not None:
-        print("Detected all images are the same shape. Regenerating with swap logic...")
-        if os.path.exists(PLACEHOLDER_DIR):
-            for f in os.listdir(PLACEHOLDER_DIR):
-                if f.endswith('.png'):
-                    try:
-                        os.remove(os.path.join(PLACEHOLDER_DIR, f))
-                    except:
-                        pass
-        generate_placeholder_stimuli(100, PLACEHOLDER_DIR)
+        # Check if we have the expected number of files before regenerating
+        existing_files = [f for f in os.listdir(PLACEHOLDER_DIR) if f.endswith('.png')] if os.path.exists(PLACEHOLDER_DIR) else []
+        if len(existing_files) >= 200:
+            print("Placeholder stimuli already exist. Skipping shape verification regeneration.")
+        else:
+            print("Detected all images are the same shape. Regenerating with swap logic...")
+            if os.path.exists(PLACEHOLDER_DIR):
+                for f in os.listdir(PLACEHOLDER_DIR):
+                    if f.endswith('.png'):
+                        try:
+                            os.remove(os.path.join(PLACEHOLDER_DIR, f))
+                        except:
+                            pass
+            generate_placeholder_stimuli(100, PLACEHOLDER_DIR)
 
 # =========================
 #  BASIC VISUAL ELEMENTS
