@@ -1296,8 +1296,6 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
             
             # Clear events AFTER checking keys
             event.clearEvents()
-            except (AttributeError, Exception):
-                pass
     else:
         # Standard mouse click detection for non-touch screens
         prev_mouse_buttons = [False, False, False]
