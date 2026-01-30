@@ -514,16 +514,19 @@ def get_participant_id():
             keyboard_buttons = []
             start_y = -0.15*0.6  # Move keyboard lower to avoid overlap with buttons
             row_spacing = 0.12*0.75
+            button_spacing = 0.015  # Spacing between buttons (increased for better visibility)
             
             print(f"Creating {len(keyboard_rows)} keyboard rows...")
             for row_idx, row in enumerate(keyboard_rows):
                 print(f"Creating row {row_idx} with {len(row)} keys...")
                 row_buttons = []
                 num_keys = len(row)
-                start_x = -(num_keys - 1) * 0.08 / 2 * 0.6
+                # Calculate total row width including spacing
+                total_row_width = num_keys * 0.08*0.75 + (num_keys - 1) * button_spacing
+                start_x = -total_row_width / 2 + (0.08*0.75) / 2
                 
                 for col_idx, key in enumerate(row):
-                    x_pos = start_x + col_idx * 0.08 * 0.6
+                    x_pos = start_x + col_idx * (0.08*0.75 + button_spacing)
                     y_pos = start_y - row_idx * row_spacing
                     
                     button = visual.Rect(win, width=0.07*0.75, height=0.08*0.75, fillColor='lightgray', 

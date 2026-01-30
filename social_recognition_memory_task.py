@@ -1226,17 +1226,18 @@ def get_participant_id():
     
     if USE_TOUCH_SCREEN:
         # Create keyboard buttons
-        button_width = 0.08
-        button_height = 0.08
-        start_y = -0.15  # Move keyboard lower to avoid overlap with buttons
-        row_spacing = 0.1
+        button_width = 0.08*0.75
+        button_height = 0.08*0.75
+        start_y = -0.15*0.6  # Move keyboard lower to avoid overlap with buttons
+        row_spacing = 0.1*0.75
+        button_spacing = 0.015  # Spacing between buttons (increased from 0.01)
         
         for row_idx, row in enumerate(keyboard_layout):
-            row_width = len(row) * button_width + (len(row) - 1) * 0.01
+            row_width = len(row) * button_width + (len(row) - 1) * button_spacing
             start_x = -row_width / 2 + button_width / 2
             
             for col_idx, char in enumerate(row):
-                x_pos = start_x + col_idx * (button_width + 0.01)
+                x_pos = start_x + col_idx * (button_width + button_spacing)
                 y_pos = start_y - row_idx * row_spacing
                 
                 button = visual.Rect(
@@ -1251,18 +1252,18 @@ def get_participant_id():
                     win,
                     text=char.upper(),
                     color='black',
-                    height=0.04,
+                    height=0.04*0.75,
                     pos=(x_pos, y_pos)
                 )
                 keyboard_buttons.append((button, button_text, char))
         
         # Special buttons: Backspace, Continue (positioned between input and keyboard)
-        special_y = 0.05  # Position between input (0.25) and keyboard start (-0.15)
-        backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', lineColor='black', lineWidth=2, pos=(-0.25, special_y))
-        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025, pos=(-0.25, special_y))
+        special_y = 0.05*0.6  # Position between input (0.25) and keyboard start (-0.15)
+        backspace_button = visual.Rect(win, width=0.2*0.75, height=0.1*0.75, fillColor='lightcoral', lineColor='black', lineWidth=2*0.75, pos=(-0.25*0.6, special_y))
+        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025*0.75, pos=(-0.25*0.6, special_y))
         
-        continue_button = visual.Rect(win, width=0.3, height=0.1, fillColor='lightgreen', lineColor='black', lineWidth=2, pos=(0.25, special_y))
-        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025, pos=(0.25, special_y))
+        continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75, fillColor='lightgreen', lineColor='black', lineWidth=2*0.75, pos=(0.25*0.6, special_y))
+        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75, pos=(0.25*0.6, special_y))
     
     # Key list for keyboard input (non-touch)
     key_list = ['return', 'backspace', 'space'] + [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(48, 58)]
