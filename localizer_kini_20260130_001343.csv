@@ -1,0 +1,8 @@
+participant_id,trial,stimulus_number,object_name,category,question_category,question_text,answer,correct_answer,correct,timed_out
+kini,10,99,Jetski,VEHICLE,VEHICLE,Was the last object a vehicle?,False,True,False,False
+kini,20,44,Coconut,FRUIT,FRUIT,Was the last object a fruit?,False,True,False,False
+kini,30,63,Dog,SMALL_ANIMAL,SMALL_ANIMAL,Was the last object a small animal?,TIMEOUT,True,,True
+kini,40,92,Bike,VEHICLE,VEHICLE,Was the last object a vehicle?,TIMEOUT,True,,True
+kini,50,96,Cruise_ship,VEHICLE,VEHICLE,Was the last object a vehicle?,TIMEOUT,True,,True
+kini,60,7,Hippopotamus,BIG_ANIMAL,BIG_ANIMAL,Was the last object a big animal?,TIMEOUT,True,,True
+kini,70,69,Mouse,SMALL_ANIMAL,SMALL_ANIMAL,Was the last object a small animal?,TIMEOUT,True,,True

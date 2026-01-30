@@ -672,7 +672,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     event.clearEvents()
 
 def ask_category_question(category_name, last_object_name, timeout=10.0):
-    """Ask category question and return (answer, timed_out) tuple
+    """Ask category question and return (answer, timed_out, response_time) tuple
     
     Args:
         category_name: Category name for the question
@@ -680,7 +680,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
         timeout: Timeout in seconds (default 10.0)
     
     Returns:
-        tuple: (answer: bool or None, timed_out: bool)
+        tuple: (answer: bool or None, timed_out: bool, response_time: float)
     """
     question_text = category_to_question(category_name)
     
@@ -746,12 +746,14 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
     prev_mouse_buttons = [False, False, False]
     clock = core.Clock()
     clock.reset()
+    response_time = None
     
     while not answered:
         # Check for timeout
         elapsed_time = clock.getTime()
         if elapsed_time >= timeout:
             timed_out = True
+            response_time = timeout  # Record timeout as response time
             answered = True
             break
         try:
@@ -783,6 +785,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
             if prev_mouse_buttons[0] and not mouse_buttons[0]:
                 if on_yes:
                     answer = True
+                    response_time = clock.getTime()
                     yes_button.fillColor = 'green'
                     draw_question()
                     core.wait(0.3)
@@ -790,6 +793,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                     break
                 elif on_no:
                     answer = False
+                    response_time = clock.getTime()
                     no_button.fillColor = 'red'
                     draw_question()
                     core.wait(0.3)
@@ -800,6 +804,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                 if USE_TOUCH_SCREEN:
                     if on_yes:
                         answer = True
+                        response_time = clock.getTime()
                         yes_button.fillColor = 'green'
                         draw_question()
                         core.wait(0.3)
@@ -807,6 +812,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                         break
                     elif on_no:
                         answer = False
+                        response_time = clock.getTime()
                         no_button.fillColor = 'red'
                         draw_question()
                         core.wait(0.3)
@@ -853,22 +859,22 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
         win.flip()
         core.wait(2.0)  # Show message for 2 seconds
     
-    return (answer, timed_out)
+    return (answer, timed_out, response_time)
 
 # Create main window with appropriate settings - use try/finally pattern
 win = None
 try:
     time.sleep(0.5)  # Use time.sleep instead of core.wait since we don't have a window yet
     
-    # Try creating window with the requested fullscreen setting
+    # Create window in windowed mode (not fullscreen)
     try:
-        win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=USE_TOUCH_SCREEN)
-    except Exception as e:
-        # If fullscreen fails (especially on macOS), try windowed mode
-        print(f"Warning: Could not create window with fullscr={USE_TOUCH_SCREEN} ({e})")
-        print("Trying windowed mode...")
-        time.sleep(0.3)  # Additional delay
         win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
+    except Exception as e:
+        # If window creation fails, try with auto-detected size
+        print(f"Warning: Could not create window ({e})")
+        print("Trying with auto-detected size...")
+        time.sleep(0.3)  # Additional delay
+        win = visual.Window(size=None, color='white', units='height', fullscr=False)
     
     # =========================
     #  MAIN EXPERIMENT
@@ -892,8 +898,8 @@ try:
         win,
         text="LOCALIZER TASK\n\n"
              "You will see 100 images one at a time.\n\n"
-             "Every 10th image, you will be asked a question\n"
-             "about the category of the previous image.\n\n"
+             "Every few images, you will be asked a question\n"
+             "about the previous image.\n\n"
              "Please pay attention to each image.",
         color='black',
         height=0.05,
@@ -911,10 +917,32 @@ try:
     csv_writer = None
     csv_file_path = None
     fieldnames = None
-    first_question_answered = False
+    csv_initialized = False
+    
+    # Initialize CSV file before first image
+    if not is_test_participant(participant_id):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_dir = get_log_directory()
+        csv_file_path = os.path.join(log_dir, f"localizer_{participant_id}_{timestamp}.csv")
+        csv_file = open(csv_file_path, 'w', newline='')
+        # Define fieldnames for all images (will include question fields for every 10th)
+        fieldnames = [
+            'participant_id', 'trial', 'stimulus_number', 'object_name', 'category',
+            'presentation_time', 'is_question_trial', 'question_category', 'question_text',
+            'answer', 'correct_answer', 'correct', 'timed_out', 'response_time'
+        ]
+        csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        csv_writer.writeheader()
+        csv_file.flush()
+        csv_initialized = True
+        print(f"✓ Created localizer CSV file: {csv_file_path}")
 
     # Show images
     for idx, stimulus in enumerate(all_stimuli, 1):
+        # Record presentation time
+        presentation_time = datetime.now()
+        presentation_timestamp = presentation_time.strftime("%Y-%m-%d %H:%M:%S.%f")
+        
         # Load and display image
         try:
             img = visual.ImageStim(win, image=stimulus['path'], size=(0.8, 0.8))
@@ -925,13 +953,15 @@ try:
             core.wait(1.0)
             
             # Check if this is the 10th image (or every 10th after the first)
-            if idx % 10 == 0:
+            is_question_trial = (idx % 10 == 0)
+            
+            if is_question_trial:
                 # Ask category question about the image we just showed (the 10th, 20th, 30th, etc.)
                 current_stimulus = stimulus
                 correct_category = current_stimulus['category']
                 
                 # Ask the question about this image's category
-                answer, timed_out = ask_category_question(correct_category, current_stimulus['object_name'])
+                answer, timed_out, response_time = ask_category_question(correct_category, current_stimulus['object_name'])
                 
                 # The correct answer is always True since we're asking about the category this image belongs to
                 correct_answer = True
@@ -939,44 +969,51 @@ try:
                 # Calculate correct only if not timed out
                 is_correct = (answer == correct_answer) if not timed_out else None
                 
-                # Record data
+                # Record data with question fields
                 trial_data = {
                     'participant_id': participant_id,
                     'trial': idx,
                     'stimulus_number': current_stimulus['number'],
                     'object_name': current_stimulus['object_name'],
                     'category': current_stimulus['category'],
+                    'presentation_time': presentation_timestamp,
+                    'is_question_trial': True,
                     'question_category': correct_category,
                     'question_text': category_to_question(correct_category),
                     'answer': answer if not timed_out else 'TIMEOUT',
                     'correct_answer': correct_answer,
                     'correct': is_correct,
-                    'timed_out': timed_out
+                    'timed_out': timed_out,
+                    'response_time': response_time if response_time is not None else None
                 }
-                localizer_data.append(trial_data)
-                
-                # Create CSV file after first question is answered
-                if not first_question_answered and not is_test_participant(participant_id):
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    log_dir = get_log_directory()
-                    csv_file_path = os.path.join(log_dir, f"localizer_{participant_id}_{timestamp}.csv")
-                    csv_file = open(csv_file_path, 'w', newline='')
-                    fieldnames = list(trial_data.keys())
-                    csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-                    csv_writer.writeheader()
-                    first_question_answered = True
-                    print(f"✓ Created localizer CSV file: {csv_file_path}")
-                
-                # Write current trial to CSV (including first question)
-                if csv_writer is not None:
-                    csv_writer.writerow(trial_data)
-                    csv_file.flush()  # Ensure data is written immediately
-                
-                # Brief pause before next image
-                core.wait(0.5)
             else:
-                # Brief pause between images
-                core.wait(0.5)
+                # Record data for non-question trials
+                trial_data = {
+                    'participant_id': participant_id,
+                    'trial': idx,
+                    'stimulus_number': stimulus['number'],
+                    'object_name': stimulus['object_name'],
+                    'category': stimulus['category'],
+                    'presentation_time': presentation_timestamp,
+                    'is_question_trial': False,
+                    'question_category': None,
+                    'question_text': None,
+                    'answer': None,
+                    'correct_answer': None,
+                    'correct': None,
+                    'timed_out': None,
+                    'response_time': None
+                }
+            
+            localizer_data.append(trial_data)
+            
+            # Write current trial to CSV
+            if csv_writer is not None:
+                csv_writer.writerow(trial_data)
+                csv_file.flush()  # Ensure data is written immediately
+            
+            # Brief pause before next image
+            core.wait(0.5)
                 
         except Exception as e:
             print(f"Error loading image {stimulus['path']}: {e}")
@@ -1006,7 +1043,7 @@ try:
             print(f"✓ Closed localizer CSV file")
 
     # Save data (backup - in case CSV wasn't created incrementally)
-    if not is_test_participant(participant_id) and csv_file is None:
+    if not is_test_participant(participant_id) and not csv_initialized:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         log_dir = get_log_directory()
         output_file = os.path.join(log_dir, f"localizer_{participant_id}_{timestamp}.csv")

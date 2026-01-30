@@ -307,15 +307,15 @@ try:
     import time
     time.sleep(0.5)  # Use time.sleep instead of core.wait since we don't have a window yet
     
-    # Try creating window with the requested fullscreen setting
+    # Create window in windowed mode (not fullscreen)
     try:
-        win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=USE_TOUCH_SCREEN)
-    except Exception as e:
-        # If fullscreen fails (especially on macOS), try windowed mode
-        print(f"Warning: Could not create window with fullscr={USE_TOUCH_SCREEN} ({e})")
-        print("Trying windowed mode...")
-        time.sleep(0.3)  # Additional delay
         win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
+    except Exception as e:
+        # If window creation fails, try with auto-detected size
+        print(f"Warning: Could not create window ({e})")
+        print("Trying with auto-detected size...")
+        time.sleep(0.3)  # Additional delay
+        win = visual.Window(size=None, color='white', units='height', fullscr=False)
     
     # Force window to front on macOS
     try:
