@@ -33,7 +33,8 @@ def get_input_method():
     temp_win = None
     try:
         # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
-        temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
+        # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
+        temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Ensure window is fully initialized - draw something first to initialize OpenGL context
         dummy = visual.TextStim(temp_win, text='', color='white', pos=(0, 0))
         dummy.draw()
@@ -878,14 +879,15 @@ try:
     
     # Create window in windowed mode (not fullscreen)
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
+    # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
+        win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
     except Exception as e:
         # If window creation fails, try with alternative explicit size
         print(f"Warning: Could not create window with size (1280, 720) ({e})")
         print("Trying with alternative size (1024, 768)...")
         time.sleep(0.3)  # Additional delay
-        win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False)
+        win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False, viewPos=(0, 0))
     
     # =========================
     #  MAIN EXPERIMENT
