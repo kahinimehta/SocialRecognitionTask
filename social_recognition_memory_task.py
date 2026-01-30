@@ -154,10 +154,14 @@ def get_input_method():
         except Exception as e:
             pass
         
-        keys = event.getKeys(keyList=['escape'])
-        if 'escape' in keys:
-            temp_win.close()
-            core.quit()
+        # Safe event.getKeys() handling - ensure keys is never empty array issue
+        try:
+            keys = event.getKeys(keyList=['escape'])
+            if keys and 'escape' in keys:  # Check keys is not empty first
+                temp_win.close()
+                core.quit()
+        except (AttributeError, Exception):
+            pass  # Ignore event errors
         
         core.wait(0.01)
     
@@ -203,8 +207,19 @@ def get_input_method():
                 mouse_x, mouse_y = 0.0, 0.0
             
             # Get button position and dimensions as Python floats
-            button_x = float(continue_button.pos[0]) if hasattr(continue_button.pos, '__len__') and len(continue_button.pos) >= 1 else 0.0
-            button_y = float(continue_button.pos[1]) if hasattr(continue_button.pos, '__len__') and len(continue_button.pos) >= 2 else -0.3
+            # Get button position - ensure pos is always (x, y) tuple, never empty
+            try:
+                button_pos = continue_button.pos
+                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                    button_x = float(button_pos[0])
+                    button_y = float(button_pos[1])
+                else:
+                    # Fallback: ensure we always have valid (x, y)
+                    button_x, button_y = 0.0, -0.3
+                    continue_button.pos = (button_x, button_y)  # Fix if broken
+            except (TypeError, ValueError, IndexError):
+                button_x, button_y = 0.0, -0.3
+                continue_button.pos = (button_x, button_y)  # Fix if broken
             button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 0.3
             button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 0.1
             
@@ -230,13 +245,18 @@ def get_input_method():
         except Exception as e:
             pass
         
-        keys = event.getKeys(keyList=['space', 'escape'])
-        if 'space' in keys:
-            clicked = True
-            break
-        elif 'escape' in keys:
-            temp_win.close()
-            core.quit()
+        # Safe event.getKeys() handling - ensure keys is never empty array issue
+        try:
+            keys = event.getKeys(keyList=['space', 'escape'])
+            if keys:  # Check keys is not empty first
+                if 'space' in keys:
+                    clicked = True
+                    break
+                elif 'escape' in keys:
+                    temp_win.close()
+                    core.quit()
+        except (AttributeError, Exception):
+            pass  # Ignore event errors
         core.wait(0.01)
     
     mouse_temp.setVisible(False)
@@ -1291,9 +1311,13 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         
         # Check for escape (with error handling)
         try:
-            keys = event.getKeys(keyList=['escape'])
-            if 'escape' in keys:
-                core.quit()
+            # Safe event.getKeys() handling - ensure keys is never empty array issue
+            try:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:  # Check keys is not empty first
+                    core.quit()
+            except (AttributeError, Exception):
+                pass  # Ignore event errors
         except (AttributeError, Exception):
             # Ignore event errors, just continue
             pass
@@ -2074,9 +2098,13 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         
         # Check for escape (with error handling)
         try:
-            keys = event.getKeys(keyList=['escape'])
-            if 'escape' in keys:
-                core.quit()
+            # Safe event.getKeys() handling - ensure keys is never empty array issue
+            try:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:  # Check keys is not empty first
+                    core.quit()
+            except (AttributeError, Exception):
+                pass  # Ignore event errors
         except (AttributeError, Exception):
             # Ignore event errors, just continue
             pass

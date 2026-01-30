@@ -151,10 +151,14 @@ def get_input_method():
         except Exception as e:
             pass
         
-        keys = event.getKeys(keyList=['escape'])
-        if 'escape' in keys:
-            temp_win.close()
-            core.quit()
+        # Safe event.getKeys() handling - ensure keys is never empty array issue
+        try:
+            keys = event.getKeys(keyList=['escape'])
+            if keys and 'escape' in keys:  # Check keys is not empty first
+                temp_win.close()
+                core.quit()
+        except (AttributeError, Exception):
+            pass  # Ignore event errors
         
         core.wait(0.01)
     
@@ -199,11 +203,29 @@ def get_input_method():
             except (TypeError, ValueError):
                 mouse_x, mouse_y = 0.0, 0.0
             
-            # Get button position and dimensions as Python floats
-            button_x = float(continue_button.pos[0]) if hasattr(continue_button.pos, '__len__') and len(continue_button.pos) >= 1 else 0.0
-            button_y = float(continue_button.pos[1]) if hasattr(continue_button.pos, '__len__') and len(continue_button.pos) >= 2 else -0.3
-            button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 0.3
-            button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 0.1
+            # Get button position and dimensions as Python floats - ensure pos is always (x, y) tuple
+            try:
+                button_pos = continue_button.pos
+                # Ensure pos is always a length-2 tuple, never empty
+                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                    button_x = float(button_pos[0])
+                    button_y = float(button_pos[1])
+                else:
+                    # Fallback: ensure we always have valid (x, y)
+                    button_x, button_y = 0.0, -0.3
+                    continue_button.pos = (button_x, button_y)  # Fix if broken
+            except (TypeError, ValueError, IndexError):
+                button_x, button_y = 0.0, -0.3
+                continue_button.pos = (button_x, button_y)  # Fix if broken
+            
+            try:
+                button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 0.3
+                button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 0.1
+                # Ensure size is always valid
+                if button_width <= 0 or button_height <= 0:
+                    button_width, button_height = 0.3, 0.1
+            except (TypeError, ValueError):
+                button_width, button_height = 0.3, 0.1
             
             hit_margin = 0.02
             
@@ -227,13 +249,18 @@ def get_input_method():
         except Exception as e:
             pass
         
-        keys = event.getKeys(keyList=['space', 'escape'])
-        if 'space' in keys:
-            clicked = True
-            break
-        elif 'escape' in keys:
-            temp_win.close()
-            core.quit()
+        # Safe event.getKeys() handling - ensure keys is never empty array issue
+        try:
+            keys = event.getKeys(keyList=['space', 'escape'])
+            if keys:  # Check keys is not empty first
+                if 'space' in keys:
+                    clicked = True
+                    break
+                elif 'escape' in keys:
+                    temp_win.close()
+                    core.quit()
+        except (AttributeError, Exception):
+            pass  # Ignore event errors
         core.wait(0.01)
     
     mouse_temp.setVisible(False)
@@ -483,24 +510,28 @@ def get_participant_id():
                 
                 core.wait(0.1)  # Prevent multiple clicks
         else:
-            # Standard keyboard input for click mode
-            keys = event.getKeys(keyList=None, timeStamped=False)
-            for key in keys:
-                if key == 'return' or key == 'enter':
-                    if input_id.strip():
-                        mouse.setVisible(False)
-                        event.clearEvents()
-                        return input_id.strip()
-                elif key == 'backspace':
-                    input_id = input_id[:-1] if input_id else ""
-                    input_display.text = input_id if input_id else "_"
-                    redraw()
-                elif len(key) == 1:
-                    input_id += key
-                    input_display.text = input_id if input_id else "_"
-                    redraw()
-                elif key == 'escape':
-                    core.quit()
+            # Standard keyboard input for click mode - safe handling of empty keys
+            try:
+                keys = event.getKeys(keyList=None, timeStamped=False)
+                if keys:  # Only process if keys is not empty
+                    for key in keys:
+                        if key == 'return' or key == 'enter':
+                            if input_id.strip():
+                                mouse.setVisible(False)
+                                event.clearEvents()
+                                return input_id.strip()
+                        elif key == 'backspace':
+                            input_id = input_id[:-1] if input_id else ""
+                            input_display.text = input_id if input_id else "_"
+                            redraw()
+                        elif len(key) == 1:
+                            input_id += key
+                            input_display.text = input_id if input_id else "_"
+                            redraw()
+                        elif key == 'escape':
+                            core.quit()
+            except (AttributeError, Exception):
+                pass  # Ignore event errors
         
         core.wait(0.01)
 
@@ -558,18 +589,27 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
             except (TypeError, ValueError):
                 mouse_x, mouse_y = 0.0, 0.0
             
+            # Get button position - ensure pos is always (x, y) tuple, never empty
             try:
                 button_pos = continue_button.pos
                 if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
-                    button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                    button_x = float(button_pos[0])
+                    button_y = float(button_pos[1])
                 else:
+                    # Fallback: ensure we always have valid (x, y)
                     button_x, button_y = 0.0, -0.45
-            except (TypeError, ValueError):
+                    continue_button.pos = (button_x, button_y)  # Fix if broken
+            except (TypeError, ValueError, IndexError):
                 button_x, button_y = 0.0, -0.45
+                continue_button.pos = (button_x, button_y)  # Fix if broken
             
+            # Get button dimensions - ensure they're always valid
             try:
                 button_width = float(continue_button.width)
                 button_height = float(continue_button.height)
+                # Ensure size is always valid (positive)
+                if button_width <= 0 or button_height <= 0:
+                    button_width, button_height = 0.3, 0.1
             except (TypeError, ValueError):
                 button_width, button_height = 0.3, 0.1
             
@@ -607,12 +647,17 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         except (AttributeError, Exception):
             pass
         
-        keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
-        if 'space' in keys:
-            clicked = True
-            break
-        elif 'escape' in keys:
-            core.quit()
+        # Safe event.getKeys() handling - ensure keys is never empty array issue
+        try:
+            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+            if keys:  # Check keys is not empty first
+                if 'space' in keys:
+                    clicked = True
+                    break
+                elif 'escape' in keys:
+                    core.quit()
+        except (AttributeError, Exception):
+            pass  # Ignore event errors
         
         core.wait(0.01)
     
@@ -765,17 +810,22 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
         except (AttributeError, Exception):
             pass
         
-        keys = event.getKeys(keyList=['y', 'n', 'escape'], timeStamped=False)
-        if 'y' in keys:
-            answer = True
-            answered = True
-            break
-        elif 'n' in keys:
-            answer = False
-            answered = True
-            break
-        elif 'escape' in keys:
-            core.quit()
+        # Safe event.getKeys() handling - ensure keys is never empty array issue
+        try:
+            keys = event.getKeys(keyList=['y', 'n', 'escape'], timeStamped=False)
+            if keys:  # Check keys is not empty first
+                if 'y' in keys:
+                    answer = True
+                    answered = True
+                    break
+                elif 'n' in keys:
+                    answer = False
+                    answered = True
+                    break
+                elif 'escape' in keys:
+                    core.quit()
+        except (AttributeError, Exception):
+            pass  # Ignore event errors
         
         core.wait(0.01)
     
