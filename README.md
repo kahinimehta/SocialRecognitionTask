@@ -21,6 +21,22 @@ Main PsychoPy script for the entire experiment.
   - Leaderboard screen
 - Saves trial-level, block-level, and questionnaire data as CSV files.
 
+#### **`localizer.py`**
+Localizer task script for category verification.
+
+- Shows all 100 images from the STIMULI folder in random order
+- **Image presentation timing**:
+  - Each image displayed for **2.0 seconds** (fixed duration)
+  - **0.5 second pause** between images (no jitter)
+  - Questions asked at images 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+- At every 10th image, asks a category question: "Was the last object a [category]?"
+- Category is inferred from the folder name (e.g., BIG_ANIMAL → "big animal")
+- **Question timing**: No timeout - participant must respond (YES/NO buttons)
+- Records participant responses (YES/NO) and accuracy
+- Saves data to CSV file with "localizer" in the filename
+- Supports both touch screen and click/mouse input modes
+- Skips file saving if "test" is in participant name
+
 ---
 
 ### 2. Documentation Files
@@ -97,6 +113,12 @@ Each row = one block.
 
 #### **`recognition_summary_*.csv`**
 Summary of experiment time
+
+---
+
+#### **`localizer_*.csv`**
+Localizer task data.  
+Each row = one category question trial (at images 10, 20, 30, ..., 100).
 
 ---
 

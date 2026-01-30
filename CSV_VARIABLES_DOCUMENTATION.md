@@ -10,6 +10,9 @@ The experiment generates four CSV files:
 3. **recognition_questions_[participant_id]_[timestamp].csv** - Block-end questionnaire data
 4. **recognition_summary_[participant_id]_[timestamp].csv** - Experiment summary (total time)
 
+The localizer task generates one CSV file:
+5. **localizer_[participant_id]_[timestamp].csv** - Localizer task data
+
 ---
 
 ## Study Phase CSV Variables
@@ -46,12 +49,13 @@ The experiment generates four CSV files:
 
 ### `image_duration`
 - **Type**: Float (seconds)
-- **Description**: Duration the image was displayed (always 1.0 second)
+- **Description**: Duration the image was displayed (always 1.0 second, fixed - no jitter)
 - **Example**: `1.0`
 
 ### `fixation_onset`
 - **Type**: Float (Unix timestamp) or None
 - **Description**: Time when the fixation cross appeared before this image (None for first image)
+- **Note**: Fixation appears between images, not before the first image
 - **Example**: `1764818170.5`, `None`
 
 ### `fixation_offset`
@@ -61,8 +65,11 @@ The experiment generates four CSV files:
 
 ### `fixation_duration`
 - **Type**: Float (seconds) or None
-- **Description**: Duration of the fixation cross before this image (randomly jittered between 0.25-0.75 seconds, None for first image)
-- **Example**: `0.523456789`, `None`
+- **Description**: Duration of the fixation cross before this image
+- **Distribution**: Uniform random between 0.25-0.75 seconds (`random.uniform(0.25, 0.75)`)
+- **Jitter**: Each fixation duration is independently drawn from uniform distribution
+- **None for first image**: No fixation appears before the first image
+- **Example**: `0.523456789`, `0.312345`, `0.678901`, `None`
 
 ---
 
@@ -124,7 +131,8 @@ The experiment generates four CSV files:
 ### `participant_rt`
 - **Type**: Float (seconds)
 - **Description**: Participant's reaction time from image onset to when they clicked SUBMIT
-- **Example**: `4.68976616859436`, `2.981760025024414`
+- **Timeout**: If participant doesn't respond within 7.0 seconds, random answer selected and RT = 7.0
+- **Example**: `4.68976616859436`, `2.981760025024414`, `7.0` (timeout)
 
 ### `participant_commit_time`
 - **Type**: Float (Unix timestamp)
@@ -133,7 +141,8 @@ The experiment generates four CSV files:
 
 ### `participant_slider_timeout`
 - **Type**: Boolean
-- **Description**: True if participant timed out (didn't respond within 7 seconds)
+- **Description**: True if participant timed out (didn't respond within 7.0 seconds)
+- **Timeout duration**: 7.0 seconds (fixed, no jitter)
 - **Example**: `True`, `False`
 
 ### `participant_slider_stop_time`
@@ -155,7 +164,12 @@ The experiment generates four CSV files:
 ### `ai_rt`
 - **Type**: Float (seconds)
 - **Description**: AI's reaction time (drawn from log-normal distribution, capped at 5 seconds)
-- **Example**: `2.2821904016769365`, `1.2902461381415058`
+- **Distribution**: Log-normal with underlying normal parameters: mu = 0.5, sigma = 0.3
+- **Mean RT**: Approximately 1.5-2.5 seconds
+- **Maximum RT**: 5.0 seconds (capped)
+- **Jitter**: Each trial draws independently from the distribution
+- **Formula**: `min(np.random.lognormal(0.5, 0.3), 5.0)`
+- **Example**: `2.2821904016769365`, `1.2902461381415058`, `4.5`
 
 ### `ai_decision_time`
 - **Type**: Float (Unix timestamp)
@@ -193,7 +207,8 @@ The experiment generates four CSV files:
 
 ### `switch_timeout`
 - **Type**: Boolean
-- **Description**: True if participant timed out on switch/stay decision (didn't respond within 7 seconds)
+- **Description**: True if participant timed out on switch/stay decision (didn't respond within 7.0 seconds)
+- **Timeout duration**: 7.0 seconds (fixed, no jitter)
 - **Example**: `True`, `False`
 
 ### `decision_onset_time`
@@ -310,12 +325,6 @@ The **recognition_questions_[participant_id]_[timestamp].csv** file contains res
 - **Description**: Block number (0 = practice block, 1-10 = experimental blocks)
 - **Example**: `0`, `1`, `2`
 
-### `maximize_goal`
-- **Type**: String
-- **Description**: Response to "What were you trying to maximize?"
-- **Possible values**: `"Correctness"`, `"Both"`, `"Other"`
-- **Example**: `"Both"`, `"Correctness"`
-
 ### `trust_rating`
 - **Type**: Float (0.0 to 1.0)
 - **Description**: Response to "How much did you trust your partner?" on slider
@@ -329,14 +338,10 @@ The **recognition_questions_[participant_id]_[timestamp].csv** file contains res
 - **Note**: If timeout occurred, this will be 7.0 seconds
 - **Example**: `3.005747079849243`, `2.5`, `7.0`
 
-### `question1_timeout`
+### `question_timeout`
 - **Type**: Boolean
-- **Description**: True if participant timed out on Question 1 (maximize goal) - didn't respond within 7 seconds
-- **Example**: `True`, `False`
-
-### `question2_timeout`
-- **Type**: Boolean
-- **Description**: True if participant timed out on Question 2 (trust rating) - didn't respond within 7 seconds
+- **Description**: True if participant timed out on the trust rating question - didn't respond within 7.0 seconds
+- **Timeout duration**: 7.0 seconds (fixed, no jitter)
 - **Example**: `True`, `False`
 
 ---
@@ -381,8 +386,102 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
   - Block-end questions: 7 seconds each
 - The experiment saves data incrementally after each trial, not just at the end
 - Block 0 is the practice block (5 trials), blocks 1-10 are experimental blocks (10 trials each)
-- Questions are asked after each block (including practice block)
+- One question (trust rating) is asked after each block (including practice block)
 - Points are calculated based on Euclidean distance: `points = 1.0 - distance(final_answer, ground_truth)`
-- **Study phase**: Images are shown for 1 second each, with jittered fixations (0.25-0.75 seconds) between images
+- **Study phase timing**:
+  - Images are shown for **1.0 second each** (fixed duration, no jitter)
+  - **Jittered fixations** appear between images: **0.25-0.75 seconds** (uniform random distribution)
+  - Fixation jitter: `random.uniform(0.25, 0.75)` - each fixation independently drawn
+  - No fixation before the first image
+  - 9 fixations per block (between 10 images)
+  - Total study phase duration: ~14.5 seconds (varies due to fixation jitter)
+- **Recognition phase timing**:
+  - Image remains visible until participant responds or timeout
+  - Participant slider timeout: **7.0 seconds** (fixed)
+  - AI RT: Log-normal distribution (mu=0.5, sigma=0.3), capped at 5.0 seconds
+- **Switch/stay decision timing**:
+  - Decision timeout: **7.0 seconds** (fixed)
+- **Question timing**:
+  - Trust rating timeout: **7.0 seconds** (fixed)
 - **Block timing**: `block_start_time`, `block_end_time`, and `block_duration_seconds`/`block_duration_minutes` are added to all trials within a block. These values are updated at the end of each block, so they represent the complete block duration from study phase start to questions completion.
+
+---
+
+## Localizer Task CSV Variables
+
+The **localizer_[participant_id]_[timestamp].csv** file contains data from the localizer task, where participants view 100 images in random order and answer category questions at every 10th image.
+
+### `participant_id`
+- **Type**: String
+- **Description**: Participant identifier
+- **Example**: `"P001"`, `"test_user"`
+
+### `trial`
+- **Type**: Integer
+- **Description**: Trial number when the question was asked (always a multiple of 10: 10, 20, 30, ..., 100)
+- **Example**: `10`, `20`, `30`, `100`
+
+### `stimulus_number`
+- **Type**: Integer (1-100)
+- **Description**: The stimulus number of the image that was shown (from Image_001.jpg to Image_100.jpg)
+- **Example**: `1`, `42`, `100`
+
+### `object_name`
+- **Type**: String
+- **Description**: Name of the object folder containing the image (e.g., "Apple", "Car", "Elephant")
+- **Example**: `"Apple"`, `"Car"`, `"Elephant"`
+
+### `category`
+- **Type**: String
+- **Description**: Category folder name that the image belongs to
+- **Possible values**: `"BIG_ANIMAL"`, `"BIG_OBJECT"`, `"BIRD"`, `"FOOD"`, `"FRUIT"`, `"INSECT"`, `"SMALL_ANIMAL"`, `"SMALL_OBJECT"`, `"VEGETABLE"`, `"VEHICLE"`
+- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`
+
+### `question_category`
+- **Type**: String
+- **Description**: The category that was asked about in the question (same as `category` since we ask about the image's actual category)
+- **Possible values**: Same as `category`
+- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`
+
+### `question_text`
+- **Type**: String
+- **Description**: Full text of the question asked to the participant
+- **Format**: "Was the last object a [category]?" where category is converted from folder name (e.g., "BIG_ANIMAL" → "big animal")
+- **Example**: `"Was the last object a big animal?"`, `"Was the last object a fruit?"`
+
+### `answer`
+- **Type**: Boolean
+- **Description**: Participant's response to the question (True = YES, False = NO)
+- **Example**: `True`, `False`
+
+### `correct_answer`
+- **Type**: Boolean
+- **Description**: The correct answer to the question (always True, since we ask about the category the image actually belongs to)
+- **Example**: `True`
+
+### `correct`
+- **Type**: Boolean
+- **Description**: Whether the participant's answer matches the correct answer (True if correct, False if incorrect)
+- **Example**: `True`, `False`
+
+---
+
+## Notes on Localizer Task
+
+- **Image presentation timing**:
+  - Each image is displayed for **2.0 seconds** (fixed duration, no jitter)
+  - **0.5 second pause** between images (fixed, no jitter)
+  - Total image presentation time: 100 images × 2.0 seconds = 200 seconds (~3.3 minutes)
+  - Total inter-image pause time: 99 pauses × 0.5 seconds = 49.5 seconds
+  - Total task duration: ~250 seconds (~4.2 minutes) plus question response times
+- **Question timing**:
+  - Questions are asked at images 10, 20, 30, 40, 50, 60, 70, 80, 90, and 100 (10 questions total)
+  - **No timeout** for questions - participant must respond (YES/NO buttons)
+  - Question appears immediately after the 10th image is shown
+- **Category conversion**: Category names are converted from folder format (e.g., "BIG_ANIMAL") to natural language (e.g., "big animal") for the question
+- **Correct answer**: The correct answer is always True since we ask about the category the image actually belongs to
+- **File saving**: 
+  - Skipped if "test" (case-insensitive) is in the participant name
+  - For touch screen mode: files saved to `../LOG_FILES/` directory
+  - For click/mouse mode: files saved to the current directory
 

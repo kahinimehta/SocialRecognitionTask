@@ -78,13 +78,37 @@ def get_input_method():
         try:
             mouse_buttons = mouse_temp.getPressed()
             mouse_pos = mouse_temp.getPos()
+            
+            # Convert to floats to handle numpy arrays
+            try:
+                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                else:
+                    mouse_x, mouse_y = 0.0, 0.0
+            except (TypeError, ValueError):
+                mouse_x, mouse_y = 0.0, 0.0
+            
+            try:
+                button_pos = continue_button.pos
+                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                    button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                else:
+                    button_x, button_y = 0.0, -0.3
+            except (TypeError, ValueError):
+                button_x, button_y = 0.0, -0.3
+            
+            try:
+                button_width = float(continue_button.width)
+                button_height = float(continue_button.height)
+            except (TypeError, ValueError):
+                button_width, button_height = 0.3, 0.1
+            
             if mouse_buttons[0]:
-                button_x, button_y = continue_button.pos
-                if (button_x - continue_button.width/2 <= mouse_pos[0] <= button_x + continue_button.width/2 and
-                    button_y - continue_button.height/2 <= mouse_pos[1] <= button_y + continue_button.height/2):
+                if (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
+                    button_y - button_height/2 <= mouse_y <= button_y + button_height/2):
                     clicked = True
                     break
-        except:
+        except Exception as e:
             pass
         
         keys = event.getKeys(keyList=['space', 'escape'])
@@ -98,13 +122,34 @@ def get_input_method():
     
     mouse_temp.setVisible(False)
     temp_win.close()
+    
+    # Small delay to ensure window is fully closed before creating new one
+    import time
+    time.sleep(0.5)
+    
     return USE_TOUCH_SCREEN
 
 # Ask for input method first
 get_input_method()
 
 # Create main window with appropriate settings
-win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=USE_TOUCH_SCREEN)
+# Add a longer delay to ensure temp window is fully closed and OpenGL context is released
+import time
+time.sleep(0.5)  # Use time.sleep instead of core.wait since we don't have a window yet
+
+try:
+    # Try creating window with the requested fullscreen setting
+    win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=USE_TOUCH_SCREEN)
+except Exception as e:
+    # If fullscreen fails (especially on macOS), try windowed mode
+    print(f"Warning: Could not create window with fullscr={USE_TOUCH_SCREEN} ({e})")
+    print("Trying windowed mode...")
+    try:
+        time.sleep(0.3)  # Additional delay
+        win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
+    except Exception as e2:
+        print(f"Error: Could not create window: {e2}")
+        raise
 
 # Force window to front on macOS
 try:
@@ -418,7 +463,7 @@ def is_test_participant(participant_id):
 #  HELPER FUNCTIONS
 # =========================
 def wait_for_button(redraw_func=None, button_text="CONTINUE"):
-    """Wait for button click/touch instead of space key"""
+    """Wait for button click/touch instead of space key - button should be included in redraw_func"""
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
     
@@ -429,56 +474,108 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
         height=0.1,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.3)
+        pos=(0, -0.45)
     )
     continue_text = visual.TextStim(
         win,
         text=button_text,
         color='black',
         height=0.05,
-        pos=(0, -0.3)
+        pos=(0, -0.45)
     )
     
-    clicked = False
-    while not clicked:
+    # Draw initial screen once (button should be included in redraw_func)
+    def draw_screen():
         if redraw_func:
             try:
                 redraw_func()
             except:
                 pass
-        
-        # Draw button
         continue_button.draw()
         continue_text.draw()
         win.flip()
-        
+    
+    draw_screen()
+    
+    clicked = False
+    prev_mouse_buttons = [False, False, False]
+    last_hover_state = None
+    
+    while not clicked:
         # Check for mouse/touch click
         try:
             mouse_buttons = mouse.getPressed()
             mouse_pos = mouse.getPos()
             
-            if mouse_buttons[0]:
-                # Check if clicked on button
-                button_x, button_y = continue_button.pos
-                button_width, button_height = continue_button.width, continue_button.height
-                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
-                
-                if (button_x - button_width/2 - hit_margin <= mouse_pos[0] <= button_x + button_width/2 + hit_margin and
-                    button_y - button_height/2 - hit_margin <= mouse_pos[1] <= button_y + button_height/2 + hit_margin):
+            # Convert pos to tuple if it's a numpy array
+            try:
+                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                else:
+                    mouse_x, mouse_y = 0.0, 0.0
+            except (TypeError, ValueError):
+                mouse_x, mouse_y = 0.0, 0.0
+            
+            # Get button position and size (handle numpy arrays)
+            try:
+                button_pos = continue_button.pos
+                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                    button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                else:
+                    button_x, button_y = 0.0, -0.45
+            except (TypeError, ValueError):
+                button_x, button_y = 0.0, -0.45
+            
+            try:
+                button_width = float(continue_button.width)
+                button_height = float(continue_button.height)
+            except (TypeError, ValueError):
+                button_width, button_height = 0.3, 0.1
+            
+            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+            
+            # Check if mouse is over button
+            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+            
+            # Check for button release (mouse was pressed on button and now released)
+            if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                if on_button:
                     # Visual feedback
                     continue_button.fillColor = 'lightgreen'
-                    continue_button.draw()
-                    continue_text.draw()
-                    win.flip()
+                    draw_screen()
                     core.wait(0.2)
                     clicked = True
                     break
-        except (AttributeError, Exception):
+            
+            # Also check for button press (for touch screens, press and release happen quickly)
+            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
+                # For touch screens, trigger immediately on press
+                if USE_TOUCH_SCREEN:
+                    continue_button.fillColor = 'lightgreen'
+                    draw_screen()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+            
+            # Update button color on hover (for click mode) - only redraw if hover state changes
+            if not USE_TOUCH_SCREEN:
+                if on_button != last_hover_state:
+                    if on_button:
+                        continue_button.fillColor = 'lightcyan'
+                    else:
+                        continue_button.fillColor = 'lightblue'
+                    draw_screen()
+                    last_hover_state = on_button
+            
+            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+        except (AttributeError, Exception) as e:
+            # Keep previous state on error
             pass
         
         # Also check for space key as backup
         try:
-            keys = event.getKeys(keyList=['space', 'escape'])
+            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
             if 'space' in keys:
                 clicked = True
                 break
@@ -497,7 +594,7 @@ def wait_for_space(redraw_func=None):
     wait_for_button(redraw_func=redraw_func)
 
 def show_instructions(text, header_color='darkblue', body_color='black', header_size=0.07, body_size=0.045):
-    """Show instructions with formatted header and body text"""
+    """Show instructions with formatted header and body text, with continue button"""
     # Split text into lines
     lines = text.split('\n')
     
@@ -527,37 +624,158 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
     
     body_text = '\n'.join(body_lines)
     
-    # Create header text stim (larger, colored)
+    # Create header text stim (larger, colored) - position lower to avoid top overlap
     if header_text:
         header_stim = visual.TextStim(
             win, 
             text=header_text, 
             color=header_color, 
             height=header_size, 
-            pos=(0, 0.35),
+            pos=(0, 0.25),
             wrapWidth=1.5
         )
     else:
         header_stim = None
     
-    # Create body text stim
+    # Create body text stim - adjust position to leave room for button
+    # Calculate approximate text height to avoid overlap
+    body_lines = len(body_text.split('\n'))
+    estimated_text_height = body_lines * body_size * 1.2  # Approximate line spacing
+    # Position body text lower to avoid header overlap and leave room for button
+    body_y_pos = 0.0 if header_stim else 0.15
+    if estimated_text_height > 0.5:  # If text is very long, move it down more
+        body_y_pos = -0.05 if header_stim else 0.1
+    
     body_stim = visual.TextStim(
         win, 
         text=body_text, 
         color=body_color, 
         height=body_size, 
-        pos=(0, -0.05 if header_stim else 0.2),
+        pos=(0, body_y_pos),
         wrapWidth=1.5
     )
     
+    # Create continue button - position lower to avoid overlap
+    continue_button = visual.Rect(
+        win,
+        width=0.3,
+        height=0.1,
+        fillColor='lightblue',
+        lineColor='black',
+        pos=(0, -0.45)
+    )
+    continue_text = visual.TextStim(
+        win,
+        text="CONTINUE",
+        color='black',
+        height=0.05,
+        pos=(0, -0.45)
+    )
+    
+    # Draw function that includes button
     def redraw():
         if header_stim:
             header_stim.draw()
         body_stim.draw()
+        continue_button.draw()
+        continue_text.draw()
         win.flip()
     
+    # Draw initial screen
     redraw()
-    wait_for_button(redraw_func=redraw)
+    
+    # Wait for button click
+    mouse_btn = event.Mouse(win=win)
+    mouse_btn.setVisible(True)
+    clicked = False
+    prev_mouse_buttons = [False, False, False]
+    last_hover_state = None
+    
+    while not clicked:
+        try:
+            mouse_buttons = mouse_btn.getPressed()
+            mouse_pos = mouse_btn.getPos()
+            
+            # Convert to floats
+            try:
+                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                else:
+                    mouse_x, mouse_y = 0.0, 0.0
+            except (TypeError, ValueError):
+                mouse_x, mouse_y = 0.0, 0.0
+            
+            # Get button bounds
+            try:
+                button_pos = continue_button.pos
+                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                    button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                else:
+                    button_x, button_y = 0.0, -0.45
+            except (TypeError, ValueError):
+                button_x, button_y = 0.0, -0.45
+            
+            try:
+                button_width = float(continue_button.width)
+                button_height = float(continue_button.height)
+            except (TypeError, ValueError):
+                button_width, button_height = 0.3, 0.1
+            
+            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+            
+            # Check if mouse is over button
+            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+            
+            # Check for button release (mouse was pressed on button and now released)
+            if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                if on_button:
+                    # Visual feedback
+                    continue_button.fillColor = 'lightgreen'
+                    redraw()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+            
+            # Also check for button press (for touch screens, press and release happen quickly)
+            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
+                # For touch screens, trigger immediately on press
+                if USE_TOUCH_SCREEN:
+                    continue_button.fillColor = 'lightgreen'
+                    redraw()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+            
+            # Hover effect for click mode (only redraw if hover state changes)
+            if not USE_TOUCH_SCREEN:
+                if on_button != last_hover_state:
+                    if on_button:
+                        continue_button.fillColor = 'lightcyan'
+                    else:
+                        continue_button.fillColor = 'lightblue'
+                    redraw()
+                    last_hover_state = on_button
+            
+            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+        except (AttributeError, Exception):
+            pass
+        
+        # Check for space key as backup
+        try:
+            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+            if 'space' in keys:
+                clicked = True
+                break
+            elif 'escape' in keys:
+                core.quit()
+        except (AttributeError, Exception):
+            pass
+        
+        core.wait(0.01)
+    
+    mouse_btn.setVisible(False)
+    event.clearEvents()
 
 def show_fixation(duration=1.0):
     fixation.draw()
@@ -1747,130 +1965,144 @@ def show_block_summary(block_num, total_points, max_points):
              f"Total points: {total_points:.2f} / {max_points:.2f}",
         color='black',
         height=0.05,
-        pos=(0, 0),
+        pos=(0, 0.1),
         wrapWidth=1.2
     )
     
-    def redraw():
-        summary_text.draw()
-        win.flip()
+    # Create continue button
+    continue_button = visual.Rect(
+        win,
+        width=0.3,
+        height=0.1,
+        fillColor='lightblue',
+        lineColor='black',
+        pos=(0, -0.45)
+    )
+    continue_text = visual.TextStim(
+        win,
+        text="CONTINUE",
+        color='black',
+        height=0.05,
+        pos=(0, -0.45)
+    )
     
-    redraw()
-    wait_for_button(redraw_func=redraw)
+    # Draw initial screen
+    summary_text.draw()
+    continue_button.draw()
+    continue_text.draw()
+    win.flip()
+    
+    # Wait for button click - use integrated button detection
+    mouse_btn = event.Mouse(win=win)
+    mouse_btn.setVisible(True)
+    clicked = False
+    prev_mouse_buttons = [False, False, False]
+    last_hover_state = None
+    
+    while not clicked:
+        try:
+            mouse_buttons = mouse_btn.getPressed()
+            mouse_pos = mouse_btn.getPos()
+            
+            # Convert to floats
+            try:
+                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                else:
+                    mouse_x, mouse_y = 0.0, 0.0
+            except (TypeError, ValueError):
+                mouse_x, mouse_y = 0.0, 0.0
+            
+            # Get button bounds
+            try:
+                button_pos = continue_button.pos
+                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                    button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                else:
+                    button_x, button_y = 0.0, -0.45
+            except (TypeError, ValueError):
+                button_x, button_y = 0.0, -0.45
+            
+            try:
+                button_width = float(continue_button.width)
+                button_height = float(continue_button.height)
+            except (TypeError, ValueError):
+                button_width, button_height = 0.3, 0.1
+            
+            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+            
+            # Check if mouse is over button
+            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+            
+            # Check for button release
+            if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                if on_button:
+                    continue_button.fillColor = 'lightgreen'
+                    summary_text.draw()
+                    continue_button.draw()
+                    continue_text.draw()
+                    win.flip()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+            
+            # Also check for button press (for touch screens)
+            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
+                if USE_TOUCH_SCREEN:
+                    continue_button.fillColor = 'lightgreen'
+                    summary_text.draw()
+                    continue_button.draw()
+                    continue_text.draw()
+                    win.flip()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+            
+            # Hover effect for click mode (only redraw if hover state changes)
+            if not USE_TOUCH_SCREEN:
+                if on_button != last_hover_state:
+                    if on_button:
+                        continue_button.fillColor = 'lightcyan'
+                    else:
+                        continue_button.fillColor = 'lightblue'
+                    # Always redraw summary text to keep it visible
+                    summary_text.draw()
+                    continue_button.draw()
+                    continue_text.draw()
+                    win.flip()
+                    last_hover_state = on_button
+            
+            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+        except (AttributeError, Exception):
+            pass
+        
+        # Check for space key as backup
+        try:
+            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+            if 'space' in keys:
+                clicked = True
+                break
+            elif 'escape' in keys:
+                core.quit()
+        except (AttributeError, Exception):
+            pass
+        
+        core.wait(0.01)
+    
+    mouse_btn.setVisible(False)
+    event.clearEvents()
 
 def ask_block_questions(block_num, participant_id, questions_file=None, timeout=7.0):
-    """Ask two questions at the end of each block:
-    1. Multiple choice: What were you trying to maximize?
-    2. Slider: How much did you trust the AI?
-    Returns the responses and saves to CSV.
+    """Ask one question at the end of each block:
+    Slider: How much did you trust your partner?
+    Returns the response and saves to CSV.
     """
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
     
-    # Question 1: Multiple choice
-    question1_text = visual.TextStim(
-        win,
-        text="What were you trying to maximize?",
-        color='black',
-        height=0.06,
-        pos=(0, 0.3),
-        wrapWidth=1.4
-    )
-    
-    options = ["Correctness", "Both", "Other"]
-    option_buttons = []
-    option_y_positions = [0.1, -0.05, -0.2, -0.35]
-    
-    for i, (opt_text, y_pos) in enumerate(zip(options, option_y_positions)):
-        button = visual.Rect(
-            win,
-            width=0.4,
-            height=0.08,
-            pos=(0, y_pos),
-            fillColor='lightgray',
-            lineColor='black',
-            lineWidth=2
-        )
-        text = visual.TextStim(
-            win,
-            text=opt_text,
-            color='black',
-            height=0.04,
-            pos=(0, y_pos)
-        )
-        option_buttons.append((button, text, opt_text))
-    
-    selected_option = None
-    start_time = time.time()
-    q1_elapsed = None
-    
-    def redraw_q1():
-        question1_text.draw()
-        for button, text, _ in option_buttons:
-            button.draw()
-            text.draw()
-        win.flip()
-    
-    redraw_q1()
-    
-    frame_count = 0
-    last_activation_time = time.time()
-    prev_mouse_buttons_q1 = [False, False, False]
-    
-    while selected_option is None:
-        elapsed = time.time() - start_time
-        if elapsed >= timeout:
-            # Timeout - select random option
-            selected_option = random.choice(options)
-            q1_elapsed = elapsed
-            break
-        
-        frame_count += 1
-        current_time = time.time()
-        
-        # Periodically reactivate window to maintain focus (every 50ms)
-        if current_time - last_activation_time > 0.05:
-            try:
-                win.winHandle.activate()
-                last_activation_time = current_time
-            except:
-                pass
-        
-        try:
-            mouse_pos = mouse.getPos()
-            mouse_buttons = mouse.getPressed()
-            
-            if mouse_buttons[0]:  # Left click or touch
-                # For touch screen, use slightly larger hit area
-                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
-                for button, text, opt_text in option_buttons:
-                    button_pos = button.pos
-                    button_size = button.size
-                    if (abs(mouse_pos[0] - button_pos[0]) < button_size[0]/2 + hit_margin and
-                        abs(mouse_pos[1] - button_pos[1]) < button_size[1]/2 + hit_margin):
-                        selected_option = opt_text
-                        q1_elapsed = elapsed
-                        # Visual feedback
-                        button.fillColor = 'green'
-                        redraw_q1()
-                        core.wait(0.3)
-                        break
-            
-            prev_mouse_buttons_q1 = mouse_buttons.copy()
-        except:
-            pass
-        
-        # Refresh screen periodically to process events (every 33ms = 30Hz)
-        if frame_count % 33 == 0:
-            redraw_q1()
-        else:
-            core.wait(0.001)  # Very short wait for responsiveness
-    
-    # Brief pause between questions
-    core.wait(0.5)
-    
-    # Question 2: Slider for trust
-    question2_text = visual.TextStim(
+    # Question: Slider for trust
+    question_text = visual.TextStim(
         win,
         text="How much did you trust your partner?",
         color='black',
@@ -1935,8 +2167,8 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
         pos=(0, -0.25)
     )
     
-    def redraw_q2():
-        question2_text.draw()
+    def redraw_question():
+        question_text.draw()
         slider_line.draw()
         slider_handle.pos = (-0.4 + trust_value * 0.8, 0)
         slider_handle.draw()
@@ -1946,7 +2178,7 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
         submit_text.draw()
         win.flip()
     
-    redraw_q2()
+    redraw_question()
     
     frame_count = 0
     last_activation_time = time.time()
@@ -1984,7 +2216,7 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
                     # Submit clicked/touched - record response time
                     trust_response_time = time.time() - start_time
                     submit_button.fillColor = 'green'
-                    redraw_q2()
+                    redraw_question()
                     core.wait(0.3)
                     break
                 
@@ -2005,7 +2237,7 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
         
         # Refresh screen periodically to process events (every 33ms = 30Hz)
         if frame_count % 33 == 0:
-            redraw_q2()
+            redraw_question()
         else:
             core.wait(0.001)  # Very short wait for responsiveness
     
@@ -2018,17 +2250,15 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
     # Skip saving if test participant
     if is_test_participant(participant_id):
         print(f"⚠ Test participant detected - skipping file save for block {block_num} questions")
-        return {"participant_id": participant_id, "block": block_num, "maximize_goal": selected_option, "trust_rating": trust_value, "trust_rt": trust_response_time if trust_response_time else timeout, "question1_timeout": q1_elapsed >= timeout if q1_elapsed else False, "question2_timeout": trust_response_time is None or (trust_response_time >= timeout)}, None
+        return {"participant_id": participant_id, "block": block_num, "trust_rating": trust_value, "trust_rt": trust_response_time if trust_response_time else timeout, "question_timeout": trust_response_time is None or (trust_response_time >= timeout)}, None
     
     file_exists = os.path.exists(questions_file)
     question_data = {
         "participant_id": participant_id,
         "block": block_num,
-        "maximize_goal": selected_option,
         "trust_rating": trust_value,
         "trust_rt": trust_response_time if trust_response_time else timeout,
-        "question1_timeout": q1_elapsed >= timeout if q1_elapsed else False,
-        "question2_timeout": trust_response_time is None or (trust_response_time >= timeout)
+        "question_timeout": trust_response_time is None or (trust_response_time >= timeout)
     }
     
     with open(questions_file, 'a', newline='') as f:
@@ -2090,13 +2320,32 @@ def show_leaderboard(participant_id, total_points):
         text=leaderboard_text,
         color='black',
         height=0.04,
-        pos=(0, 0),
+        pos=(0, 0.1),
         wrapWidth=1.6,
         font='Courier New'  # Monospace font for alignment
     )
     
+    # Create continue button
+    continue_button = visual.Rect(
+        win,
+        width=0.3,
+        height=0.1,
+        fillColor='lightblue',
+        lineColor='black',
+        pos=(0, -0.45)
+    )
+    continue_text = visual.TextStim(
+        win,
+        text="CONTINUE",
+        color='black',
+        height=0.05,
+        pos=(0, -0.45)
+    )
+    
     def redraw():
         leaderboard_stim.draw()
+        continue_button.draw()
+        continue_text.draw()
         win.flip()
     
     redraw()
@@ -2384,14 +2633,30 @@ def run_experiment():
     except:
         pass
     
-    # Initial click-to-start screen to ensure window has focus
+    # Initial click-to-start screen with button
     start_screen = visual.TextStim(
         win,
-        text="Click anywhere on this screen to begin the experiment.",
+        text="Click the button below to begin the experiment.",
         color='black',
         height=0.06,
-        pos=(0, 0),
+        pos=(0, 0.2),
         wrapWidth=1.4
+    )
+    
+    start_button = visual.Rect(
+        win,
+        width=0.3,
+        height=0.1,
+        fillColor='lightblue',
+        lineColor='black',
+        pos=(0, -0.3)
+    )
+    start_button_text = visual.TextStim(
+        win,
+        text="BEGIN",
+        color='black',
+        height=0.05,
+        pos=(0, -0.3)
     )
     
     mouse.setVisible(True)
@@ -2401,45 +2666,97 @@ def run_experiment():
         except:
             pass  # May fail on some systems
     
-    # Draw and flip once to ensure window is ready (removed multiple draws for faster start)
+    # Draw initial screen
     start_screen.draw()
+    start_button.draw()
+    start_button_text.draw()
     win.flip()
     
     # Clear any existing events before waiting for click
     event.clearEvents()
     mouse.clickReset()
     
-    # Wait for mouse click anywhere on screen (optimized for maximum responsiveness)
+    # Wait for button click
     clicked = False
-    frame_count = 0
-    last_activation_time = time.time()
+    prev_mouse_buttons = [False, False, False]
+    last_hover_state = None
     
     while not clicked:
-        frame_count += 1
-        
-        # Periodically reactivate window to maintain focus (every 50ms for responsiveness)
-        current_time = time.time()
-        time_since_activation = current_time - last_activation_time
-        
-        if time_since_activation > 0.05:  # Every 50ms
-            try:
-                win.winHandle.activate()  # Bring window back to front if it lost focus
-                last_activation_time = current_time
-            except:
-                pass
-        
-        # Refresh screen periodically to process events and catch clicks (every 33ms = 30Hz)
-        if frame_count % 33 == 0:
-            start_screen.draw()
-            win.flip()  # Process window events
-        
-        # Check for mouse click (most responsive - checks immediately on press)
         try:
-            if mouse.getPressed()[0]:  # Left button pressed
-                clicked = True
-                break
+            mouse_buttons = mouse.getPressed()
+            mouse_pos = mouse.getPos()
+            
+            # Convert to floats
+            try:
+                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                else:
+                    mouse_x, mouse_y = 0.0, 0.0
+            except (TypeError, ValueError):
+                mouse_x, mouse_y = 0.0, 0.0
+            
+            # Get button bounds
+            try:
+                button_pos = start_button.pos
+                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                    button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                else:
+                    button_x, button_y = 0.0, -0.3
+            except (TypeError, ValueError):
+                button_x, button_y = 0.0, -0.3
+            
+            try:
+                button_width = float(start_button.width)
+                button_height = float(start_button.height)
+            except (TypeError, ValueError):
+                button_width, button_height = 0.3, 0.1
+            
+            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+            
+            # Check if mouse is over button
+            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+            
+            # Check for button release (mouse was pressed on button and now released)
+            if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                if on_button:
+                    start_button.fillColor = 'lightgreen'
+                    start_screen.draw()
+                    start_button.draw()
+                    start_button_text.draw()
+                    win.flip()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+            
+            # Also check for button press (for touch screens, press and release happen quickly)
+            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
+                # For touch screens, trigger immediately on press
+                if USE_TOUCH_SCREEN:
+                    start_button.fillColor = 'lightgreen'
+                    start_screen.draw()
+                    start_button.draw()
+                    start_button_text.draw()
+                    win.flip()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+            
+            # Hover effect for click mode (only redraw if hover state changes)
+            if not USE_TOUCH_SCREEN:
+                if on_button != last_hover_state:
+                    if on_button:
+                        start_button.fillColor = 'lightcyan'
+                    else:
+                        start_button.fillColor = 'lightblue'
+                    start_screen.draw()
+                    start_button.draw()
+                    start_button_text.draw()
+                    win.flip()
+                    last_hover_state = on_button
+            
+            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
         except (AttributeError, Exception):
-            # Handle macOS event errors gracefully
             pass
         
         # Check for keyboard input as backup
@@ -2450,8 +2767,7 @@ def run_experiment():
         if 'escape' in keys:
             core.quit()
         
-        # Very short wait for maximum responsiveness (1ms polling)
-        core.wait(0.001)
+        core.wait(0.01)
     
     mouse.setVisible(False)
     event.clearEvents()
@@ -2680,19 +2996,35 @@ def run_experiment():
         body_color='black'
     )
     
-    # Rules reminder before starting the actual game - split into 2 pages
+    # Rules reminder before starting the actual game - split into 3 pages for better readability
     show_instructions(
         "QUICK REMINDER - KEY RULES (Part 1):\n\n"
-        "1. STUDY PHASE: Remember each complex image carefully\n"
-        "   You'll see images of various objects, animals, and scenes.\n\n"
+        "1. STUDY PHASE:\n"
+        "   Remember each complex image carefully.\n"
+        "   You'll see images of various objects,\n"
+        "   animals, and scenes.",
+        header_color='darkred',
+        body_color='black'
+    )
+    
+    show_instructions(
+        "QUICK REMINDER - KEY RULES (Part 2):\n\n"
         "2. RECOGNITION PHASE:\n"
         "   - You'll see complex images again\n"
         "   - Rate your confidence on the slider\n"
-        "   - LEFT = OLD (studied), RIGHT = NEW (not studied)\n"
-        "   - Click and drag the slider, then click SUBMIT\n\n"
+        "   - LEFT = OLD (studied)\n"
+        "   - RIGHT = NEW (not studied)\n"
+        "   - Click and drag the slider, then click SUBMIT",
+        header_color='darkred',
+        body_color='black'
+    )
+    
+    show_instructions(
+        "QUICK REMINDER - KEY RULES (Part 3):\n\n"
         "3. COLLABORATION:\n"
         "   - Your partner will also rate each image\n"
-        "   - You can STAY with your answer or SWITCH to theirs\n"
+        "   - You can STAY with your answer\n"
+        "   - Or SWITCH to theirs\n"
         "   - Even if you both agree (OLD or NEW),\n"
         "     you can switch to match their confidence level",
         header_color='darkred',
@@ -2700,13 +3032,15 @@ def run_experiment():
     )
     
     show_instructions(
-        "QUICK REMINDER - KEY RULES (Part 2):\n\n"
+        "QUICK REMINDER - KEY RULES (Part 4):\n\n"
         "4. SCORING:\n"
-        "   - Points based on how close your final answer is to correct\n"
+        "   - Points based on how close your final answer\n"
+        "     is to the correct answer\n"
         "   - More confident + correct = more points\n"
         "   - More confident + wrong = fewer points\n\n"
         "5. QUESTIONS:\n"
-        "   - At the end of each block, you'll answer 2 quick questions",
+        "   - At the end of each block, you'll answer\n"
+        "     a quick question",
         header_color='darkred',
         body_color='black'
     )
