@@ -1338,10 +1338,13 @@ win = None
 try:
     print("="*60)
     sys.stdout.flush()
+    sys.stderr.flush()
     print("STARTING WINDOW CREATION")
     sys.stdout.flush()
+    sys.stderr.flush()
     print("="*60)
     sys.stdout.flush()
+    sys.stderr.flush()
     
     import time
     # Brief delay to ensure temp window is fully closed
@@ -1351,20 +1354,33 @@ try:
     
     print("Creating main window...")
     sys.stdout.flush()
+    sys.stderr.flush()
     # Create window in fullscreen mode
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
+        print("About to call visual.Window()...", file=sys.stderr)
+        sys.stderr.flush()
         print("Attempting to create fullscreen window...")
         sys.stdout.flush()
+        sys.stderr.flush()
         win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=True, viewPos=(0, 0))
+        print("Window object created, about to flip...", file=sys.stderr)
+        sys.stderr.flush()
         # Immediately flip to ensure window is ready
         win.flip()
         print("Fullscreen window created successfully")
         sys.stdout.flush()
+        sys.stderr.flush()
+        sys.stderr.flush()
     except Exception as e:
         # If fullscreen fails, try windowed mode as fallback
         import traceback
+        print("="*60, file=sys.stderr)
+        print("FULLSCREEN WINDOW CREATION FAILED", file=sys.stderr)
+        print("="*60, file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
         traceback.print_exc()
         print(f"Fullscreen window creation failed: {e}")
         sys.stdout.flush()
@@ -1380,27 +1396,42 @@ try:
             print("="*60)
             print(f"ERROR: Could not create window in either mode ({e2})")
             print("="*60)
+            traceback.print_exc(file=sys.stderr)
+            sys.stderr.flush()
             import traceback
             traceback.print_exc()
             print("Press Enter to exit...")
+            sys.stdout.flush()
             try:
                 input()
             except:
                 pass
-            core.quit()
+            try:
+                core.quit()
+            except:
+                pass
             exit(1)
     
     # Verify window was created successfully
     if win is None:
+        error_msg = "ERROR: Failed to create main window - win is None"
+        print("="*60, file=sys.stderr)
+        print(error_msg, file=sys.stderr)
+        print("="*60, file=sys.stderr)
+        sys.stderr.flush()
         print("="*60)
         print("ERROR: Failed to create main window - win is None")
         print("="*60)
         print("Press Enter to exit...")
+        sys.stdout.flush()
         try:
             input()
         except:
             pass
-        core.quit()
+        try:
+            core.quit()
+        except:
+            pass
         exit(1)
     
     print(f"Window created successfully: {win}")
@@ -1698,8 +1729,13 @@ try:
     except:
         pass
 
-except SystemExit:
+except SystemExit as se:
+    print("SystemExit caught in main experiment", file=sys.stderr)
+    sys.stderr.flush()
+    print(f"SystemExit value: {se}", file=sys.stderr)
+    sys.stderr.flush()
     print("SystemExit caught in main experiment")
+    sys.stdout.flush()
     raise
 except Exception as e:
     # Catch any unhandled exceptions in the main experiment
