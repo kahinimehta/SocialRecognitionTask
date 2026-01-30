@@ -59,8 +59,8 @@ def get_input_method():
         )
         
         # Create button 1 (TOUCH SCREEN) - convert all values to Python native types
-        btn1_w = float(0.25)
-        btn1_h = float(0.12)
+        btn1_w = float(0.6)
+        btn1_h = float(0.25)
         btn1_x = float(-0.3)
         btn1_y = float(-0.1)
         button1 = visual.Rect(
@@ -74,8 +74,8 @@ def get_input_method():
         button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=(btn1_x, btn1_y))
         
         # Create button 2 (CLICK/MOUSE) - convert all values to Python native types
-        btn2_w = float(0.25)
-        btn2_h = float(0.12)
+        btn2_w = float(0.6)
+        btn2_h = float(0.25)
         btn2_x = float(0.3)
         btn2_y = float(-0.1)
         button2 = visual.Rect(
@@ -86,7 +86,7 @@ def get_input_method():
             lineColor='black', 
             pos=(btn2_x, btn2_y)
         )
-        button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.05, pos=(btn2_x, btn2_y))
+        button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.06, pos=(btn2_x, btn2_y))
         
         mouse_temp = event.Mouse(win=temp_win)
         mouse_temp.setVisible(True)
@@ -128,7 +128,7 @@ def get_input_method():
                 
                 # Check button 2
                 button2_x, button2_y = 0.3, -0.1
-                button2_width, button2_height = 0.25, 0.12
+                button2_width, button2_height = 0.6, 0.25
                 on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
                              button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
                 
@@ -202,73 +202,80 @@ def get_input_method():
         prev_mouse_buttons_cont = [False, False, False]
         
         while not clicked:
-        confirm_text.draw()
-        continue_button.draw()
-        continue_text.draw()
-        temp_win.flip()
-        
-        try:
-            mouse_buttons = mouse_temp.getPressed()
-            mouse_pos = mouse_temp.getPos()
+            confirm_text.draw()
+            continue_button.draw()
+            continue_text.draw()
+            temp_win.flip()
             
-            # Convert to floats to handle numpy arrays - ensure all values are Python floats
             try:
-                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                    mouse_x = float(mouse_pos[0])
-                    mouse_y = float(mouse_pos[1])
-                else:
+                mouse_buttons = mouse_temp.getPressed()
+                mouse_pos = mouse_temp.getPos()
+                
+                # Convert to floats to handle numpy arrays - ensure all values are Python floats
+                try:
+                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                        mouse_x = float(mouse_pos[0])
+                        mouse_y = float(mouse_pos[1])
+                    else:
+                        mouse_x, mouse_y = 0.0, 0.0
+                except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
-            except (TypeError, ValueError):
-                mouse_x, mouse_y = 0.0, 0.0
-            
-            # Get button position and dimensions as Python floats
-            # Get button position - ensure pos is always (x, y) tuple, never empty
-            try:
-                button_pos = continue_button.pos
-                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
-                    button_x = float(button_pos[0])
-                    button_y = float(button_pos[1])
-                else:
-                    # Fallback: ensure we always have valid (x, y)
+                
+                # Get button position and dimensions as Python floats
+                # Get button position - ensure pos is always (x, y) tuple, never empty
+                try:
+                    button_pos = continue_button.pos
+                    if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                        button_x = float(button_pos[0])
+                        button_y = float(button_pos[1])
+                    else:
+                        # Fallback: ensure we always have valid (x, y)
+                        button_x, button_y = 0.0, -0.3
+                        continue_button.pos = (button_x, button_y)  # Fix if broken
+                except (TypeError, ValueError, IndexError):
                     button_x, button_y = 0.0, -0.3
                     continue_button.pos = (button_x, button_y)  # Fix if broken
-            except (TypeError, ValueError, IndexError):
-                button_x, button_y = 0.0, -0.3
-                continue_button.pos = (button_x, button_y)  # Fix if broken
-            button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 0.3
-            button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 0.1
+                
+                try:
+                    button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 0.3
+                    button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 0.1
+                    # Ensure size is always valid
+                    if button_width <= 0 or button_height <= 0:
+                        button_width, button_height = 0.3, 0.1
+                except (TypeError, ValueError):
+                    button_width, button_height = 0.3, 0.1
+                
+                hit_margin = 0.02
+                
+                # Check if mouse is on button
+                on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+                
+                # Check for button release (click completed)
+                if prev_mouse_buttons_cont[0] and not mouse_buttons[0]:
+                    if on_button:
+                        clicked = True
+                        break
+                
+                # For touch screens, check for press
+                if mouse_buttons[0] and not prev_mouse_buttons_cont[0]:
+                    if on_button:
+                        clicked = True
+                        break
+                
+                prev_mouse_buttons_cont = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+            except Exception as e:
+                pass
             
-            hit_margin = 0.02
-            
-            # Check if mouse is on button
-            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
-            
-            # Check for button release (click completed)
-            if prev_mouse_buttons_cont[0] and not mouse_buttons[0]:
-                if on_button:
-                    clicked = True
-                    break
-            
-            # For touch screens, check for press
-            if mouse_buttons[0] and not prev_mouse_buttons_cont[0]:
-                if on_button:
-                    clicked = True
-                    break
-            
-            prev_mouse_buttons_cont = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-        except Exception as e:
-            pass
-        
-        # Safe event.getKeys() handling - ensure keys is never empty array issue
-        try:
-            keys = event.getKeys(keyList=['space', 'escape'])
-            if keys:  # Check keys is not empty first
-                if 'space' in keys:
-                    clicked = True
-                    break
-                elif 'escape' in keys:
-                    return None  # Signal to exit
+            # Safe event.getKeys() handling - ensure keys is never empty array issue
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'])
+                if keys:  # Check keys is not empty first
+                    if 'space' in keys:
+                        clicked = True
+                        break
+                    elif 'escape' in keys:
+                        return None  # Signal to exit
             except (AttributeError, Exception):
                 pass  # Ignore event errors
             core.wait(0.01)

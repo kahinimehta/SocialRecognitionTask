@@ -56,8 +56,8 @@ def get_input_method():
         )
         
         # Create button 1 (TOUCH SCREEN) - convert all values to Python native types
-        btn1_w = float(0.25)
-        btn1_h = float(0.12)
+        btn1_w = float(0.6)
+        btn1_h = float(0.25)
         btn1_x = float(-0.3)
         btn1_y = float(-0.1)
         button1 = visual.Rect(
@@ -68,11 +68,11 @@ def get_input_method():
             lineColor='black', 
             pos=(btn1_x, btn1_y)
         )
-        button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=(btn1_x, btn1_y))
+        button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.06, pos=(btn1_x, btn1_y))
         
         # Create button 2 (CLICK/MOUSE) - convert all values to Python native types
-        btn2_w = float(0.25)
-        btn2_h = float(0.12)
+        btn2_w = float(0.6)
+        btn2_h = float(0.25)
         btn2_x = float(0.3)
         btn2_y = float(-0.1)
         button2 = visual.Rect(
@@ -83,7 +83,7 @@ def get_input_method():
             lineColor='black', 
             pos=(btn2_x, btn2_y)
         )
-        button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.05, pos=(btn2_x, btn2_y))
+        button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.06, pos=(btn2_x, btn2_y))
         
         mouse_temp = event.Mouse(win=temp_win)
         mouse_temp.setVisible(True)
@@ -119,13 +119,13 @@ def get_input_method():
                 
                 # Check button 1
                 button1_x, button1_y = -0.3, -0.1
-                button1_width, button1_height = 0.25, 0.12
+                button1_width, button1_height = 0.6, 0.25
                 on_button1 = (button1_x - button1_width/2 - hit_margin <= mouse_x <= button1_x + button1_width/2 + hit_margin and
                              button1_y - button1_height/2 - hit_margin <= mouse_y <= button1_y + button1_height/2 + hit_margin)
                 
                 # Check button 2
                 button2_x, button2_y = 0.3, -0.1
-                button2_width, button2_height = 0.25, 0.12
+                button2_width, button2_height = 0.6, 0.25
                 on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
                              button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
                 
@@ -293,29 +293,29 @@ def get_input_method():
                 pass
         time.sleep(0.5)  # Delay after closing before creating new window
 
+# =========================
+#  STIMULI SETUP (Module-level constants)
+# =========================
+STIMULI_DIR = "STIMULI"
+
+# Category mapping: each category has 10 objects, numbered sequentially
+CATEGORY_MAPPING = {
+    "BIG_ANIMAL": (1, 10),      # 001-010
+    "BIG_OBJECT": (11, 20),     # 011-020
+    "BIRD": (21, 30),           # 021-030
+    "FOOD": (31, 40),           # 031-040
+    "FRUIT": (41, 50),          # 041-050
+    "INSECT": (51, 60),         # 051-060
+    "SMALL_ANIMAL": (61, 70),   # 061-070
+    "SMALL_OBJECT": (71, 80),   # 071-080
+    "VEGETABLE": (81, 90),      # 081-090
+    "VEHICLE": (91, 100),       # 091-100
+}
+
 # Ask for input method first
 result = get_input_method()
 if result is None:
     core.quit()
-
-    # =========================
-    #  STIMULI SETUP
-    # =========================
-    STIMULI_DIR = "STIMULI"
-
-    # Category mapping: each category has 10 objects, numbered sequentially
-    CATEGORY_MAPPING = {
-        "BIG_ANIMAL": (1, 10),      # 001-010
-        "BIG_OBJECT": (11, 20),     # 011-020
-        "BIRD": (21, 30),           # 021-030
-        "FOOD": (31, 40),           # 031-040
-        "FRUIT": (41, 50),          # 041-050
-        "INSECT": (51, 60),         # 051-060
-        "SMALL_ANIMAL": (61, 70),   # 061-070
-        "SMALL_OBJECT": (71, 80),   # 071-080
-        "VEGETABLE": (81, 90),      # 081-090
-        "VEHICLE": (91, 100),       # 091-100
-}
 
 def get_category_for_stimulus(stimulus_num):
     """Get the category name for a given stimulus number"""
