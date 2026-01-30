@@ -521,15 +521,14 @@ def get_participant_id():
                 print(f"Creating row {row_idx} with {len(row)} keys...")
                 row_buttons = []
                 num_keys = len(row)
-                # Calculate total row width including spacing
-                total_row_width = num_keys * 0.08*0.75 + (num_keys - 1) * button_spacing
-                start_x = -total_row_width / 2 + (0.08*0.75) / 2
+                button_width = 0.07*0.75  # Match the actual button width
+                start_x = -(num_keys - 1) * (button_width + button_spacing) / 2
                 
                 for col_idx, key in enumerate(row):
-                    x_pos = start_x + col_idx * (0.08*0.75 + button_spacing)
+                    x_pos = start_x + col_idx * (button_width + button_spacing)
                     y_pos = start_y - row_idx * row_spacing
                     
-                    button = visual.Rect(win, width=0.07*0.75, height=0.08*0.75, fillColor='lightgray', 
+                    button = visual.Rect(win, width=button_width, height=0.08*0.75, fillColor='lightgray', 
                                         lineColor='black', pos=(x_pos, y_pos))
                     text = visual.TextStim(win, text=key, color='black', height=0.04*0.75, pos=(x_pos, y_pos))
                     row_buttons.append((button, text, key, x_pos, y_pos))

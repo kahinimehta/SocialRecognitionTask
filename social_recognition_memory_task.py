@@ -1230,7 +1230,7 @@ def get_participant_id():
         button_height = 0.08*0.75
         start_y = -0.15*0.6  # Move keyboard lower to avoid overlap with buttons
         row_spacing = 0.1*0.75
-        button_spacing = 0.015  # Spacing between buttons (increased from 0.01)
+        button_spacing = 0.015  # Spacing between buttons (increased from 0.01 for better visibility)
         
         for row_idx, row in enumerate(keyboard_layout):
             row_width = len(row) * button_width + (len(row) - 1) * button_spacing
