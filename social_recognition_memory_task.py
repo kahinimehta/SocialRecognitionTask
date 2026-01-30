@@ -51,10 +51,12 @@ def safe_window_close(window):
                 # Try to close anyway, but catch any errors
                 try:
                     window.close()
-                except (AttributeError, RuntimeError, Exception):
-                    pass  # Window already closed or backend is None
-    except (AttributeError, RuntimeError, Exception):
-        pass  # Window already dereferenced or closed
+                except Exception as e:
+                    print(f"ERROR in safe_window_close (inner): {repr(e)}", file=sys.stderr)
+                    traceback.print_exc()
+    except Exception as e:
+        print(f"ERROR in safe_window_close (outer): {repr(e)}", file=sys.stderr)
+        traceback.print_exc()
 
 def get_input_method():
     """Ask user whether they're using touch screen (1) or click screen (2)"""
@@ -136,6 +138,7 @@ def get_input_method():
             temp_win.flip()
         
         draw_selection_screen()
+        # Clear events BEFORE loop starts, not inside loop
         event.clearEvents()
         selected = None
         
@@ -143,7 +146,8 @@ def get_input_method():
         mouserec = mouse_temp.getPos()
         try:
             mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-        except:
+        except (ValueError, TypeError, IndexError) as e:
+            print(f"Warning: Could not parse initial mouse position: {e}", file=sys.stderr)
             mouserec_x, mouserec_y = 0.0, 0.0
         
         minRT = 0.05  # Minimum response time
@@ -151,15 +155,24 @@ def get_input_method():
         clock.reset()
         
         while selected is None:
+            # Check for escape key FIRST, before clearing events
+            try:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:
+                    return None  # Signal to exit - window will be closed in finally
+            except (AttributeError, RuntimeError) as e:
+                print(f"Warning: Error checking escape key: {e}", file=sys.stderr)
+            
             try:
                 mouseloc = mouse_temp.getPos()
                 try:
                     mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
-                except:
+                except (ValueError, TypeError, IndexError) as e:
+                    print(f"Warning: Could not parse mouse position: {e}", file=sys.stderr)
                     mouseloc_x, mouseloc_y = 0.0, 0.0
                 
                 t = clock.getTime()
-                event.clearEvents()
+                # Don't clear events here - clear at end of loop iteration
                 
                 # Check if mouse position has changed (touch moved)
                 if mouseloc_x == mouserec_x and mouseloc_y == mouserec_y:
@@ -183,8 +196,10 @@ def get_input_method():
                                     mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
                                 except:
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except:
+                    except Exception as e:
                         # Fallback to manual calculation
+                        print(f"ERROR in button1.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
                         hit_margin = 150/720*0.75
                         button1_x, button1_y = -320/720*0.6, -80/720*0.6
                         button1_width, button1_height = 520/720*0.75, 180/720*0.75
@@ -219,10 +234,13 @@ def get_input_method():
                                     mouserec = mouse_temp.getPos()
                                     try:
                                         mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                    except:
+                                    except (ValueError, TypeError, IndexError) as e:
+                                        print(f"Warning: Could not parse mouse position after button2 check: {e}", file=sys.stderr)
                                         mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                        except:
+                        except Exception as e:
                             # Fallback to manual calculation
+                            print(f"ERROR in button2.contains() fallback: {repr(e)}", file=sys.stderr)
+                            traceback.print_exc()
                             hit_margin = 150/720*0.75
                             button2_x, button2_y = 320/720*0.6, -80/720*0.6
                             button2_width, button2_height = 520/720*0.75, 180/720*0.75
@@ -301,7 +319,15 @@ def get_input_method():
                     mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
                 
                 t_cont = clock_cont.getTime()
-                event.clearEvents()
+                # Check for escape key FIRST, before clearing events
+                try:
+                    keys = event.getKeys(keyList=['escape'])
+                    if keys and 'escape' in keys:
+                        return None
+                except (AttributeError, RuntimeError) as e:
+                    print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
+                
+                # Don't clear events here - clear at end of loop iteration
                 
                 # Check if mouse position has changed (touch moved)
                 if mouseloc_cont_x == mouserec_cont_x and mouseloc_cont_y == mouserec_cont_y:
@@ -320,8 +346,10 @@ def get_input_method():
                                     mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
                                 except:
                                     mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
-                    except:
+                    except Exception as e:
                         # Fallback to manual calculation
+                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
                         hit_margin = 50/720*0.75
                         button_x, button_y = 0.0, -150.0/720*0.6
                         button_width, button_height = 300/720*0.75, 80/720*0.75
@@ -339,17 +367,18 @@ def get_input_method():
             except Exception as e:
                 pass
             
-            # Safe event.getKeys() handling - ensure keys is never empty array issue
+            # Check for space key (escape already checked at start of loop)
             try:
-                keys = event.getKeys(keyList=['space', 'escape'])
-                if keys:  # Check keys is not empty first
-                    if 'space' in keys:
-                        clicked = True
-                        break
-                    elif 'escape' in keys:
-                        return None  # Signal to exit
-            except (AttributeError, Exception):
-                pass  # Ignore event errors
+                keys = event.getKeys(keyList=['space'])
+                if keys and 'space' in keys:
+                    clicked = True
+                    break
+            except (AttributeError, RuntimeError) as e:
+                print(f"Warning: Error checking space key: {e}", file=sys.stderr)
+            
+            # Clear events AFTER checking keys
+            event.clearEvents()
+            
             # Reduced polling delay for faster touch response
             core.wait(0.001)  # Very fast polling
         
@@ -542,8 +571,9 @@ except Exception as e:
     if win is not None:
         try:
             win.close()
-        except:
-            pass
+        except Exception as e:
+            print(f"ERROR calling win.close(): {repr(e)}", file=sys.stderr)
+            traceback.print_exc()
     print("Press Enter to exit...")
     try:
         input()
@@ -567,8 +597,9 @@ except:
     if win is not None:
         try:
             win.close()
-        except:
-            pass
+        except Exception as e:
+            print(f"ERROR calling win.close(): {repr(e)}", file=sys.stderr)
+            traceback.print_exc()
     print("Press Enter to exit...")
     try:
         input()
@@ -908,8 +939,9 @@ except Exception as e:
     if win is not None:
         try:
             win.close()
-        except:
-            pass
+        except Exception as e:
+            print(f"ERROR calling win.close(): {repr(e)}", file=sys.stderr)
+            traceback.print_exc()
     try:
         core.quit()
     except:
@@ -928,8 +960,9 @@ except:
     if win is not None:
         try:
             win.close()
-        except:
-            pass
+        except Exception as e:
+            print(f"ERROR calling win.close(): {repr(e)}", file=sys.stderr)
+            traceback.print_exc()
     print("Press Enter to exit...")
     try:
         input()
@@ -1040,8 +1073,10 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                                     mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
                                 except:
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except:
+                    except Exception as e:
                         # Fallback to manual calculation
+                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
                         hit_margin = 0.02
                         button_x, button_y = 0.0, -0.35
                         button_width, button_height = 0.3, 0.1
@@ -1486,8 +1521,10 @@ def get_participant_id():
                                     mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
                                 except:
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except:
+                    except Exception as e:
                         # Fallback to manual calculation
+                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
                         hit_margin = 0.08
                         button_x, button_y = button.pos
                         button_width, button_height = button.width, button.height
@@ -1539,8 +1576,10 @@ def get_participant_id():
                                     mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
                                 except:
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except:
+                    except Exception as e:
                         # Fallback to manual calculation
+                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
                         hit_margin = 0.08
                         button_x, button_y = backspace_button.pos
                         button_width, button_height = backspace_button.width, backspace_button.height
@@ -1597,8 +1636,10 @@ def get_participant_id():
                                     mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
                                 except:
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except:
+                    except Exception as e:
                         # Fallback to manual calculation
+                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
                         hit_margin = 0.08
                         button_x, button_y = continue_button.pos
                         button_width, button_height = continue_button.width, continue_button.height
@@ -1633,6 +1674,19 @@ def get_participant_id():
             
             # Redraw every frame
             redraw()
+            # Check keys BEFORE clearing events
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if keys:
+                    if 'space' in keys:
+                        clicked = True
+                        break
+                    elif 'escape' in keys:
+                        core.quit()
+            except (AttributeError, RuntimeError) as e:
+                print(f"Warning: Error checking keys in get_participant_id: {e}", file=sys.stderr)
+            
+            # Clear events AFTER checking keys
             event.clearEvents()
             core.wait(0.001)  # Very fast polling
         else:
@@ -3343,8 +3397,8 @@ def run_experiment():
     # Clear any existing events before starting
     try:
         event.clearEvents()
-    except:
-        pass
+    except Exception as e:
+        print(f"Warning: Error clearing events at start: {e}", file=sys.stderr)
     
     # Initial click-to-start screen with button
     start_screen = visual.TextStim(
