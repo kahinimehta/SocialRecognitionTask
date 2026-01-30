@@ -1482,70 +1482,6 @@ try:
     print("="*60)
     sys.stdout.flush()
     
-except Exception as e:
-    print("="*60)
-    sys.stdout.flush()
-    print("EXCEPTION CAUGHT IN WINDOW CREATION")
-    sys.stdout.flush()
-    print("="*60)
-    sys.stdout.flush()
-    print(f"ERROR creating main window: {e}")
-    sys.stdout.flush()
-    print(f"Error type: {type(e).__name__}")
-    sys.stdout.flush()
-    import traceback
-    traceback.print_exc()
-    print("="*60)
-    sys.stdout.flush()
-    print("CRITICAL ERROR: Failed to create main window")
-    sys.stdout.flush()
-    print("="*60)
-    sys.stdout.flush()
-    if win is not None:
-        try:
-            win.close()
-        except:
-            pass
-    print("Press Enter to exit...")
-    try:
-        input()
-    except:
-        pass
-    try:
-        core.quit()
-    except:
-        pass
-    exit(1)
-except SystemExit:
-    print("SystemExit caught - program is exiting")
-    raise
-except:
-    print("="*60)
-    sys.stdout.flush()
-    print("UNKNOWN EXCEPTION CAUGHT IN WINDOW CREATION")
-    sys.stdout.flush()
-    print("="*60)
-    sys.stdout.flush()
-    import traceback
-    traceback.print_exc()
-    print("="*60)
-    sys.stdout.flush()
-    if win is not None:
-        try:
-            win.close()
-        except:
-            pass
-    print("Press Enter to exit...")
-    try:
-        input()
-    except:
-        pass
-    try:
-        core.quit()
-    except:
-        pass
-    exit(1)
-    
     # =========================
     #  MAIN EXPERIMENT
     # =========================
@@ -1762,6 +1698,9 @@ except:
     except:
         pass
 
+except SystemExit:
+    print("SystemExit caught in main experiment")
+    raise
 except Exception as e:
     # Catch any unhandled exceptions in the main experiment
     print("="*60)
@@ -1797,9 +1736,6 @@ except Exception as e:
     except:
         pass
     exit(1)
-except SystemExit:
-    print("SystemExit caught in main experiment")
-    raise
 except:
     print("="*60)
     sys.stdout.flush()
