@@ -123,9 +123,9 @@ def get_input_method():
                 except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
                 
-                # Very generous hit margin for touch screens (in pixels)
-                # Use larger margin for better touch sensitivity
-                hit_margin = 80  # Increased from 20 for better touch sensitivity
+                # Maximum hit margin for touch screens (in pixels)
+                # Use very large margin for maximum touch sensitivity
+                hit_margin = 150  # Maximized for best touch sensitivity
                 
                 # Check button 1 (use same dimensions as button creation - pixel units)
                 button1_x, button1_y = -320, -80
@@ -186,7 +186,8 @@ def get_input_method():
             except (AttributeError, Exception):
                 pass  # Ignore event errors
             
-            core.wait(0.01)
+            # Reduced polling delay for faster touch response
+            core.wait(0.005)  # Faster polling for touch screens
         
         # Show confirmation - use pixel units to match temp window
         confirm_text = visual.TextStim(
@@ -254,7 +255,7 @@ def get_input_method():
                 except (TypeError, ValueError):
                     button_width, button_height = 300, 80
                 
-                hit_margin = 20  # 20 pixels for touch sensitivity
+                hit_margin = 50  # Maximized hit margin for touch sensitivity
                 
                 # Check if mouse is on button
                 on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
@@ -287,7 +288,8 @@ def get_input_method():
                         return None  # Signal to exit
             except (AttributeError, Exception):
                 pass  # Ignore event errors
-            core.wait(0.01)
+            # Reduced polling delay for faster touch response
+            core.wait(0.005)  # Faster polling for touch screens
         
         mouse_temp.setVisible(False)
         
@@ -296,14 +298,18 @@ def get_input_method():
             temp_win,
             text="Loading...",
             color='black',
-            height=0.08,
-            pos=(0, 0)
+            height=50,
+            pos=(0, 0),
+            units='pix'
         )
         transition_text.draw()
         temp_win.flip()
         
-        # Small delay before closing
-        time.sleep(0.1)
+        # Minimal delay before closing for touch screens
+        if USE_TOUCH_SCREEN:
+            time.sleep(0.05)  # Very short delay for touch screens
+        else:
+            time.sleep(0.1)  # Slightly longer for mouse/trackpad
         
         return USE_TOUCH_SCREEN
     
@@ -314,7 +320,8 @@ def get_input_method():
                 temp_win.close()
             except Exception:
                 pass
-        time.sleep(0.2)  # Reduced delay from 0.5 to 0.2 for faster transition
+        # Minimal delay - main window creation will happen immediately after
+        time.sleep(0.05)  # Minimized delay for fastest transition
 
 # =========================
 #  STIMULI SETUP (Module-level constants)
@@ -887,7 +894,8 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
 # Create main window with appropriate settings - use try/finally pattern
 win = None
 try:
-    time.sleep(0.2)  # Reduced delay from 0.5 to 0.2 for faster transition
+    # Minimal delay for fastest transition - create window immediately
+    time.sleep(0.05)  # Minimized delay for fastest transition
     
     # Create window in windowed mode (not fullscreen)
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
