@@ -9,7 +9,102 @@ import math
 # =========================
 #  SETUP
 # =========================
-win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
+# Global variable to store input method preference (set before window creation)
+USE_TOUCH_SCREEN = False
+
+# Create temporary window to ask for input method
+temp_win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
+
+def get_input_method():
+    """Ask user whether they're using touch screen (1) or click screen (2)"""
+    global USE_TOUCH_SCREEN
+    
+    prompt_text = visual.TextStim(
+        temp_win,
+        text="What input method are you using?\n\n"
+             "Press 1 for TOUCH SCREEN\n"
+             "Press 2 for CLICK/MOUSE",
+        color='black',
+        height=0.06,
+        pos=(0, 0),
+        wrapWidth=1.4
+    )
+    
+    prompt_text.draw()
+    temp_win.flip()
+    
+    event.clearEvents()
+    selected = None
+    
+    while selected is None:
+        keys = event.getKeys(keyList=['1', '2', 'escape'])
+        if '1' in keys:
+            USE_TOUCH_SCREEN = True
+            selected = 'touch'
+            break
+        elif '2' in keys:
+            USE_TOUCH_SCREEN = False
+            selected = 'click'
+            break
+        elif 'escape' in keys:
+            temp_win.close()
+            core.quit()
+        
+        core.wait(0.05)
+    
+    # Show confirmation
+    confirm_text = visual.TextStim(
+        temp_win,
+        text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}\n\n"
+        color='black',
+        height=0.06,
+        pos=(0, 0),
+        wrapWidth=1.4
+    )
+    
+    # Create continue button for temp window
+    mouse_temp = event.Mouse(win=temp_win)
+    mouse_temp.setVisible(True)
+    continue_button = visual.Rect(temp_win, width=0.3, height=0.1, fillColor='lightblue', lineColor='black', pos=(0, -0.3))
+    continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(0, -0.3))
+    
+    clicked = False
+    while not clicked:
+        confirm_text.draw()
+        continue_button.draw()
+        continue_text.draw()
+        temp_win.flip()
+        
+        try:
+            mouse_buttons = mouse_temp.getPressed()
+            mouse_pos = mouse_temp.getPos()
+            if mouse_buttons[0]:
+                button_x, button_y = continue_button.pos
+                if (button_x - continue_button.width/2 <= mouse_pos[0] <= button_x + continue_button.width/2 and
+                    button_y - continue_button.height/2 <= mouse_pos[1] <= button_y + continue_button.height/2):
+                    clicked = True
+                    break
+        except:
+            pass
+        
+        keys = event.getKeys(keyList=['space', 'escape'])
+        if 'space' in keys:
+            clicked = True
+            break
+        elif 'escape' in keys:
+            temp_win.close()
+            core.quit()
+        core.wait(0.01)
+    
+    mouse_temp.setVisible(False)
+    temp_win.close()
+    return USE_TOUCH_SCREEN
+
+# Ask for input method first
+get_input_method()
+
+# Create main window with appropriate settings
+win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=USE_TOUCH_SCREEN)
 
 # Force window to front on macOS
 try:
@@ -302,9 +397,6 @@ fixation = visual.TextStim(win, text="+", color='black', height=0.08, pos=(0, 0)
 feedback_txt = visual.TextStim(win, text="", color='black', height=0.05, pos=(0, 0))
 mouse = event.Mouse(win=win)
 
-# Global variable to store input method preference
-USE_TOUCH_SCREEN = False
-
 def get_log_directory():
     """Get the directory for log files based on input method"""
     if USE_TOUCH_SCREEN:
@@ -325,94 +417,84 @@ def is_test_participant(participant_id):
 # =========================
 #  HELPER FUNCTIONS
 # =========================
-def get_input_method():
-    """Ask user whether they're using touch screen (1) or click screen (2)"""
-    global USE_TOUCH_SCREEN
+def wait_for_button(redraw_func=None, button_text="CONTINUE"):
+    """Wait for button click/touch instead of space key"""
+    mouse = event.Mouse(win=win)
+    mouse.setVisible(True)
     
-    prompt_text = visual.TextStim(
+    # Create continue button
+    continue_button = visual.Rect(
         win,
-        text="What input method are you using?\n\n"
-             "Press 1 for TOUCH SCREEN\n"
-             "Press 2 for CLICK/MOUSE",
+        width=0.3,
+        height=0.1,
+        fillColor='lightblue',
+        lineColor='black',
+        pos=(0, -0.3)
+    )
+    continue_text = visual.TextStim(
+        win,
+        text=button_text,
         color='black',
-        height=0.06,
-        pos=(0, 0),
-        wrapWidth=1.4
+        height=0.05,
+        pos=(0, -0.3)
     )
     
-    prompt_text.draw()
-    win.flip()
-    
-    event.clearEvents()
-    selected = None
-    
-    while selected is None:
-        keys = event.getKeys(keyList=['1', '2', 'escape'])
-        if '1' in keys:
-            USE_TOUCH_SCREEN = True
-            selected = 'touch'
-            break
-        elif '2' in keys:
-            USE_TOUCH_SCREEN = False
-            selected = 'click'
-            break
-        elif 'escape' in keys:
-            core.quit()
-        
-        core.wait(0.05)
-    
-    # Show confirmation
-    confirm_text = visual.TextStim(
-        win,
-        text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}\n\n"
-             "Press SPACE to continue.",
-        color='black',
-        height=0.06,
-        pos=(0, 0),
-        wrapWidth=1.4
-    )
-    
-    confirm_text.draw()
-    win.flip()
-    wait_for_space()
-    
-    return USE_TOUCH_SCREEN
-
-def wait_for_space(redraw_func=None):
-    """Wait for space key press"""
-    event.clearEvents()
-    while True:
-        try:
-            keys = event.getKeys(keyList=['space', 'escape'])
-            if 'space' in keys:
-                break
-            elif 'escape' in keys:
-                core.quit()
-        except (AttributeError, Exception) as e:
-            # Handle macOS event handling errors gracefully
-            if 'type' in str(e) or 'ObjCInstance' in str(e):
-                # macOS-specific event error - continue waiting
-                pass
-            else:
-                # Other errors - re-raise
-                raise
-        
+    clicked = False
+    while not clicked:
         if redraw_func:
             try:
                 redraw_func()
             except:
                 pass
         
+        # Draw button
+        continue_button.draw()
+        continue_text.draw()
+        win.flip()
+        
+        # Check for mouse/touch click
         try:
-            core.wait(0.1)
-        except (AttributeError, Exception) as e:
-            # Handle macOS event dispatch errors gracefully
-            if 'type' in str(e) or 'ObjCInstance' in str(e):
-                # macOS-specific event error - use alternative wait
-                import time
-                time.sleep(0.1)
-            else:
-                raise
+            mouse_buttons = mouse.getPressed()
+            mouse_pos = mouse.getPos()
+            
+            if mouse_buttons[0]:
+                # Check if clicked on button
+                button_x, button_y = continue_button.pos
+                button_width, button_height = continue_button.width, continue_button.height
+                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+                
+                if (button_x - button_width/2 - hit_margin <= mouse_pos[0] <= button_x + button_width/2 + hit_margin and
+                    button_y - button_height/2 - hit_margin <= mouse_pos[1] <= button_y + button_height/2 + hit_margin):
+                    # Visual feedback
+                    continue_button.fillColor = 'lightgreen'
+                    continue_button.draw()
+                    continue_text.draw()
+                    win.flip()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+        except (AttributeError, Exception):
+            pass
+        
+        # Also check for space key as backup
+        try:
+            keys = event.getKeys(keyList=['space', 'escape'])
+            if 'space' in keys:
+                clicked = True
+                break
+            elif 'escape' in keys:
+                core.quit()
+        except (AttributeError, Exception):
+            pass
+        
+        core.wait(0.01)
+    
+    mouse.setVisible(False)
+    event.clearEvents()
+
+def wait_for_space(redraw_func=None):
+    """Wait for button click (replaces space key press)"""
+    wait_for_button(redraw_func=redraw_func)
 
 def show_instructions(text, header_color='darkblue', body_color='black', header_size=0.07, body_size=0.045):
     """Show instructions with formatted header and body text"""
@@ -475,7 +557,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
         win.flip()
     
     redraw()
-    wait_for_space(redraw_func=redraw)
+    wait_for_button(redraw_func=redraw)
 
 def show_fixation(duration=1.0):
     fixation.draw()
@@ -483,38 +565,173 @@ def show_fixation(duration=1.0):
     core.wait(duration)
 
 def get_participant_id():
-    """Get participant ID from PsychoPy screen input"""
+    """Get participant ID from PsychoPy screen input with on-screen keyboard for touch screens"""
     input_id = ""
-    id_prompt = visual.TextStim(win, text="", color='black', height=0.06, wrapWidth=1.4)
+    mouse = event.Mouse(win=win)
+    mouse.setVisible(True)
     
-    display_text = f"Enter Participant ID:\n\n{input_id}_\n\nPress ENTER when done"
-    id_prompt.text = display_text
-    id_prompt.draw()
-    win.flip()
+    # Create text display
+    id_prompt = visual.TextStim(win, text="", color='black', height=0.06, wrapWidth=1.4, pos=(0, 0.3))
+    input_display = visual.TextStim(win, text="", color='black', height=0.08, pos=(0, 0.1))
     
-    event.clearEvents()
+    # Create on-screen keyboard if touch screen
+    keyboard_buttons = []
+    keyboard_layout = [
+        ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+        ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+        ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+        ['z', 'x', 'c', 'v', 'b', 'n', 'm', '_', '-']
+    ]
+    
+    if USE_TOUCH_SCREEN:
+        # Create keyboard buttons
+        button_width = 0.08
+        button_height = 0.08
+        start_y = -0.2
+        row_spacing = 0.1
+        
+        for row_idx, row in enumerate(keyboard_layout):
+            row_width = len(row) * button_width + (len(row) - 1) * 0.01
+            start_x = -row_width / 2 + button_width / 2
+            
+            for col_idx, char in enumerate(row):
+                x_pos = start_x + col_idx * (button_width + 0.01)
+                y_pos = start_y - row_idx * row_spacing
+                
+                button = visual.Rect(
+                    win,
+                    width=button_width,
+                    height=button_height,
+                    fillColor='lightgray',
+                    lineColor='black',
+                    pos=(x_pos, y_pos)
+                )
+                button_text = visual.TextStim(
+                    win,
+                    text=char.upper(),
+                    color='black',
+                    height=0.04,
+                    pos=(x_pos, y_pos)
+                )
+                keyboard_buttons.append((button, button_text, char))
+        
+        # Special buttons: Backspace, Space, Enter
+        special_y = start_y - len(keyboard_layout) * row_spacing - 0.15
+        backspace_button = visual.Rect(win, width=0.15, height=button_height, fillColor='lightcoral', lineColor='black', pos=(-0.2, special_y))
+        backspace_text = visual.TextStim(win, text="DEL", color='black', height=0.04, pos=(-0.2, special_y))
+        
+        space_button = visual.Rect(win, width=0.3, height=button_height, fillColor='lightgray', lineColor='black', pos=(0, special_y))
+        space_text = visual.TextStim(win, text="SPACE", color='black', height=0.04, pos=(0, special_y))
+        
+        enter_button = visual.Rect(win, width=0.15, height=button_height, fillColor='lightgreen', lineColor='black', pos=(0.2, special_y))
+        enter_text = visual.TextStim(win, text="ENTER", color='black', height=0.04, pos=(0.2, special_y))
+    
+    # Key list for keyboard input (non-touch)
     key_list = ['return', 'backspace', 'space'] + [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(48, 58)]
     
-    while True:
-        keys = event.getKeys(keyList=key_list, timeStamped=False)
-        if keys:
-            key = keys[0]
-            if key == 'return':
-                if input_id.strip():
-                    break
-            elif key == 'backspace':
-                input_id = input_id[:-1] if input_id else ""
-            elif key == 'space':
-                input_id += ' '
-            elif len(key) == 1 and (key.isalnum() or key in ['_', '-']):
-                input_id += key
-            
-            display_text = f"Enter Participant ID:\n\n{input_id}_\n\nPress ENTER when done"
-            id_prompt.text = display_text
-            id_prompt.draw()
-            win.flip()
-        core.wait(0.05)
+    def redraw():
+        id_prompt.text = "Enter Participant ID:"
+        input_display.text = f"{input_id}_"
+        
+        id_prompt.draw()
+        input_display.draw()
+        
+        if USE_TOUCH_SCREEN:
+            for button, button_text, _ in keyboard_buttons:
+                button.draw()
+                button_text.draw()
+            backspace_button.draw()
+            backspace_text.draw()
+            space_button.draw()
+            space_text.draw()
+            enter_button.draw()
+            enter_text.draw()
+        
+        win.flip()
     
+    redraw()
+    event.clearEvents()
+    
+    while True:
+        if USE_TOUCH_SCREEN:
+            # Touch screen: check button clicks
+            try:
+                mouse_buttons = mouse.getPressed()
+                mouse_pos = mouse.getPos()
+                
+                if mouse_buttons[0]:
+                    # Check keyboard buttons
+                    hit_margin = 0.02
+                    for button, button_text, char in keyboard_buttons:
+                        button_x, button_y = button.pos
+                        button_width, button_height = button.width, button.height
+                        if (button_x - button_width/2 - hit_margin <= mouse_pos[0] <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouse_pos[1] <= button_y + button_height/2 + hit_margin):
+                            input_id += char
+                            button.fillColor = 'lightgreen'
+                            redraw()
+                            core.wait(0.1)
+                            button.fillColor = 'lightgray'
+                            redraw()
+                            break
+                    
+                    # Check special buttons
+                    button_x, button_y = backspace_button.pos
+                    if (button_x - backspace_button.width/2 - hit_margin <= mouse_pos[0] <= button_x + backspace_button.width/2 + hit_margin and
+                        button_y - backspace_button.height/2 - hit_margin <= mouse_pos[1] <= button_y + backspace_button.height/2 + hit_margin):
+                        input_id = input_id[:-1] if input_id else ""
+                        backspace_button.fillColor = 'red'
+                        redraw()
+                        core.wait(0.1)
+                        backspace_button.fillColor = 'lightcoral'
+                        redraw()
+                    
+                    button_x, button_y = space_button.pos
+                    if (button_x - space_button.width/2 - hit_margin <= mouse_pos[0] <= button_x + space_button.width/2 + hit_margin and
+                        button_y - space_button.height/2 - hit_margin <= mouse_pos[1] <= button_y + space_button.height/2 + hit_margin):
+                        input_id += ' '
+                        space_button.fillColor = 'lightgreen'
+                        redraw()
+                        core.wait(0.1)
+                        space_button.fillColor = 'lightgray'
+                        redraw()
+                    
+                    button_x, button_y = enter_button.pos
+                    if (button_x - enter_button.width/2 - hit_margin <= mouse_pos[0] <= button_x + enter_button.width/2 + hit_margin and
+                        button_y - enter_button.height/2 - hit_margin <= mouse_pos[1] <= button_y + enter_button.height/2 + hit_margin):
+                        if input_id.strip():
+                            enter_button.fillColor = 'green'
+                            redraw()
+                            core.wait(0.2)
+                            break
+                        else:
+                            enter_button.fillColor = 'red'
+                            redraw()
+                            core.wait(0.2)
+                            enter_button.fillColor = 'lightgreen'
+                            redraw()
+            except (AttributeError, Exception):
+                pass
+        else:
+            # Keyboard input
+            keys = event.getKeys(keyList=key_list, timeStamped=False)
+            if keys:
+                key = keys[0]
+                if key == 'return':
+                    if input_id.strip():
+                        break
+                elif key == 'backspace':
+                    input_id = input_id[:-1] if input_id else ""
+                elif key == 'space':
+                    input_id += ' '
+                elif len(key) == 1 and (key.isalnum() or key in ['_', '-']):
+                    input_id += key
+                
+                redraw()
+        
+        core.wait(0.01)
+    
+    mouse.setVisible(False)
     return input_id.strip() or "P001"
 
 def load_image_stimulus(image_path):
@@ -1528,7 +1745,6 @@ def show_block_summary(block_num, total_points, max_points):
         win,
         text=f"Block {block_num} Complete!\n\n"
              f"Total points: {total_points:.2f} / {max_points:.2f}\n\n"
-             "Press SPACE to continue.",
         color='black',
         height=0.05,
         pos=(0, 0),
@@ -1540,7 +1756,7 @@ def show_block_summary(block_num, total_points, max_points):
         win.flip()
     
     redraw()
-    wait_for_space(redraw_func=redraw)
+    wait_for_button(redraw_func=redraw)
 
 def ask_block_questions(block_num, participant_id, questions_file=None, timeout=7.0):
     """Ask two questions at the end of each block:
@@ -1599,6 +1815,7 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
     
     frame_count = 0
     last_activation_time = time.time()
+    prev_mouse_buttons_q1 = [False, False, False]
     
     while selected_option is None:
         elapsed = time.time() - start_time
@@ -1638,6 +1855,8 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
                         redraw_q1()
                         core.wait(0.3)
                         break
+            
+            prev_mouse_buttons_q1 = mouse_buttons.copy()
         except:
             pass
         
@@ -1881,7 +2100,7 @@ def show_leaderboard(participant_id, total_points):
         win.flip()
     
     redraw()
-    wait_for_space(redraw_func=redraw)
+    wait_for_button(redraw_func=redraw)
 
 def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, total_points=0):
     """Show trial outcome with points based on euclidean distance"""
@@ -1952,7 +2171,6 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
         "STUDY PHASE COMPLETE!\n\n"
         "Now switching to the recognition phase.\n\n"
         "You will see images again and rate them with your partner.\n\n"
-        "Press SPACE to continue.",
         header_color='darkblue',
         body_color='black'
     )
@@ -2241,9 +2459,7 @@ def run_experiment():
     # Small delay to ensure window is ready
     core.wait(0.5)
     
-    # Ask for input method (touch screen or click/mouse)
-    get_input_method()
-    
+    # Input method was already asked before window creation
     # Record experiment start time
     experiment_start_time = time.time()
     
@@ -2261,7 +2477,6 @@ def run_experiment():
         "by working with a partner.\n\n"
         "First, you'll do a practice block with simple shapes.\n"
         "Then, the actual task will use complex images (objects, animals, and scenes).\n\n"
-        "Press SPACE to continue.",
         header_color='darkblue',
         body_color='black'
     )
@@ -2272,7 +2487,6 @@ def run_experiment():
         "   These images include various objects, animals, and scenes.\n"
         "   Try to remember them carefully.\n\n"
         "(Note: Practice will use simple shapes first)\n\n"
-        "Press SPACE to continue.",
         header_color='darkgreen',
         body_color='black'
     )
@@ -2283,7 +2497,6 @@ def run_experiment():
         "Some images will be OLD (from the study phase).\n"
         "Some images will be NEW (you haven't seen them).\n\n"
         "Pay close attention - some images may look similar!\n\n"
-        "Press SPACE to continue.",
         header_color='darkgreen',
         body_color='black'
     )
@@ -2297,7 +2510,6 @@ def run_experiment():
         "- Where you place it shows how confident you are\n"
         "- Click and drag the slider handle\n"
         "- Click the SUBMIT button when ready\n\n"
-        "Press SPACE to continue.",
         header_color='purple',
         body_color='black'
     )
@@ -2311,7 +2523,6 @@ def run_experiment():
         "- SWITCH to your partner's confidence rating\n\n"
         "Even if you both say OLD or both say NEW,\n"
         "you can still switch to match their confidence level.\n\n"
-        "Press SPACE to continue.",
         header_color='darkorange',
         body_color='black'
     )
@@ -2327,7 +2538,6 @@ def run_experiment():
         "- You LOSE more points (closer to 0.0 points)\n\n"
         "The closer your final answer is to the correct answer,\n"
         "the more points you earn!\n\n"
-        "Press SPACE to continue.",
         header_color='darkgreen',
         body_color='black'
     )
@@ -2338,7 +2548,6 @@ def run_experiment():
         "At the end of each block, you'll be asked 2 quick questions.\n\n"
         "At the end of the game, you'll see a leaderboard showing how\n"
         "you compared to other participants.\n\n"
-        "Press SPACE to continue.",
         header_color='darkblue',
         body_color='black'
     )
@@ -2351,7 +2560,7 @@ def run_experiment():
         "but practice uses simple shapes to help you learn the task.\n\n"
         "You will study 5 shapes, then test your memory with your partner.\n\n"
         "This is just for practice, but go as quick as you can!\n\n"
-        "Press SPACE to begin practice.",
+        "",
         header_color='darkred',
         body_color='black'
     )
@@ -2424,7 +2633,7 @@ def run_experiment():
             )
         random.shuffle(practice_indices)
         practice_indices = practice_indices[:5]  # Ensure exactly 5
-        num_circles = sum(1 for i in practice_indices if i in circle_indices)
+        num_circles = sum(1 for i in practice_indices if i in list(circle_indices))
         num_squares = 5 - num_circles
         print(f"Practice block: Using {num_circles} circles and {num_squares} squares")
     else:
@@ -2468,7 +2677,6 @@ def run_experiment():
         "Now we'll begin the experimental blocks.\n\n"
         "Remember: You'll now see complex images (objects, animals, and scenes)\n"
         "instead of simple shapes.\n\n"
-        "Press SPACE to continue.",
         header_color='darkgreen',
         body_color='black'
     )
@@ -2488,7 +2696,6 @@ def run_experiment():
         "   - You can STAY with your answer or SWITCH to theirs\n"
         "   - Even if you both agree (OLD or NEW),\n"
         "     you can switch to match their confidence level\n\n"
-        "Press SPACE to continue.",
         header_color='darkred',
         body_color='black'
     )
@@ -2511,7 +2718,7 @@ def run_experiment():
         "You will complete 10 blocks, each with 10 trials.\n\n"
         "Sometimes your partner will respond first,\n"
         "sometimes you will respond first.\n\n"
-        "Press SPACE to begin the first block.",
+        "",
         header_color='darkblue',
         body_color='black'
     )
@@ -2583,7 +2790,7 @@ def run_experiment():
                 show_instructions(
                     f"Great job!\n\n"
                     "Take a short break.\n\n"
-                    "Press SPACE when ready for the next block.",
+                    "",
                     header_color='darkgreen',
                     body_color='black'
                 )
@@ -2614,8 +2821,7 @@ def run_experiment():
     show_instructions(
         f"EXPERIMENT COMPLETE!\n\n"
         f"Total task time: {total_task_time/60:.1f} minutes ({total_task_time:.1f} seconds)\n\n"
-        "Thank you for participating!\n\n"
-        "Press SPACE to exit.",
+        "Thank you for participating!",
         header_color='darkgreen',
         body_color='black'
     )
