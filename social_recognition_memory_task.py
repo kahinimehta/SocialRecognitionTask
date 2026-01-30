@@ -420,11 +420,22 @@ try:
     # Initial flip to ensure window is ready
     win.flip()
     core.wait(0.1)
+    
+    # Verify window is ready before continuing
+    if win is None:
+        raise RuntimeError("Main window creation failed - win is None")
+    
 except Exception as e:
     print(f"Error creating main window: {e}")
     import traceback
     traceback.print_exc()
+    if win is not None:
+        try:
+            win.close()
+        except:
+            pass
     core.quit()
+    exit(1)
 
 # =========================
 #  GENERATE PLACEHOLDER STIMULI
@@ -3654,6 +3665,12 @@ def run_experiment():
 #  RUN EXPERIMENT
 # =========================
 if __name__ == "__main__":
+    # Only run experiment if window was successfully created
+    if win is None:
+        print("Error: Cannot run experiment - window was not created successfully")
+        core.quit()
+        exit(1)
+    
     try:
         run_experiment()
     except KeyboardInterrupt:
@@ -3669,5 +3686,8 @@ if __name__ == "__main__":
                 win.close()
             except Exception:
                 pass
-        core.quit()
+        try:
+            core.quit()
+        except:
+            pass
 

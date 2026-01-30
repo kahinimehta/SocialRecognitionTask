@@ -1162,6 +1162,12 @@ try:
         core.quit()
         exit(1)
     
+    # Verify window is ready before continuing
+    if win is None:
+        print("Error: Window is None after creation - cannot continue")
+        core.quit()
+        exit(1)
+    
     # =========================
     #  MAIN EXPERIMENT
     # =========================
@@ -1354,6 +1360,18 @@ try:
     elif is_test_participant(participant_id):
         print(f"⚠ Test participant detected - skipping file save")
 
+except Exception as e:
+    # Catch any unhandled exceptions in the main experiment
+    print(f"Unexpected error in experiment: {e}")
+    import traceback
+    traceback.print_exc()
+    if win is not None:
+        try:
+            win.close()
+        except Exception:
+            pass
+    core.quit()
+    exit(1)
 finally:
     # Close window exactly once in finally block
     if win is not None:
@@ -1361,4 +1379,8 @@ finally:
             win.close()
         except Exception:
             pass
-    core.quit()
+    # Only call core.quit() if we haven't already exited
+    try:
+        core.quit()
+    except:
+        pass
