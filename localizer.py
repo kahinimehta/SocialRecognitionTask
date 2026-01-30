@@ -50,9 +50,8 @@ def get_input_method():
             pos=(0, 0.2),
             wrapWidth=1.4
         )
-        
+        print (temp_win)
         # Create button 1 (TOUCH SCREEN) - convert all values to Python native types
-        print ("button 1 created")
         btn1_w = float(0.6)
         btn1_h = float(0.25)
         btn1_x = float(-0.3)
