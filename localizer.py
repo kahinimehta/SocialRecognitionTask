@@ -34,7 +34,7 @@ def get_input_method():
     try:
         # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
         temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
-        
+        print ("temp_win created")
         # Ensure window is fully initialized - draw something first to initialize OpenGL context
         dummy = visual.TextStim(temp_win, text='', color='white', pos=(0, 0))
         dummy.draw()
