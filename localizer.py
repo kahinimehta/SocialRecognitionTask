@@ -1443,18 +1443,17 @@ try:
         raise
     core.wait(0.1)
     
-    # Test that window can draw something simple
-    print("Testing window with simple draw...")
+    # Test that window can flip (verify window is ready for drawing)
+    print("Testing window flip...")
     sys.stdout.flush()
     try:
-        test_text = visual.TextStim(win, text="Test", color='black', height=0.05*0.75, pos=(0, 0))
-        test_text.draw()
-        win.flip()
-        print("Window draw test successful")
+        # Just verify the window can flip (no text displayed to user)
+        win.flip()  # Flip to blank white screen
+        print("Window flip test successful")
         sys.stdout.flush()
         core.wait(0.1)
     except Exception as e:
-        print(f"ERROR during window draw test: {e}")
+        print(f"ERROR during window flip test: {e}")
         sys.stdout.flush()
         import traceback
         traceback.print_exc()
