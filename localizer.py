@@ -495,8 +495,8 @@ def get_participant_id():
             
             keyboard_buttons.append(row_buttons)
         
-        # Special buttons - arranged horizontally at the very top (above participant ID input)
-        button_y_pos = 0.5  # Position at top of screen, above participant ID
+        # Special buttons - arranged horizontally just above keyboard (below participant ID input)
+        button_y_pos = 0.15  # Position just above keyboard, below participant ID
         backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', 
                                       lineColor='black', lineWidth=2, pos=(-0.35, button_y_pos))
         backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.04, pos=(-0.35, button_y_pos))
@@ -749,7 +749,7 @@ def get_participant_id():
                         except:
                             # Fallback to manual calculation
                             hit_margin = 0.08
-                            continue_x, continue_y = 0.3, 0.5  # Match button_y_pos
+                            continue_x, continue_y = 0.3, 0.15  # Match button_y_pos
                             continue_width, continue_height = 0.3, 0.1
                             if (continue_x - continue_width/2 - hit_margin <= mouseloc_x <= continue_x + continue_width/2 + hit_margin and
                                 continue_y - continue_height/2 - hit_margin <= mouseloc_y <= continue_y + continue_height/2 + hit_margin):
@@ -1077,65 +1077,174 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
     answered = False
     answer = None
     timed_out = False
-    prev_mouse_buttons = [False, False, False]
     clock = core.Clock()
     clock.reset()
     response_time = None
     
-    while not answered:
-        # Check for timeout
-        elapsed_time = clock.getTime()
-        if elapsed_time >= timeout:
-            timed_out = True
-            response_time = timeout  # Record timeout as response time
-            answered = True
-            break
+    if USE_TOUCH_SCREEN:
+        # Position-change detection for touchscreens
+        mouserec = mouse.getPos()
         try:
-            mouse_buttons = mouse.getPressed()
-            mouse_pos = mouse.getPos()
+            mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+        except:
+            mouserec_x, mouserec_y = 0.0, 0.0
+        
+        minRT = 0.2  # Minimum response time
+        
+        while not answered:
+            # Check for timeout
+            elapsed_time = clock.getTime()
+            if elapsed_time >= timeout:
+                timed_out = True
+                response_time = timeout
+                answered = True
+                break
             
             try:
-                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                mouseloc = mouse.getPos()
+                try:
+                    mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
+                except:
+                    mouseloc_x, mouseloc_y = 0.0, 0.0
+                
+                t = clock.getTime()
+                
+                # Check if mouse position has changed (touch moved)
+                if mouseloc_x == mouserec_x and mouseloc_y == mouserec_y:
+                    # Position hasn't changed, just redraw
+                    draw_question()
                 else:
+                    # Position has changed - check if touch is within buttons
+                    try:
+                        # Check YES button
+                        if yes_button.contains(mouseloc):
+                            if t > minRT:
+                                answer = True
+                                response_time = clock.getTime()
+                                yes_button.fillColor = 'green'
+                                draw_question()
+                                core.wait(0.3)
+                                answered = True
+                                break
+                            else:
+                                mouserec = mouse.getPos()
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                        # Check NO button
+                        elif no_button.contains(mouseloc):
+                            if t > minRT:
+                                answer = False
+                                response_time = clock.getTime()
+                                no_button.fillColor = 'red'
+                                draw_question()
+                                core.wait(0.3)
+                                answered = True
+                                break
+                            else:
+                                mouserec = mouse.getPos()
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                    except:
+                        # Fallback to manual calculation
+                        hit_margin = 0.02
+                        yes_x, yes_y = -0.3, -0.2
+                        yes_width, yes_height = 0.25, 0.1
+                        no_x, no_y = 0.3, -0.2
+                        no_width, no_height = 0.25, 0.1
+                        
+                        on_yes = (yes_x - yes_width/2 - hit_margin <= mouseloc_x <= yes_x + yes_width/2 + hit_margin and
+                                 yes_y - yes_height/2 - hit_margin <= mouseloc_y <= yes_y + yes_height/2 + hit_margin)
+                        on_no = (no_x - no_width/2 - hit_margin <= mouseloc_x <= no_x + no_width/2 + hit_margin and
+                                no_y - no_height/2 - hit_margin <= mouseloc_y <= no_y + no_height/2 + hit_margin)
+                        
+                        if on_yes and t > minRT:
+                            answer = True
+                            response_time = clock.getTime()
+                            yes_button.fillColor = 'green'
+                            draw_question()
+                            core.wait(0.3)
+                            answered = True
+                            break
+                        elif on_no and t > minRT:
+                            answer = False
+                            response_time = clock.getTime()
+                            no_button.fillColor = 'red'
+                            draw_question()
+                            core.wait(0.3)
+                            answered = True
+                            break
+                        elif on_yes or on_no:
+                            mouserec = mouse.getPos()
+                            try:
+                                mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                            except:
+                                mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                
+                # Redraw every frame
+                draw_question()
+                event.clearEvents()
+                core.wait(0.001)  # Very fast polling
+            except Exception:
+                pass
+            
+            # Safe event.getKeys() handling
+            try:
+                keys = event.getKeys(keyList=['y', 'n', 'escape'], timeStamped=False)
+                if keys:
+                    if 'y' in keys:
+                        answer = True
+                        answered = True
+                        break
+                    elif 'n' in keys:
+                        answer = False
+                        answered = True
+                        break
+                    elif 'escape' in keys:
+                        core.quit()
+            except (AttributeError, Exception):
+                pass
+    else:
+        # Standard mouse click detection for non-touch screens
+        prev_mouse_buttons = [False, False, False]
+        
+        while not answered:
+            # Check for timeout
+            elapsed_time = clock.getTime()
+            if elapsed_time >= timeout:
+                timed_out = True
+                response_time = timeout
+                answered = True
+                break
+            
+            try:
+                mouse_buttons = mouse.getPressed()
+                mouse_pos = mouse.getPos()
+                
+                try:
+                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                        mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                    else:
+                        mouse_x, mouse_y = 0.0, 0.0
+                except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
-            except (TypeError, ValueError):
-                mouse_x, mouse_y = 0.0, 0.0
-            
-            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
-            
-            # Check YES button
-            yes_x, yes_y = -0.3, -0.2
-            yes_width, yes_height = 0.25, 0.1
-            on_yes = (yes_x - yes_width/2 - hit_margin <= mouse_x <= yes_x + yes_width/2 + hit_margin and
-                     yes_y - yes_height/2 - hit_margin <= mouse_y <= yes_y + yes_height/2 + hit_margin)
-            
-            # Check NO button
-            no_x, no_y = 0.3, -0.2
-            no_width, no_height = 0.25, 0.1
-            on_no = (no_x - no_width/2 - hit_margin <= mouse_x <= no_x + no_width/2 + hit_margin and
-                    no_y - no_height/2 - hit_margin <= mouse_y <= no_y + no_height/2 + hit_margin)
-            
-            if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                if on_yes:
-                    answer = True
-                    response_time = clock.getTime()
-                    yes_button.fillColor = 'green'
-                    draw_question()
-                    core.wait(0.3)
-                    answered = True
-                    break
-                elif on_no:
-                    answer = False
-                    response_time = clock.getTime()
-                    no_button.fillColor = 'red'
-                    draw_question()
-                    core.wait(0.3)
-                    answered = True
-                    break
-            
-            if mouse_buttons[0] and not prev_mouse_buttons[0]:
-                if USE_TOUCH_SCREEN:
+                
+                # Check YES button
+                yes_x, yes_y = -0.3, -0.2
+                yes_width, yes_height = 0.25, 0.1
+                on_yes = (yes_x - yes_width/2 <= mouse_x <= yes_x + yes_width/2 and
+                         yes_y - yes_height/2 <= mouse_y <= yes_y + yes_height/2)
+                
+                # Check NO button
+                no_x, no_y = 0.3, -0.2
+                no_width, no_height = 0.25, 0.1
+                on_no = (no_x - no_width/2 <= mouse_x <= no_x + no_width/2 and
+                        no_y - no_height/2 <= mouse_y <= no_y + no_height/2)
+                
+                if prev_mouse_buttons[0] and not mouse_buttons[0]:
                     if on_yes:
                         answer = True
                         response_time = clock.getTime()
@@ -1152,29 +1261,29 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                         core.wait(0.3)
                         answered = True
                         break
+                
+                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+            except (AttributeError, Exception):
+                pass
             
-            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-        except (AttributeError, Exception):
-            pass
-        
-        # Safe event.getKeys() handling - ensure keys is never empty array issue
-        try:
-            keys = event.getKeys(keyList=['y', 'n', 'escape'], timeStamped=False)
-            if keys:  # Check keys is not empty first
-                if 'y' in keys:
-                    answer = True
-                    answered = True
-                    break
-                elif 'n' in keys:
-                    answer = False
-                    answered = True
-                    break
-                elif 'escape' in keys:
-                    core.quit()
-        except (AttributeError, Exception):
-            pass  # Ignore event errors
-        
-        core.wait(0.01)
+            # Safe event.getKeys() handling
+            try:
+                keys = event.getKeys(keyList=['y', 'n', 'escape'], timeStamped=False)
+                if keys:
+                    if 'y' in keys:
+                        answer = True
+                        answered = True
+                        break
+                    elif 'n' in keys:
+                        answer = False
+                        answered = True
+                        break
+                    elif 'escape' in keys:
+                        core.quit()
+            except (AttributeError, Exception):
+                pass
+            
+            core.wait(0.01)
     
     mouse.setVisible(False)
     event.clearEvents()
