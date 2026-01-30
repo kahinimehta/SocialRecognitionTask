@@ -22,59 +22,39 @@ def get_input_method():
     prompt_text = visual.TextStim(
         temp_win,
         text="What input method are you using?\n\n"
-             "Press 1 for TOUCH SCREEN\n"
-             "Press 2 for CLICK/MOUSE",
+             "Click 1 for TOUCH SCREEN\n"
+             "Click 2 for CLICK/MOUSE",
         color='black',
         height=0.06,
-        pos=(0, 0),
+        pos=(0, 0.2),
         wrapWidth=1.4
     )
     
-    prompt_text.draw()
-    temp_win.flip()
+    # Create button 1 (TOUCH SCREEN)
+    button1 = visual.Rect(temp_win, width=0.25, height=0.12, fillColor='lightgreen', lineColor='black', pos=(-0.3, -0.1))
+    button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=(-0.3, -0.1))
     
-    event.clearEvents()
-    selected = None
+    # Create button 2 (CLICK/MOUSE)
+    button2 = visual.Rect(temp_win, width=0.25, height=0.12, fillColor='lightblue', lineColor='black', pos=(0.3, -0.1))
+    button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.05, pos=(0.3, -0.1))
     
-    while selected is None:
-        keys = event.getKeys(keyList=['1', '2', 'escape'])
-        if '1' in keys:
-            USE_TOUCH_SCREEN = True
-            selected = 'touch'
-            break
-        elif '2' in keys:
-            USE_TOUCH_SCREEN = False
-            selected = 'click'
-            break
-        elif 'escape' in keys:
-            temp_win.close()
-            core.quit()
-        
-        core.wait(0.05)
-    
-    # Show confirmation
-    confirm_text = visual.TextStim(
-        temp_win,
-        text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
-        color='black',
-        height=0.06,
-        pos=(0, 0),
-        wrapWidth=1.4
-    )
-    
-    # Create continue button for temp window
     mouse_temp = event.Mouse(win=temp_win)
     mouse_temp.setVisible(True)
-    continue_button = visual.Rect(temp_win, width=0.3, height=0.1, fillColor='lightblue', lineColor='black', pos=(0, -0.3))
-    continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(0, -0.3))
     
-    clicked = False
-    while not clicked:
-        confirm_text.draw()
-        continue_button.draw()
-        continue_text.draw()
+    def draw_selection_screen():
+        prompt_text.draw()
+        button1.draw()
+        button1_text.draw()
+        button2.draw()
+        button2_text.draw()
         temp_win.flip()
-        
+    
+    draw_selection_screen()
+    event.clearEvents()
+    selected = None
+    prev_mouse_buttons = [False, False, False]
+    
+    while selected is None:
         try:
             mouse_buttons = mouse_temp.getPressed()
             mouse_pos = mouse_temp.getPos()
@@ -88,26 +68,127 @@ def get_input_method():
             except (TypeError, ValueError):
                 mouse_x, mouse_y = 0.0, 0.0
             
+            hit_margin = 0.02
+            
+            # Check button 1
+            button1_x, button1_y = -0.3, -0.1
+            button1_width, button1_height = 0.25, 0.12
+            on_button1 = (button1_x - button1_width/2 - hit_margin <= mouse_x <= button1_x + button1_width/2 + hit_margin and
+                         button1_y - button1_height/2 - hit_margin <= mouse_y <= button1_y + button1_height/2 + hit_margin)
+            
+            # Check button 2
+            button2_x, button2_y = 0.3, -0.1
+            button2_width, button2_height = 0.25, 0.12
+            on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
+                         button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
+            
+            # Check for button release (click completed)
+            if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                if on_button1:
+                    USE_TOUCH_SCREEN = True
+                    selected = 'touch'
+                    button1.fillColor = 'green'
+                    draw_selection_screen()
+                    core.wait(0.3)
+                    break
+                elif on_button2:
+                    USE_TOUCH_SCREEN = False
+                    selected = 'click'
+                    button2.fillColor = 'blue'
+                    draw_selection_screen()
+                    core.wait(0.3)
+                    break
+            
+            # For touch screens, check for press
+            if mouse_buttons[0] and not prev_mouse_buttons[0]:
+                if on_button1:
+                    USE_TOUCH_SCREEN = True
+                    selected = 'touch'
+                    button1.fillColor = 'green'
+                    draw_selection_screen()
+                    core.wait(0.3)
+                    break
+                elif on_button2:
+                    USE_TOUCH_SCREEN = False
+                    selected = 'click'
+                    button2.fillColor = 'blue'
+                    draw_selection_screen()
+                    core.wait(0.3)
+                    break
+            
+            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+        except Exception as e:
+            pass
+        
+        keys = event.getKeys(keyList=['escape'])
+        if 'escape' in keys:
+            temp_win.close()
+            core.quit()
+        
+        core.wait(0.01)
+    
+    # Show confirmation
+    confirm_text = visual.TextStim(
+        temp_win,
+        text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
+        color='black',
+        height=0.06,
+        pos=(0, 0),
+        wrapWidth=1.4
+    )
+    
+    # Create continue button for temp window
+    continue_button = visual.Rect(temp_win, width=0.3, height=0.1, fillColor='lightblue', lineColor='black', pos=(0, -0.3))
+    continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(0, -0.3))
+    
+    clicked = False
+    prev_mouse_buttons_cont = [False, False, False]
+    
+    while not clicked:
+        confirm_text.draw()
+        continue_button.draw()
+        continue_text.draw()
+        temp_win.flip()
+        
+        try:
+            mouse_buttons = mouse_temp.getPressed()
+            mouse_pos = mouse_temp.getPos()
+            
+            # Convert to floats to handle numpy arrays - ensure all values are Python floats
             try:
-                button_pos = continue_button.pos
-                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
-                    button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                    mouse_x = float(mouse_pos[0])
+                    mouse_y = float(mouse_pos[1])
                 else:
-                    button_x, button_y = 0.0, -0.3
+                    mouse_x, mouse_y = 0.0, 0.0
             except (TypeError, ValueError):
-                button_x, button_y = 0.0, -0.3
+                mouse_x, mouse_y = 0.0, 0.0
             
-            try:
-                button_width = float(continue_button.width)
-                button_height = float(continue_button.height)
-            except (TypeError, ValueError):
-                button_width, button_height = 0.3, 0.1
+            # Get button position and dimensions as Python floats
+            button_x = float(continue_button.pos[0]) if hasattr(continue_button.pos, '__len__') and len(continue_button.pos) >= 1 else 0.0
+            button_y = float(continue_button.pos[1]) if hasattr(continue_button.pos, '__len__') and len(continue_button.pos) >= 2 else -0.3
+            button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 0.3
+            button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 0.1
             
-            if mouse_buttons[0]:
-                if (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
-                    button_y - button_height/2 <= mouse_y <= button_y + button_height/2):
+            hit_margin = 0.02
+            
+            # Check if mouse is on button
+            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+            
+            # Check for button release (click completed)
+            if prev_mouse_buttons_cont[0] and not mouse_buttons[0]:
+                if on_button:
                     clicked = True
                     break
+            
+            # For touch screens, check for press
+            if mouse_buttons[0] and not prev_mouse_buttons_cont[0]:
+                if on_button:
+                    clicked = True
+                    break
+            
+            prev_mouse_buttons_cont = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
         except Exception as e:
             pass
         
