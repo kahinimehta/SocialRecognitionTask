@@ -5,6 +5,27 @@ import csv
 from datetime import datetime
 from PIL import Image, ImageDraw
 import math
+import sys
+import traceback
+
+# Set up exception hook to catch all unhandled exceptions
+def exception_handler(exc_type, exc_value, exc_traceback):
+    """Handle unhandled exceptions"""
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    print("="*60)
+    print("UNHANDLED EXCEPTION!")
+    print("="*60)
+    traceback.print_exception(exc_type, exc_value, exc_traceback)
+    print("="*60)
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
+
+sys.excepthook = exception_handler
 
 # =========================
 #  SETUP
@@ -355,6 +376,7 @@ def get_input_method():
 
 # Ask for input method first
 print("Getting input method...")
+result = None
 try:
     result = get_input_method()
     print(f"Input method result: {result}")
@@ -363,16 +385,27 @@ except Exception as e:
     print(f"ERROR in get_input_method(): {e}")
     import traceback
     traceback.print_exc()
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
     core.quit()
     exit(1)
 
 if result is None:
     print("Input method selection cancelled. Exiting...")
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
     core.quit()
     exit(0)
 
 print(f"Input method selected: {'TOUCH SCREEN' if result else 'MOUSE/TRACKPAD'}")
 print(f"Result value: {result}, Type: {type(result)}")
+print("About to create main window...")
 
 # Create main window with appropriate settings - use try/finally pattern
 win = None
@@ -404,10 +437,16 @@ try:
             win.flip()
             print("Windowed mode window created successfully")
         except Exception as e2:
-            print(f"Error: Could not create window in either mode ({e2})")
+            print("="*60)
+            print(f"ERROR: Could not create window in either mode ({e2})")
+            print("="*60)
             import traceback
             traceback.print_exc()
-            print("Exiting...")
+            print("Press Enter to exit...")
+            try:
+                input()
+            except:
+                pass
             core.quit()
             exit(1)
     
@@ -446,17 +485,30 @@ try:
     
     # Verify window is ready before continuing
     if win is None:
+        print("="*60)
+        print("CRITICAL ERROR: win is None after window creation attempt")
+        print("="*60)
         raise RuntimeError("Main window creation failed - win is None")
     
+    print("Main window setup complete. Window is ready.")
+    
 except Exception as e:
-    print(f"Error creating main window: {e}")
+    print(f"ERROR creating main window: {e}")
     import traceback
     traceback.print_exc()
+    print("="*60)
+    print("CRITICAL ERROR: Failed to create main window")
+    print("="*60)
     if win is not None:
         try:
             win.close()
         except:
             pass
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
     core.quit()
     exit(1)
 
