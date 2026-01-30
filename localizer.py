@@ -1373,12 +1373,19 @@ try:
     # =========================
 
     # Get participant ID
+    print("About to call get_participant_id()...")
     try:
         participant_id = get_participant_id()
+        print(f"Got participant ID: {participant_id}")
     except Exception as e:
         print(f"Error getting participant ID: {e}")
         import traceback
         traceback.print_exc()
+        if win is not None:
+            try:
+                win.close()
+            except:
+                pass
         core.quit()
         exit(1)
 
@@ -1559,6 +1566,15 @@ try:
             print("⚠ No data to save")
     elif is_test_participant(participant_id):
         print(f"⚠ Test participant detected - skipping file save")
+    
+    # Clean up on successful completion
+    print("Experiment completed successfully")
+    if win is not None:
+        try:
+            win.close()
+        except Exception:
+            pass
+    core.quit()
 
 except Exception as e:
     # Catch any unhandled exceptions in the main experiment
@@ -1573,22 +1589,9 @@ except Exception as e:
             win.close()
         except Exception:
             pass
-    print("Press Enter to exit...")
-    try:
-        input()
-    except:
-        pass
     core.quit()
     exit(1)
 finally:
-    # Close window exactly once in finally block
-    if win is not None:
-        try:
-            win.close()
-        except Exception:
-            pass
-    # Only call core.quit() if we haven't already exited
-    try:
-        core.quit()
-    except:
-        pass
+    # Cleanup - this block always executes
+    # Window and core.quit() are handled in the try/except blocks above
+    pass
