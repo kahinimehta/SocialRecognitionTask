@@ -31,6 +31,7 @@ def get_input_method():
     
     # Create temporary window - handle partial initialization
     temp_win = None
+    print ("temp_win created")
     try:
         # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
         temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
