@@ -373,11 +373,14 @@ CATEGORY_MAPPING = {
 }
 
 # Ask for input method first
+print("Getting input method...")
 result = get_input_method()
+print(f"Input method result: {result}")
 if result is None:
     print("Input method selection cancelled. Exiting...")
     core.quit()
     exit(0)
+print(f"Input method selected: {'TOUCH SCREEN' if result else 'MOUSE/TRACKPAD'}")
 
 def get_category_for_stimulus(stimulus_num):
     """Get the category name for a given stimulus number"""
@@ -1123,6 +1126,8 @@ try:
     # Brief delay to ensure temp window is fully closed
     time.sleep(0.1)  # Small delay to ensure clean transition
     
+    print("Creating main window...")
+    
     # Create window in windowed mode (not fullscreen)
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
@@ -1130,6 +1135,7 @@ try:
         win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
+        print("Main window created with size (1280, 720)")
     except Exception as e:
         # If window creation fails, try with alternative explicit size
         print(f"Warning: Could not create window with size (1280, 720) ({e})")
@@ -1138,15 +1144,18 @@ try:
         try:
             win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False, viewPos=(0, 0))
             win.flip()
+            print("Main window created with size (1024, 768)")
         except Exception as e2:
             print(f"Error: Could not create window ({e2})")
+            import traceback
+            traceback.print_exc()
             print("Exiting...")
             core.quit()
             exit(1)
     
     # Verify window was created successfully
     if win is None:
-        print("Error: Failed to create main window")
+        print("Error: Failed to create main window - win is None")
         core.quit()
         exit(1)
     
@@ -1154,11 +1163,16 @@ try:
     try:
         win.flip()
         core.wait(0.1)  # Brief wait to ensure window is fully ready
-        print("Main window created successfully")
+        print("Main window created successfully and ready")
     except Exception as e:
         print(f"Error preparing window: {e}")
         import traceback
         traceback.print_exc()
+        if win is not None:
+            try:
+                win.close()
+            except:
+                pass
         core.quit()
         exit(1)
     
@@ -1167,6 +1181,8 @@ try:
         print("Error: Window is None after creation - cannot continue")
         core.quit()
         exit(1)
+    
+    print("Window verification complete, proceeding to experiment...")
     
     # =========================
     #  MAIN EXPERIMENT
@@ -1362,14 +1378,22 @@ try:
 
 except Exception as e:
     # Catch any unhandled exceptions in the main experiment
+    print(f"\n{'='*60}")
     print(f"Unexpected error in experiment: {e}")
+    print(f"Error type: {type(e).__name__}")
     import traceback
     traceback.print_exc()
+    print(f"{'='*60}\n")
     if win is not None:
         try:
             win.close()
         except Exception:
             pass
+    print("Press Enter to exit...")
+    try:
+        input()
+    except:
+        pass
     core.quit()
     exit(1)
 finally:
