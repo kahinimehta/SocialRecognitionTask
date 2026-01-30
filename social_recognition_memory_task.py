@@ -35,76 +35,77 @@ def get_input_method():
     # Create temporary window - handle partial initialization
     temp_win = None
     try:
-        # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
-        # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
-        temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
-        
-        # Ensure window is fully initialized - draw something first to initialize OpenGL context
-        dummy = visual.TextStim(temp_win, text='', color='white', pos=(0, 0))
-        dummy.draw()
+        # Use pixel units to sidestep fragile height→pixel conversion path
+        # Try glfw backend if available, fallback to default if not
+        try:
+            temp_win = visual.Window(
+                size=(1280, 720),
+                color='white',
+                units='pix',
+                fullscr=False,
+                allowGUI=True,
+                winType='glfw'
+            )
+        except Exception:
+            # Fallback if glfw not available
+            temp_win = visual.Window(
+                size=(1280, 720),
+                color='white',
+                units='pix',
+                fullscr=False,
+                allowGUI=True
+            )
         temp_win.flip()
-        core.wait(0.2)
     
         prompt_text = visual.TextStim(
             temp_win,
             text="What input method are you using?\n\n"
                  "Touch or click the button below:",
             color='black',
-            height=0.07,
-            pos=(0, 0.3),
-            wrapWidth=1.6
+            height=30,
+            pos=(0, 200),
+            wrapWidth=1000,
+            units='pix'
         )
         
-        # Create button 1 (TOUCH SCREEN) - large buttons for easy interaction
-        # Debug: Print window transform info before creating Rect
-        print("DEBUG sizePix:", temp_win.sizePix)
-        print("DEBUG units:", temp_win.units)
-        print("DEBUG viewPos:", getattr(temp_win, "viewPos", "NOATTR"))
-        print("DEBUG winType:", getattr(temp_win, "winType", "NOATTR"))
-        print("DEBUG backend:", type(getattr(temp_win, "backend", None)))
-        
-        btn1_w = float(0.65)
-        btn1_h = float(0.28)
-        btn1_x = float(-0.3)
-        btn1_y = float(-0.05)
+        # Create button 1 (TOUCH SCREEN) - pixel units
         button1 = visual.Rect(
-            temp_win, 
-            width=btn1_w, 
-            height=btn1_h, 
-            fillColor='lightgreen', 
-            lineColor='black', 
-            lineWidth=3,
-            pos=(btn1_x, btn1_y)
+            temp_win,
+            width=520,
+            height=180,
+            fillColor='lightgreen',
+            lineColor='black',
+            pos=(-320, -80),
+            lineWidth=1,
+            units='pix'
         )
         button1_text = visual.TextStim(
             temp_win, 
             text="TOUCH SCREEN\n(Tap with finger)", 
             color='black', 
-            height=0.055, 
-            pos=(btn1_x, btn1_y),
-            bold=True
+            height=24, 
+            pos=(-320, -80),
+            units='pix'
         )
         
-        # Create button 2 (MOUSE/TRACKPAD) - large buttons for easy interaction
-        btn2_w = float(0.65)
-        btn2_h = float(0.28)
-        btn2_x = float(0.3)
-        btn2_y = float(-0.05)
+        # Create button 2 (MOUSE/TRACKPAD) - pixel units
         button2 = visual.Rect(
-            temp_win, 
-            width=btn2_w, 
-            height=btn2_h, 
-            fillColor='lightblue', 
-            lineColor='black', 
-            lineWidth=3,
-            pos=(btn2_x, btn2_y)
+            temp_win,
+            width=520,
+            height=180,
+            fillColor='lightblue',
+            lineColor='black',
+            pos=(320, -80),
+            lineWidth=1,
+            units='pix'
         )
         button2_text = visual.TextStim(
             temp_win, 
             text="MOUSE/TRACKPAD\n(Click or tap)", 
             color='black', 
-            height=0.055, 
-            pos=(btn2_x, btn2_y)
+            height=24, 
+            pos=(320, -80),
+            units='pix'
         )
         
         mouse_temp = event.Mouse(win=temp_win)
@@ -137,19 +138,18 @@ def get_input_method():
                 except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
                 
-                # Larger hit margin for touch screens, smaller for mouse/trackpad
-                # Note: USE_TOUCH_SCREEN may not be set yet, so use a reasonable default
-                hit_margin = 0.05  # Generous margin for both touch and mouse
+                # Generous hit margin for both touch screens and mouse/trackpad (in pixels)
+                hit_margin = 20
                 
-                # Check button 1 (use same dimensions as button creation)
-                button1_x, button1_y = -0.3, -0.05
-                button1_width, button1_height = 0.65, 0.28
+                # Check button 1 (use same dimensions as button creation - pixel units)
+                button1_x, button1_y = -320, -80
+                button1_width, button1_height = 520, 180
                 on_button1 = (button1_x - button1_width/2 - hit_margin <= mouse_x <= button1_x + button1_width/2 + hit_margin and
                              button1_y - button1_height/2 - hit_margin <= mouse_y <= button1_y + button1_height/2 + hit_margin)
                 
-                # Check button 2 (use same dimensions as button creation)
-                button2_x, button2_y = 0.3, -0.05
-                button2_width, button2_height = 0.65, 0.28
+                # Check button 2 (use same dimensions as button creation - pixel units)
+                button2_x, button2_y = 320, -80
+                button2_width, button2_height = 520, 180
                 on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
                              button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
                 
