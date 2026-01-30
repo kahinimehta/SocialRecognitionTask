@@ -371,13 +371,13 @@ try:
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1300, 900), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        win = visual.Window(size=(1300, 950), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Main window created with size (1300, 900)")
+        print("Main window created with size (1300, 950)")
     except Exception as e:
         # If window creation fails, try with alternative explicit size
-        print(f"Warning: Could not create window with size (1300, 900) ({e})")
+        print(f"Warning: Could not create window with size (1300, 950) ({e})")
         print("Trying with alternative size (1280, 720)...")
         time.sleep(0.1)  # Reduced delay
         try:
@@ -757,14 +757,14 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
         height=0.1,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.45)
+        pos=(0, -0.35)
     )
     continue_text = visual.TextStim(
         win,
         text=button_text,
         color='black',
         height=0.05,
-        pos=(0, -0.45)
+        pos=(0, -0.35)
     )
     
     # Draw initial screen once (button should be included in redraw_func)
@@ -827,7 +827,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                     except:
                         # Fallback to manual calculation
                         hit_margin = 0.02
-                        button_x, button_y = 0.0, -0.45
+                        button_x, button_y = 0.0, -0.35
                         button_width, button_height = 0.3, 0.1
                         if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
@@ -885,9 +885,9 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                     if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                         button_x, button_y = float(button_pos[0]), float(button_pos[1])
                     else:
-                        button_x, button_y = 0.0, -0.45
+                        button_x, button_y = 0.0, -0.35
                 except (TypeError, ValueError):
-                    button_x, button_y = 0.0, -0.45
+                    button_x, button_y = 0.0, -0.35
                 
                 try:
                     button_width = float(continue_button.width)
@@ -1008,14 +1008,14 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
         height=0.1,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.45)
+        pos=(0, -0.35)
     )
     continue_text = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05,
-        pos=(0, -0.45)
+        pos=(0, -0.35)
     )
     
     # Draw function that includes button
@@ -1057,9 +1057,9 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
                 if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                     button_x, button_y = float(button_pos[0]), float(button_pos[1])
                 else:
-                    button_x, button_y = 0.0, -0.45
+                    button_x, button_y = 0.0, -0.35
             except (TypeError, ValueError):
-                button_x, button_y = 0.0, -0.45
+                button_x, button_y = 0.0, -0.35
             
             try:
                 button_width = float(continue_button.width)
@@ -1136,11 +1136,11 @@ def get_participant_id():
     
     # Create text display - adjust positions for touch screen to avoid overlap
     if USE_TOUCH_SCREEN:
-        id_prompt = visual.TextStim(win, text="", color='black', height=0.06, wrapWidth=1.4, pos=(0, 0.4))
-        input_display = visual.TextStim(win, text="", color='black', height=0.08, pos=(0, 0.25))
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.4))
+        input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.3))
     else:
-        id_prompt = visual.TextStim(win, text="", color='black', height=0.06, wrapWidth=1.4, pos=(0, 0.3))
-        input_display = visual.TextStim(win, text="", color='black', height=0.08, pos=(0, 0.1))
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.3))
+        input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.1))
     
     # Create on-screen keyboard if touch screen
     keyboard_buttons = []
@@ -1183,16 +1183,13 @@ def get_participant_id():
                 )
                 keyboard_buttons.append((button, button_text, char))
         
-        # Special buttons: Backspace, Space, Continue (smaller fonts, positioned closer to keyboard)
-        special_y = 0.08  # Position closer to keyboard, reduced gap
-        backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', lineColor='black', lineWidth=2, pos=(-0.3, special_y))
-        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025, pos=(-0.3, special_y))
+        # Special buttons: Backspace, Continue (smaller fonts, positioned closer to keyboard)
+        special_y = 0.12  # Position slightly higher
+        backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', lineColor='black', lineWidth=2, pos=(-0.25, special_y))
+        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025, pos=(-0.25, special_y))
         
-        space_button = visual.Rect(win, width=0.25, height=0.1, fillColor='lightgray', lineColor='black', lineWidth=2, pos=(-0.05, special_y))
-        space_text = visual.TextStim(win, text="SPACE", color='black', height=0.025, pos=(-0.05, special_y))
-        
-        continue_button = visual.Rect(win, width=0.3, height=0.1, fillColor='lightgreen', lineColor='black', lineWidth=2, pos=(0.3, special_y))
-        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025, pos=(0.3, special_y))
+        continue_button = visual.Rect(win, width=0.3, height=0.1, fillColor='lightgreen', lineColor='black', lineWidth=2, pos=(0.25, special_y))
+        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025, pos=(0.25, special_y))
     
     # Key list for keyboard input (non-touch)
     key_list = ['return', 'backspace', 'space'] + [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(48, 58)]
@@ -1210,8 +1207,6 @@ def get_participant_id():
                 button_text.draw()
             backspace_button.draw()
             backspace_text.draw()
-            space_button.draw()
-            space_text.draw()
             continue_button.draw()
             continue_text.draw()
         
@@ -1340,58 +1335,6 @@ def get_participant_id():
                                 redraw()
                                 core.wait(0.05)
                                 backspace_button.fillColor = 'lightcoral'
-                                redraw()
-                                clicked = True
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                                clock.reset()
-                            else:
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                
-                if not clicked:
-                    # Check space button
-                    try:
-                        if space_button.contains(mouseloc):
-                            if t > minRT:
-                                input_id += ' '
-                                space_button.fillColor = 'lightgreen'
-                                redraw()
-                                core.wait(0.05)
-                                space_button.fillColor = 'lightgray'
-                                redraw()
-                                clicked = True
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                                clock.reset()
-                            else:
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except:
-                        # Fallback to manual calculation
-                        hit_margin = 0.08
-                        button_x, button_y = space_button.pos
-                        button_width, button_height = space_button.width, space_button.height
-                        if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
-                            if t > minRT:
-                                input_id += ' '
-                                space_button.fillColor = 'lightgreen'
-                                redraw()
-                                core.wait(0.05)
-                                space_button.fillColor = 'lightgray'
                                 redraw()
                                 clicked = True
                                 mouserec = mouse.getPos()
@@ -2529,14 +2472,14 @@ def show_block_summary(block_num, total_points, max_points):
         height=0.1,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.45)
+        pos=(0, -0.35)
     )
     continue_text = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05,
-        pos=(0, -0.45)
+        pos=(0, -0.35)
     )
     
     # Draw initial screen
@@ -2572,9 +2515,9 @@ def show_block_summary(block_num, total_points, max_points):
                 if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                     button_x, button_y = float(button_pos[0]), float(button_pos[1])
                 else:
-                    button_x, button_y = 0.0, -0.45
+                    button_x, button_y = 0.0, -0.35
             except (TypeError, ValueError):
-                button_x, button_y = 0.0, -0.45
+                button_x, button_y = 0.0, -0.35
             
             try:
                 button_width = float(continue_button.width)
@@ -2885,14 +2828,14 @@ def show_leaderboard(participant_id, total_points):
         height=0.1,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.45)
+        pos=(0, -0.35)
     )
     continue_text = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05,
-        pos=(0, -0.45)
+        pos=(0, -0.35)
     )
     
     def redraw():
