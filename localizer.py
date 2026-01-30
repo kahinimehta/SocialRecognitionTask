@@ -33,25 +33,13 @@ def get_input_method():
     temp_win = None
     try:
         # Use pixel units to sidestep fragile height→pixel conversion path
-        # Try glfw backend if available, fallback to default if not
-        try:
-            temp_win = visual.Window(
-                size=(1280, 720),
-                color='white',
-                units='pix',
-                fullscr=False,
-                allowGUI=True,
-                winType='glfw'
-            )
-        except Exception:
-            # Fallback if glfw not available
-            temp_win = visual.Window(
-                size=(1280, 720),
-                color='white',
-                units='pix',
-                fullscr=False,
-                allowGUI=True
-            )
+        temp_win = visual.Window(
+            size=(1280, 720),
+            color='white',
+            units='pix',
+            fullscr=False,
+            allowGUI=True
+        )
         temp_win.flip()
         
         prompt_text = visual.TextStim(
