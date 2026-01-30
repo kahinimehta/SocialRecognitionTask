@@ -55,7 +55,7 @@ def get_input_method():
     # Show confirmation
     confirm_text = visual.TextStim(
         temp_win,
-        text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}\n\n"
+        text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
         color='black',
         height=0.06,
         pos=(0, 0),
@@ -1744,7 +1744,7 @@ def show_block_summary(block_num, total_points, max_points):
     summary_text = visual.TextStim(
         win,
         text=f"Block {block_num} Complete!\n\n"
-             f"Total points: {total_points:.2f} / {max_points:.2f}\n\n"
+             f"Total points: {total_points:.2f} / {max_points:.2f}",
         color='black',
         height=0.05,
         pos=(0, 0),
@@ -2170,7 +2170,7 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
     show_instructions(
         "STUDY PHASE COMPLETE!\n\n"
         "Now switching to the recognition phase.\n\n"
-        "You will see images again and rate them with your partner.\n\n"
+        "You will see images again and rate them with your partner.",
         header_color='darkblue',
         body_color='black'
     )
@@ -2476,7 +2476,7 @@ def run_experiment():
         "In this task, you will study complex images and then test your memory\n"
         "by working with a partner.\n\n"
         "First, you'll do a practice block with simple shapes.\n"
-        "Then, the actual task will use complex images (objects, animals, and scenes).\n\n"
+        "Then, the actual task will use complex images (objects, animals, and scenes).",
         header_color='darkblue',
         body_color='black'
     )
@@ -2486,7 +2486,7 @@ def run_experiment():
         "1. STUDY PHASE: You'll see complex images one at a time.\n"
         "   These images include various objects, animals, and scenes.\n"
         "   Try to remember them carefully.\n\n"
-        "(Note: Practice will use simple shapes first)\n\n"
+        "(Note: Practice will use simple shapes first)",
         header_color='darkgreen',
         body_color='black'
     )
@@ -2496,7 +2496,7 @@ def run_experiment():
         "You'll see complex images again.\n\n"
         "Some images will be OLD (from the study phase).\n"
         "Some images will be NEW (you haven't seen them).\n\n"
-        "Pay close attention - some images may look similar!\n\n"
+        "Pay close attention - some images may look similar!",
         header_color='darkgreen',
         body_color='black'
     )
@@ -2509,7 +2509,7 @@ def run_experiment():
         "- Move the slider RIGHT for NEW (not studied)\n"
         "- Where you place it shows how confident you are\n"
         "- Click and drag the slider handle\n"
-        "- Click the SUBMIT button when ready\n\n"
+        "- Click the SUBMIT button when ready",
         header_color='purple',
         body_color='black'
     )
@@ -2522,7 +2522,7 @@ def run_experiment():
         "- STAY with your original confidence rating\n"
         "- SWITCH to your partner's confidence rating\n\n"
         "Even if you both say OLD or both say NEW,\n"
-        "you can still switch to match their confidence level.\n\n"
+        "you can still switch to match their confidence level.",
         header_color='darkorange',
         body_color='black'
     )
@@ -2537,7 +2537,7 @@ def run_experiment():
         "If you're confident but WRONG:\n"
         "- You LOSE more points (closer to 0.0 points)\n\n"
         "The closer your final answer is to the correct answer,\n"
-        "the more points you earn!\n\n"
+        "the more points you earn!",
         header_color='darkgreen',
         body_color='black'
     )
@@ -2547,7 +2547,7 @@ def run_experiment():
         "You'll see your points after each trial.\n\n"
         "At the end of each block, you'll be asked 2 quick questions.\n\n"
         "At the end of the game, you'll see a leaderboard showing how\n"
-        "you compared to other participants.\n\n"
+        "you compared to other participants.",
         header_color='darkblue',
         body_color='black'
     )
@@ -2559,8 +2559,7 @@ def run_experiment():
         "The actual task will use complex images (objects, animals, and scenes),\n"
         "but practice uses simple shapes to help you learn the task.\n\n"
         "You will study 5 shapes, then test your memory with your partner.\n\n"
-        "This is just for practice, but go as quick as you can!\n\n"
-        "",
+        "This is just for practice, but go as quick as you can!",
         header_color='darkred',
         body_color='black'
     )
@@ -2676,7 +2675,7 @@ def run_experiment():
         "Practice complete!\n\n"
         "Now we'll begin the experimental blocks.\n\n"
         "Remember: You'll now see complex images (objects, animals, and scenes)\n"
-        "instead of simple shapes.\n\n"
+        "instead of simple shapes.",
         header_color='darkgreen',
         body_color='black'
     )
@@ -2695,7 +2694,7 @@ def run_experiment():
         "   - Your partner will also rate each image\n"
         "   - You can STAY with your answer or SWITCH to theirs\n"
         "   - Even if you both agree (OLD or NEW),\n"
-        "     you can switch to match their confidence level\n\n"
+        "     you can switch to match their confidence level",
         header_color='darkred',
         body_color='black'
     )
@@ -2707,8 +2706,7 @@ def run_experiment():
         "   - More confident + correct = more points\n"
         "   - More confident + wrong = fewer points\n\n"
         "5. QUESTIONS:\n"
-        "   - At the end of each block, you'll answer 2 quick questions\n\n"
-        "Press SPACE to begin the experiment.",
+        "   - At the end of each block, you'll answer 2 quick questions",
         header_color='darkred',
         body_color='black'
     )
@@ -2717,8 +2715,7 @@ def run_experiment():
         "EXPERIMENTAL BLOCKS:\n\n"
         "You will complete 10 blocks, each with 10 trials.\n\n"
         "Sometimes your partner will respond first,\n"
-        "sometimes you will respond first.\n\n"
-        "",
+        "sometimes you will respond first.",
         header_color='darkblue',
         body_color='black'
     )
@@ -2802,8 +2799,7 @@ def run_experiment():
         show_instructions(
             f"An error occurred during the experiment.\n\n"
             f"Error: {str(e)}\n\n"
-            "Please contact the experimenter.\n\n"
-            "Press SPACE to exit.",
+            "Please contact the experimenter.",
             header_color='red',
             body_color='black'
         )
