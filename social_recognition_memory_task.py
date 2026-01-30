@@ -367,49 +367,28 @@ try:
     # Brief delay to ensure temp window is fully closed
     time.sleep(0.1)  # Small delay to ensure clean transition
     
-    # Create window - fullscreen for touch screens, windowed for mouse/trackpad
+    # Create window in windowed mode with larger size for better visibility
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        if USE_TOUCH_SCREEN:
-            # Fullscreen for touch screens
-            win = visual.Window(color='white', units='height', fullscr=True, viewPos=(0, 0))
-            print("Main window created in fullscreen mode for touch screen")
-        else:
-            # Windowed mode for mouse/trackpad
-            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
-            print("Main window created with size (1280, 720) in windowed mode")
+        win = visual.Window(size=(1500, 1000), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
+        print("Main window created with size (1500, 1000)")
     except Exception as e:
-        # If window creation fails, try with alternative approach
-        print(f"Warning: Could not create window ({e})")
-        if USE_TOUCH_SCREEN:
-            print("Trying windowed mode as fallback...")
-            time.sleep(0.1)
-            try:
-                win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
-                win.flip()
-                print("Main window created in windowed mode (fallback)")
-            except Exception as e2:
-                print(f"Error: Could not create window ({e2})")
-                import traceback
-                traceback.print_exc()
-                print("Exiting...")
-                core.quit()
-                exit(1)
-        else:
-            print("Trying with alternative size (1024, 768)...")
-            time.sleep(0.1)  # Reduced delay
-            try:
-                win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False, viewPos=(0, 0))
-                win.flip()
-                print("Main window created with size (1024, 768)")
-            except Exception as e2:
-                print(f"Error: Could not create window ({e2})")
-                print("Exiting...")
-                core.quit()
-                exit(1)
+        # If window creation fails, try with alternative explicit size
+        print(f"Warning: Could not create window with size (1500, 1000) ({e})")
+        print("Trying with alternative size (1280, 720)...")
+        time.sleep(0.1)  # Reduced delay
+        try:
+            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+            win.flip()
+            print("Main window created with size (1280, 720)")
+        except Exception as e2:
+            print(f"Error: Could not create window ({e2})")
+            print("Exiting...")
+            core.quit()
+            exit(1)
     
     # Verify window was created successfully
     if win is None:
