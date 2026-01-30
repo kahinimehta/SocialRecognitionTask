@@ -1258,13 +1258,13 @@ try:
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1300, 950), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        win = visual.Window(size=(1300, 925), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Main window created with size (1300, 950)")
+        print("Main window created with size (1300, 925)")
     except Exception as e:
         # If window creation fails, try with alternative explicit size
-        print(f"Warning: Could not create window with size (1300, 950) ({e})")
+        print(f"Warning: Could not create window with size (1300, 925) ({e})")
         print("Trying with alternative size (1280, 720)...")
         time.sleep(0.1)  # Reduced delay
         try:
