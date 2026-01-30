@@ -102,179 +102,179 @@ def get_input_method():
         prev_mouse_buttons = [False, False, False]
         
         while selected is None:
-        try:
-            mouse_buttons = mouse_temp.getPressed()
-            mouse_pos = mouse_temp.getPos()
-            
-            # Convert to floats to handle numpy arrays
             try:
-                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
-                else:
+                mouse_buttons = mouse_temp.getPressed()
+                mouse_pos = mouse_temp.getPos()
+                
+                # Convert to floats to handle numpy arrays
+                try:
+                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                        mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                    else:
+                        mouse_x, mouse_y = 0.0, 0.0
+                except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
-            except (TypeError, ValueError):
-                mouse_x, mouse_y = 0.0, 0.0
+                
+                hit_margin = 0.02
+                
+                # Check button 1
+                button1_x, button1_y = -0.3, -0.1
+                button1_width, button1_height = 0.25, 0.12
+                on_button1 = (button1_x - button1_width/2 - hit_margin <= mouse_x <= button1_x + button1_width/2 + hit_margin and
+                             button1_y - button1_height/2 - hit_margin <= mouse_y <= button1_y + button1_height/2 + hit_margin)
+                
+                # Check button 2
+                button2_x, button2_y = 0.3, -0.1
+                button2_width, button2_height = 0.25, 0.12
+                on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
+                             button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
+                
+                # Check for button release (click completed)
+                if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                    if on_button1:
+                        USE_TOUCH_SCREEN = True
+                        selected = 'touch'
+                        button1.fillColor = 'green'
+                        draw_selection_screen()
+                        core.wait(0.3)
+                        break
+                    elif on_button2:
+                        USE_TOUCH_SCREEN = False
+                        selected = 'click'
+                        button2.fillColor = 'blue'
+                        draw_selection_screen()
+                        core.wait(0.3)
+                        break
+                
+                # For touch screens, check for press
+                if mouse_buttons[0] and not prev_mouse_buttons[0]:
+                    if on_button1:
+                        USE_TOUCH_SCREEN = True
+                        selected = 'touch'
+                        button1.fillColor = 'green'
+                        draw_selection_screen()
+                        core.wait(0.3)
+                        break
+                    elif on_button2:
+                        USE_TOUCH_SCREEN = False
+                        selected = 'click'
+                        button2.fillColor = 'blue'
+                        draw_selection_screen()
+                        core.wait(0.3)
+                        break
+                
+                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+            except Exception as e:
+                pass
             
-            hit_margin = 0.02
-            
-            # Check button 1
-            button1_x, button1_y = -0.3, -0.1
-            button1_width, button1_height = 0.25, 0.12
-            on_button1 = (button1_x - button1_width/2 - hit_margin <= mouse_x <= button1_x + button1_width/2 + hit_margin and
-                         button1_y - button1_height/2 - hit_margin <= mouse_y <= button1_y + button1_height/2 + hit_margin)
-            
-            # Check button 2
-            button2_x, button2_y = 0.3, -0.1
-            button2_width, button2_height = 0.25, 0.12
-            on_button2 = (button2_x - button2_width/2 - hit_margin <= mouse_x <= button2_x + button2_width/2 + hit_margin and
-                         button2_y - button2_height/2 - hit_margin <= mouse_y <= button2_y + button2_height/2 + hit_margin)
-            
-            # Check for button release (click completed)
-            if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                if on_button1:
-                    USE_TOUCH_SCREEN = True
-                    selected = 'touch'
-                    button1.fillColor = 'green'
-                    draw_selection_screen()
-                    core.wait(0.3)
-                    break
-                elif on_button2:
-                    USE_TOUCH_SCREEN = False
-                    selected = 'click'
-                    button2.fillColor = 'blue'
-                    draw_selection_screen()
-                    core.wait(0.3)
-                    break
-            
-            # For touch screens, check for press
-            if mouse_buttons[0] and not prev_mouse_buttons[0]:
-                if on_button1:
-                    USE_TOUCH_SCREEN = True
-                    selected = 'touch'
-                    button1.fillColor = 'green'
-                    draw_selection_screen()
-                    core.wait(0.3)
-                    break
-                elif on_button2:
-                    USE_TOUCH_SCREEN = False
-                    selected = 'click'
-                    button2.fillColor = 'blue'
-                    draw_selection_screen()
-                    core.wait(0.3)
-                    break
-            
-            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-        except Exception as e:
-            pass
-        
-        # Safe event.getKeys() handling - ensure keys is never empty array issue
-        try:
-            keys = event.getKeys(keyList=['escape'])
-            if keys and 'escape' in keys:  # Check keys is not empty first
-                return None  # Signal to exit - window will be closed in finally
-        except (AttributeError, Exception):
-            pass  # Ignore event errors
-        
-        core.wait(0.01)
-    
-    # Show confirmation
-    confirm_text = visual.TextStim(
-        temp_win,
-        text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
-        color='black',
-        height=0.06,
-        pos=(0, 0),
-        wrapWidth=1.4
-    )
-    
-    # Create continue button for temp window - use width/height with explicit floats
-    cont_w = float(0.3)
-    cont_h = float(0.1)
-    cont_x = float(0.0)
-    cont_y = float(-0.3)
-    continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y))
-    continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(cont_x, cont_y))
-    
-    clicked = False
-    prev_mouse_buttons_cont = [False, False, False]
-    
-    while not clicked:
-        confirm_text.draw()
-        continue_button.draw()
-        continue_text.draw()
-        temp_win.flip()
-        
-        try:
-            mouse_buttons = mouse_temp.getPressed()
-            mouse_pos = mouse_temp.getPos()
-            
-            # Convert to floats to handle numpy arrays - ensure all values are Python floats
+            # Safe event.getKeys() handling - ensure keys is never empty array issue
             try:
-                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                    mouse_x = float(mouse_pos[0])
-                    mouse_y = float(mouse_pos[1])
-                else:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:  # Check keys is not empty first
+                    return None  # Signal to exit - window will be closed in finally
+            except (AttributeError, Exception):
+                pass  # Ignore event errors
+            
+            core.wait(0.01)
+        
+        # Show confirmation
+        confirm_text = visual.TextStim(
+            temp_win,
+            text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
+            color='black',
+            height=0.06,
+            pos=(0, 0),
+            wrapWidth=1.4
+        )
+        
+        # Create continue button for temp window - use width/height with explicit floats
+        cont_w = float(0.3)
+        cont_h = float(0.1)
+        cont_x = float(0.0)
+        cont_y = float(-0.3)
+        continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y))
+        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(cont_x, cont_y))
+        
+        clicked = False
+        prev_mouse_buttons_cont = [False, False, False]
+        
+        while not clicked:
+            confirm_text.draw()
+            continue_button.draw()
+            continue_text.draw()
+            temp_win.flip()
+            
+            try:
+                mouse_buttons = mouse_temp.getPressed()
+                mouse_pos = mouse_temp.getPos()
+                
+                # Convert to floats to handle numpy arrays - ensure all values are Python floats
+                try:
+                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                        mouse_x = float(mouse_pos[0])
+                        mouse_y = float(mouse_pos[1])
+                    else:
+                        mouse_x, mouse_y = 0.0, 0.0
+                except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
-            except (TypeError, ValueError):
-                mouse_x, mouse_y = 0.0, 0.0
-            
-            # Get button position and dimensions as Python floats - ensure pos is always (x, y) tuple
-            try:
-                button_pos = continue_button.pos
-                # Ensure pos is always a length-2 tuple, never empty
-                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
-                    button_x = float(button_pos[0])
-                    button_y = float(button_pos[1])
-                else:
-                    # Fallback: ensure we always have valid (x, y)
+                
+                # Get button position and dimensions as Python floats - ensure pos is always (x, y) tuple
+                try:
+                    button_pos = continue_button.pos
+                    # Ensure pos is always a length-2 tuple, never empty
+                    if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                        button_x = float(button_pos[0])
+                        button_y = float(button_pos[1])
+                    else:
+                        # Fallback: ensure we always have valid (x, y)
+                        button_x, button_y = 0.0, -0.3
+                        continue_button.pos = (button_x, button_y)  # Fix if broken
+                except (TypeError, ValueError, IndexError):
                     button_x, button_y = 0.0, -0.3
                     continue_button.pos = (button_x, button_y)  # Fix if broken
-            except (TypeError, ValueError, IndexError):
-                button_x, button_y = 0.0, -0.3
-                continue_button.pos = (button_x, button_y)  # Fix if broken
-            
-            try:
-                button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 0.3
-                button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 0.1
-                # Ensure size is always valid
-                if button_width <= 0 or button_height <= 0:
+                
+                try:
+                    button_width = float(continue_button.width) if hasattr(continue_button.width, '__float__') else 0.3
+                    button_height = float(continue_button.height) if hasattr(continue_button.height, '__float__') else 0.1
+                    # Ensure size is always valid
+                    if button_width <= 0 or button_height <= 0:
+                        button_width, button_height = 0.3, 0.1
+                except (TypeError, ValueError):
                     button_width, button_height = 0.3, 0.1
-            except (TypeError, ValueError):
-                button_width, button_height = 0.3, 0.1
+                
+                hit_margin = 0.02
+                
+                # Check if mouse is on button
+                on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+                
+                # Check for button release (click completed)
+                if prev_mouse_buttons_cont[0] and not mouse_buttons[0]:
+                    if on_button:
+                        clicked = True
+                        break
+                
+                # For touch screens, check for press
+                if mouse_buttons[0] and not prev_mouse_buttons_cont[0]:
+                    if on_button:
+                        clicked = True
+                        break
+                
+                prev_mouse_buttons_cont = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+            except Exception as e:
+                pass
             
-            hit_margin = 0.02
-            
-            # Check if mouse is on button
-            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
-            
-            # Check for button release (click completed)
-            if prev_mouse_buttons_cont[0] and not mouse_buttons[0]:
-                if on_button:
-                    clicked = True
-                    break
-            
-            # For touch screens, check for press
-            if mouse_buttons[0] and not prev_mouse_buttons_cont[0]:
-                if on_button:
-                    clicked = True
-                    break
-            
-            prev_mouse_buttons_cont = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-        except Exception as e:
-            pass
-        
-        # Safe event.getKeys() handling - ensure keys is never empty array issue
-        try:
-            keys = event.getKeys(keyList=['space', 'escape'])
-            if keys:  # Check keys is not empty first
-                if 'space' in keys:
-                    clicked = True
-                    break
-                elif 'escape' in keys:
-                    return None  # Signal to exit
-        except (AttributeError, Exception):
-            pass  # Ignore event errors
+            # Safe event.getKeys() handling - ensure keys is never empty array issue
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'])
+                if keys:  # Check keys is not empty first
+                    if 'space' in keys:
+                        clicked = True
+                        break
+                    elif 'escape' in keys:
+                        return None  # Signal to exit
+            except (AttributeError, Exception):
+                pass  # Ignore event errors
             core.wait(0.01)
         
         mouse_temp.setVisible(False)
@@ -312,10 +312,10 @@ try:
         print("Trying windowed mode...")
         time.sleep(0.3)  # Additional delay
         win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
-
-# =========================
-#  STIMULI SETUP
-# =========================
+    
+    # =========================
+    #  STIMULI SETUP
+    # =========================
 STIMULI_DIR = "STIMULI"
 
 # Category mapping: each category has 10 objects, numbered sequentially
@@ -870,159 +870,159 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
     
     return (answer, timed_out)
 
-# =========================
-#  MAIN EXPERIMENT
-# =========================
+    # =========================
+    #  MAIN EXPERIMENT
+    # =========================
 
-# Get participant ID
-participant_id = get_participant_id()
+    # Get participant ID
+    participant_id = get_participant_id()
 
-# Load all stimuli
-print("Loading stimuli...")
-all_stimuli = load_all_stimuli()
+    # Load all stimuli
+    print("Loading stimuli...")
+    all_stimuli = load_all_stimuli()
 
-if len(all_stimuli) != 100:
-    print(f"Warning: Expected 100 stimuli, found {len(all_stimuli)}")
+    if len(all_stimuli) != 100:
+        print(f"Warning: Expected 100 stimuli, found {len(all_stimuli)}")
 
-# Randomize order
-random.shuffle(all_stimuli)
+    # Randomize order
+    random.shuffle(all_stimuli)
 
-# Show instructions
-instructions = visual.TextStim(
-    win,
-    text="LOCALIZER TASK\n\n"
-         "You will see 100 images one at a time.\n\n"
-         "Every 10th image, you will be asked a question\n"
-         "about the category of the previous image.\n\n"
-         "Please pay attention to each image.",
-    color='black',
-    height=0.05,
-    pos=(0, 0),
-    wrapWidth=1.4
-)
+    # Show instructions
+    instructions = visual.TextStim(
+        win,
+        text="LOCALIZER TASK\n\n"
+             "You will see 100 images one at a time.\n\n"
+             "Every 10th image, you will be asked a question\n"
+             "about the category of the previous image.\n\n"
+             "Please pay attention to each image.",
+        color='black',
+        height=0.05,
+        pos=(0, 0),
+        wrapWidth=1.4
+    )
 
-instructions.draw()
-win.flip()
-wait_for_button("BEGIN", additional_stimuli=[instructions])
+    instructions.draw()
+    win.flip()
+    wait_for_button("BEGIN", additional_stimuli=[instructions])
 
-# Data storage
-localizer_data = []
-csv_file = None
-csv_writer = None
-csv_file_path = None
-fieldnames = None
-first_question_answered = False
+    # Data storage
+    localizer_data = []
+    csv_file = None
+    csv_writer = None
+    csv_file_path = None
+    fieldnames = None
+    first_question_answered = False
 
-# Show images
-for idx, stimulus in enumerate(all_stimuli, 1):
-    # Load and display image
-    try:
-        img = visual.ImageStim(win, image=stimulus['path'], size=(0.8, 0.8))
-        img.draw()
-        win.flip()
-        
-        # Show image for exactly 1 second
-        core.wait(1.0)
-        
-        # Check if this is the 10th image (or every 10th after the first)
-        if idx % 10 == 0:
-            # Ask category question about the image we just showed (the 10th, 20th, 30th, etc.)
-            current_stimulus = stimulus
-            correct_category = current_stimulus['category']
+    # Show images
+    for idx, stimulus in enumerate(all_stimuli, 1):
+        # Load and display image
+        try:
+            img = visual.ImageStim(win, image=stimulus['path'], size=(0.8, 0.8))
+            img.draw()
+            win.flip()
             
-            # Ask the question about this image's category
-            answer, timed_out = ask_category_question(correct_category, current_stimulus['object_name'])
+            # Show image for exactly 1 second
+            core.wait(1.0)
             
-            # The correct answer is always True since we're asking about the category this image belongs to
-            correct_answer = True
-            
-            # Calculate correct only if not timed out
-            is_correct = (answer == correct_answer) if not timed_out else None
-            
-            # Record data
-            trial_data = {
-                'participant_id': participant_id,
-                'trial': idx,
-                'stimulus_number': current_stimulus['number'],
-                'object_name': current_stimulus['object_name'],
-                'category': current_stimulus['category'],
-                'question_category': correct_category,
-                'question_text': category_to_question(correct_category),
-                'answer': answer if not timed_out else 'TIMEOUT',
-                'correct_answer': correct_answer,
-                'correct': is_correct,
-                'timed_out': timed_out
-            }
-            localizer_data.append(trial_data)
-            
-            # Create CSV file after first question is answered
-            if not first_question_answered and not is_test_participant(participant_id):
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                log_dir = get_log_directory()
-                csv_file_path = os.path.join(log_dir, f"localizer_{participant_id}_{timestamp}.csv")
-                csv_file = open(csv_file_path, 'w', newline='')
-                fieldnames = list(trial_data.keys())
-                csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-                csv_writer.writeheader()
-                first_question_answered = True
-                print(f"✓ Created localizer CSV file: {csv_file_path}")
-            
-            # Write current trial to CSV (including first question)
-            if csv_writer is not None:
-                csv_writer.writerow(trial_data)
-                csv_file.flush()  # Ensure data is written immediately
-            
-            # Brief pause before next image
-            core.wait(0.5)
+            # Check if this is the 10th image (or every 10th after the first)
+            if idx % 10 == 0:
+                # Ask category question about the image we just showed (the 10th, 20th, 30th, etc.)
+                current_stimulus = stimulus
+                correct_category = current_stimulus['category']
+                
+                # Ask the question about this image's category
+                answer, timed_out = ask_category_question(correct_category, current_stimulus['object_name'])
+                
+                # The correct answer is always True since we're asking about the category this image belongs to
+                correct_answer = True
+                
+                # Calculate correct only if not timed out
+                is_correct = (answer == correct_answer) if not timed_out else None
+                
+                # Record data
+                trial_data = {
+                    'participant_id': participant_id,
+                    'trial': idx,
+                    'stimulus_number': current_stimulus['number'],
+                    'object_name': current_stimulus['object_name'],
+                    'category': current_stimulus['category'],
+                    'question_category': correct_category,
+                    'question_text': category_to_question(correct_category),
+                    'answer': answer if not timed_out else 'TIMEOUT',
+                    'correct_answer': correct_answer,
+                    'correct': is_correct,
+                    'timed_out': timed_out
+                }
+                localizer_data.append(trial_data)
+                
+                # Create CSV file after first question is answered
+                if not first_question_answered and not is_test_participant(participant_id):
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    log_dir = get_log_directory()
+                    csv_file_path = os.path.join(log_dir, f"localizer_{participant_id}_{timestamp}.csv")
+                    csv_file = open(csv_file_path, 'w', newline='')
+                    fieldnames = list(trial_data.keys())
+                    csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                    csv_writer.writeheader()
+                    first_question_answered = True
+                    print(f"✓ Created localizer CSV file: {csv_file_path}")
+                
+                # Write current trial to CSV (including first question)
+                if csv_writer is not None:
+                    csv_writer.writerow(trial_data)
+                    csv_file.flush()  # Ensure data is written immediately
+                
+                # Brief pause before next image
+                core.wait(0.5)
+            else:
+                # Brief pause between images
+                core.wait(0.5)
+                
+        except Exception as e:
+            print(f"Error loading image {stimulus['path']}: {e}")
+            continue
+
+    # Show completion message
+    completion_text = visual.TextStim(
+        win,
+        text="LOCALIZER TASK COMPLETE!\n\n"
+             "Thank you for your participation.",
+        color='black',
+        height=0.06,
+        pos=(0, 0),
+        wrapWidth=1.4
+    )
+
+    completion_text.draw()
+    win.flip()
+    wait_for_button("EXIT", additional_stimuli=[completion_text])
+
+    # Close CSV file if it was opened
+    if csv_file is not None:
+        csv_file.close()
+        if csv_file_path:
+            print(f"✓ Closed localizer CSV file: {csv_file_path}")
         else:
-            # Brief pause between images
-            core.wait(0.5)
-            
-    except Exception as e:
-        print(f"Error loading image {stimulus['path']}: {e}")
-        continue
+            print(f"✓ Closed localizer CSV file")
 
-# Show completion message
-completion_text = visual.TextStim(
-    win,
-    text="LOCALIZER TASK COMPLETE!\n\n"
-         "Thank you for your participation.",
-    color='black',
-    height=0.06,
-    pos=(0, 0),
-    wrapWidth=1.4
-)
-
-completion_text.draw()
-win.flip()
-wait_for_button("EXIT", additional_stimuli=[completion_text])
-
-# Close CSV file if it was opened
-if csv_file is not None:
-    csv_file.close()
-    if csv_file_path:
-        print(f"✓ Closed localizer CSV file: {csv_file_path}")
-    else:
-        print(f"✓ Closed localizer CSV file")
-
-# Save data (backup - in case CSV wasn't created incrementally)
-if not is_test_participant(participant_id) and csv_file is None:
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_dir = get_log_directory()
-    output_file = os.path.join(log_dir, f"localizer_{participant_id}_{timestamp}.csv")
-    
-    if localizer_data:
-        fieldnames = list(localizer_data[0].keys())
-        with open(output_file, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(localizer_data)
+    # Save data (backup - in case CSV wasn't created incrementally)
+    if not is_test_participant(participant_id) and csv_file is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_dir = get_log_directory()
+        output_file = os.path.join(log_dir, f"localizer_{participant_id}_{timestamp}.csv")
         
-        print(f"✓ Saved localizer data to {output_file}")
-    else:
-        print("⚠ No data to save")
-elif is_test_participant(participant_id):
-    print(f"⚠ Test participant detected - skipping file save")
+        if localizer_data:
+            fieldnames = list(localizer_data[0].keys())
+            with open(output_file, 'w', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(localizer_data)
+            
+            print(f"✓ Saved localizer data to {output_file}")
+        else:
+            print("⚠ No data to save")
+    elif is_test_participant(participant_id):
+        print(f"⚠ Test participant detected - skipping file save")
 
 finally:
     # Close window exactly once in finally block
