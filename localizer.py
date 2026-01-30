@@ -56,13 +56,13 @@ def get_input_method():
     # Create temporary window - handle partial initialization
     temp_win = None
     try:
-        # Use height units for fullscreen compatibility
+        # Use height units for windowed mode (not fullscreen)
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
             size=(1280, 720),
             color='white',
             units='height',
-            fullscr=True,
+            fullscr=False,  # Windowed mode for temp window
             allowGUI=True,
             waitBlanking=False,  # Prevent blocking on display sync
             useFBO=False  # Disable framebuffer objects to prevent hangs
