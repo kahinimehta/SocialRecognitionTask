@@ -4,6 +4,7 @@ import csv
 from datetime import datetime
 import sys
 import traceback
+import platform
 
 # Set up exception hook to catch all unhandled exceptions
 def exception_handler(exc_type, exc_value, exc_traceback):
@@ -1495,7 +1496,6 @@ try:
     
     # Force window to front on macOS
     try:
-        import platform
         if platform.system() == 'Darwin':  # macOS
             try:
                 win.winHandle.activate()
