@@ -13,11 +13,23 @@ import math
 USE_TOUCH_SCREEN = False
 
 # Create temporary window to ask for input method
-temp_win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
+# Try auto-detecting screen size first, fallback to fixed size if that fails
+try:
+    # Let PsychoPy auto-detect screen size (works better with touch screens)
+    temp_win = visual.Window(size=None, color='white', units='height', fullscr=False)
+except:
+    # Fallback to fixed size if auto-detection fails
+    temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
 
 def get_input_method():
     """Ask user whether they're using touch screen (1) or click screen (2)"""
     global USE_TOUCH_SCREEN
+    
+    # Ensure window is fully initialized - draw something first to initialize OpenGL context
+    dummy = visual.TextStim(temp_win, text='', color='white', pos=(0, 0))
+    dummy.draw()
+    temp_win.flip()
+    core.wait(0.2)
     
     prompt_text = visual.TextStim(
         temp_win,
@@ -30,25 +42,35 @@ def get_input_method():
         wrapWidth=1.4
     )
     
-    # Create button 1 (TOUCH SCREEN) - use size parameter to avoid broadcasting issues
+    # Create button 1 (TOUCH SCREEN) - convert all values to Python native types
+    btn1_w = float(0.25)
+    btn1_h = float(0.12)
+    btn1_x = float(-0.3)
+    btn1_y = float(-0.1)
     button1 = visual.Rect(
         temp_win, 
-        size=[0.25, 0.12], 
+        width=btn1_w, 
+        height=btn1_h, 
         fillColor='lightgreen', 
         lineColor='black', 
-        pos=[-0.3, -0.1]
+        pos=(btn1_x, btn1_y)
     )
-    button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=[-0.3, -0.1])
+    button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=(btn1_x, btn1_y))
     
-    # Create button 2 (CLICK/MOUSE) - use size parameter to avoid broadcasting issues
+    # Create button 2 (CLICK/MOUSE) - convert all values to Python native types
+    btn2_w = float(0.25)
+    btn2_h = float(0.12)
+    btn2_x = float(0.3)
+    btn2_y = float(-0.1)
     button2 = visual.Rect(
         temp_win, 
-        size=[0.25, 0.12], 
+        width=btn2_w, 
+        height=btn2_h, 
         fillColor='lightblue', 
         lineColor='black', 
-        pos=[0.3, -0.1]
+        pos=(btn2_x, btn2_y)
     )
-    button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.05, pos=[0.3, -0.1])
+    button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.05, pos=(btn2_x, btn2_y))
     
     mouse_temp = event.Mouse(win=temp_win)
     mouse_temp.setVisible(True)
@@ -149,9 +171,13 @@ def get_input_method():
         wrapWidth=1.4
     )
     
-    # Create continue button for temp window - use size parameter to avoid broadcasting issues
-    continue_button = visual.Rect(temp_win, size=[0.3, 0.1], fillColor='lightblue', lineColor='black', pos=[0, -0.3])
-    continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=[0, -0.3])
+    # Create continue button for temp window - use width/height with explicit floats
+    cont_w = float(0.3)
+    cont_h = float(0.1)
+    cont_x = float(0.0)
+    cont_y = float(-0.3)
+    continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y))
+    continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(cont_x, cont_y))
     
     clicked = False
     prev_mouse_buttons_cont = [False, False, False]
