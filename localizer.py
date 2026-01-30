@@ -52,6 +52,13 @@ def get_input_method():
         )
         
         # Create button 1 (TOUCH SCREEN) - large buttons for easy interaction
+        # Debug: Print window transform info before creating Rect
+        print("DEBUG sizePix:", temp_win.sizePix)
+        print("DEBUG units:", temp_win.units)
+        print("DEBUG viewPos:", getattr(temp_win, "viewPos", "NOATTR"))
+        print("DEBUG winType:", getattr(temp_win, "winType", "NOATTR"))
+        print("DEBUG backend:", type(getattr(temp_win, "backend", None)))
+        
         btn1_w = float(0.65)
         btn1_h = float(0.28)
         btn1_x = float(-0.3)
