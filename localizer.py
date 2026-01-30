@@ -31,11 +31,9 @@ def get_input_method():
     
     # Create temporary window - handle partial initialization
     temp_win = None
-    print ("temp_win created")
     try:
         # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
         temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
-        print ("temp_win created")
         # Ensure window is fully initialized - draw something first to initialize OpenGL context
         dummy = visual.TextStim(temp_win, text='', color='white', pos=(0, 0))
         dummy.draw()
@@ -54,6 +52,7 @@ def get_input_method():
         )
         
         # Create button 1 (TOUCH SCREEN) - convert all values to Python native types
+        print ("button 1 created")
         btn1_w = float(0.6)
         btn1_h = float(0.25)
         btn1_x = float(-0.3)
