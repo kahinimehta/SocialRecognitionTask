@@ -47,49 +47,49 @@ def get_input_method():
             text="What input method are you using?\n\n"
                  "Touch or click the button below:",
             color='black',
-            height=30/720,
-            pos=(0, 200/720),
-            wrapWidth=1000/720,
+            height=30/720*0.75,
+            pos=(0, 200/720*0.6),
+            wrapWidth=1000/720*0.75,
             units='height'
         )
         
         # Create button 1 (TOUCH SCREEN) - height units
         button1 = visual.Rect(
             temp_win,
-            width=520/720,
-            height=180/720,
+            width=520/720*0.75,
+            height=180/720*0.75,
             fillColor='lightgreen',
             lineColor='black',
-            pos=(-320/720, -80/720),
-            lineWidth=1/720,
+            pos=(-320/720*0.6, -80/720*0.6),
+            lineWidth=1/720*0.75,
             units='height'
         )
         button1_text = visual.TextStim(
             temp_win, 
             text="TOUCH SCREEN\n(Tap with finger)", 
             color='black', 
-            height=24/720, 
-            pos=(-320/720, -80/720),
+            height=24/720*0.75, 
+            pos=(-320/720*0.6, -80/720*0.6),
             units='height'
         )
         
         # Create button 2 (MOUSE/TRACKPAD) - height units
         button2 = visual.Rect(
             temp_win,
-            width=520/720,
-            height=180/720,
+            width=520/720*0.75,
+            height=180/720*0.75,
             fillColor='lightblue',
             lineColor='black',
-            pos=(320/720, -80/720),
-            lineWidth=1/720,
+            pos=(320/720*0.6, -80/720*0.6),
+            lineWidth=1/720*0.75,
             units='height'
         )
         button2_text = visual.TextStim(
             temp_win, 
             text="MOUSE/TRACKPAD\n(Click or tap)", 
             color='black', 
-            height=24/720, 
-            pos=(320/720, -80/720),
+            height=24/720*0.75, 
+            pos=(320/720*0.6, -80/720*0.6),
             units='height'
         )
         
@@ -154,9 +154,9 @@ def get_input_method():
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                     except:
                         # Fallback to manual calculation
-                        hit_margin = 150
-                        button1_x, button1_y = -320, -80
-                        button1_width, button1_height = 520, 180
+                        hit_margin = 150/720*0.75
+                        button1_x, button1_y = -320/720*0.6, -80/720*0.6
+                        button1_width, button1_height = 520/720*0.75, 180/720*0.75
                         if (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
                             button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin):
                             if t > minRT:
@@ -192,9 +192,9 @@ def get_input_method():
                                         mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                         except:
                             # Fallback to manual calculation
-                            hit_margin = 150/720
-                            button2_x, button2_y = 320/720, -80/720
-                            button2_width, button2_height = 520/720, 180/720
+                            hit_margin = 150/720*0.75
+                            button2_x, button2_y = 320/720*0.6, -80/720*0.6
+                            button2_width, button2_height = 520/720*0.75, 180/720*0.75
                             if (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
                                 button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin):
                                 if t > minRT:
@@ -229,19 +229,19 @@ def get_input_method():
             temp_win,
             text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
             color='black',
-            height=40/720,
-            pos=(0, 100/720),
-            wrapWidth=1000/720,
+            height=40/720*0.75,
+            pos=(0, 100/720*0.6),
+            wrapWidth=1000/720*0.75,
             units='height'
         )
         
         # Create continue button for temp window - use height units
-        cont_w = 300/720
-        cont_h = 80/720
+        cont_w = 300/720*0.75
+        cont_h = 80/720*0.75
         cont_x = 0
-        cont_y = -150/720
+        cont_y = -150/720*0.6
         continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y), units='height')
-        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720, pos=(cont_x, cont_y), units='height')
+        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
         
         clicked = False
         
@@ -290,9 +290,9 @@ def get_input_method():
                                     mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
                     except:
                         # Fallback to manual calculation
-                        hit_margin = 50/720
-                        button_x, button_y = 0.0, -150.0/720
-                        button_width, button_height = 300/720, 80/720
+                        hit_margin = 50/720*0.75
+                        button_x, button_y = 0.0, -150.0/720*0.6
+                        button_width, button_height = 300/720*0.75, 80/720*0.75
                         if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
                             if t_cont > minRT_cont:
@@ -328,7 +328,7 @@ def get_input_method():
             temp_win,
             text="Loading...",
             color='black',
-            height=50/720,
+            height=50/720*0.75,
             pos=(0, 0),
             units='height'
         )
@@ -485,15 +485,15 @@ def get_participant_id():
     try:
         if USE_TOUCH_SCREEN:
             print("Creating touch screen text stimuli...")
-            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.35))
+            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045*0.75, wrapWidth=1.4*0.75, pos=(0, 0.35*0.6))
             print("id_prompt created")
-            input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.25))
+            input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75, pos=(0, 0.25*0.6))
             print("input_display created")
         else:
             print("Creating mouse/trackpad text stimuli...")
-            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.3))
+            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045*0.75, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
             print("id_prompt created")
-            input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.1))
+            input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75, pos=(0, 0.1*0.6))
             print("input_display created")
     except Exception as e:
         print(f"ERROR creating text stimuli: {e}")
@@ -512,37 +512,37 @@ def get_participant_id():
             ]
             
             keyboard_buttons = []
-            start_y = -0.15  # Move keyboard lower to avoid overlap with buttons
-            row_spacing = 0.12
+            start_y = -0.15*0.6  # Move keyboard lower to avoid overlap with buttons
+            row_spacing = 0.12*0.75
             
             print(f"Creating {len(keyboard_rows)} keyboard rows...")
             for row_idx, row in enumerate(keyboard_rows):
                 print(f"Creating row {row_idx} with {len(row)} keys...")
                 row_buttons = []
                 num_keys = len(row)
-                start_x = -(num_keys - 1) * 0.08 / 2
+                start_x = -(num_keys - 1) * 0.08 / 2 * 0.6
                 
                 for col_idx, key in enumerate(row):
-                    x_pos = start_x + col_idx * 0.08
+                    x_pos = start_x + col_idx * 0.08 * 0.6
                     y_pos = start_y - row_idx * row_spacing
                     
-                    button = visual.Rect(win, width=0.07, height=0.08, fillColor='lightgray', 
+                    button = visual.Rect(win, width=0.07*0.75, height=0.08*0.75, fillColor='lightgray', 
                                         lineColor='black', pos=(x_pos, y_pos))
-                    text = visual.TextStim(win, text=key, color='black', height=0.04, pos=(x_pos, y_pos))
+                    text = visual.TextStim(win, text=key, color='black', height=0.04*0.75, pos=(x_pos, y_pos))
                     row_buttons.append((button, text, key, x_pos, y_pos))
                 
                 keyboard_buttons.append(row_buttons)
             
             print("Creating special buttons...")
             # Special buttons - arranged horizontally between input and keyboard
-            button_y_pos = 0.05  # Position between input (0.25) and keyboard start (-0.15)
-            backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', 
-                                          lineColor='black', lineWidth=2, pos=(-0.25, button_y_pos))
-            backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025, pos=(-0.25, button_y_pos))
+            button_y_pos = 0.05*0.6  # Position between input (0.25) and keyboard start (-0.15)
+            backspace_button = visual.Rect(win, width=0.2*0.75, height=0.1*0.75, fillColor='lightcoral', 
+                                          lineColor='black', lineWidth=2*0.75, pos=(-0.25*0.6, button_y_pos))
+            backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025*0.75, pos=(-0.25*0.6, button_y_pos))
             
-            continue_button = visual.Rect(win, width=0.3, height=0.1, fillColor='lightgreen', 
-                                          lineColor='black', lineWidth=2, pos=(0.25, button_y_pos))
-            continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025, pos=(0.25, button_y_pos))
+            continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75, fillColor='lightgreen', 
+                                          lineColor='black', lineWidth=2*0.75, pos=(0.25*0.6, button_y_pos))
+            continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75, pos=(0.25*0.6, button_y_pos))
             print("All keyboard buttons created successfully")
         except Exception as e:
             print(f"ERROR creating keyboard buttons: {e}")
@@ -680,9 +680,9 @@ def get_participant_id():
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                     except:
                         # Fallback to manual calculation
-                        hit_margin = 0.08
-                        backspace_x, backspace_y = -0.35, start_y + 0.2
-                        backspace_width, backspace_height = 0.2, 0.1
+                        hit_margin = 0.08*0.75
+                        backspace_x, backspace_y = -0.35*0.6, (start_y + 0.2)*0.6
+                        backspace_width, backspace_height = 0.2*0.75, 0.1*0.75
                         if (backspace_x - backspace_width/2 - hit_margin <= mouseloc_x <= backspace_x + backspace_width/2 + hit_margin and
                             backspace_y - backspace_height/2 - hit_margin <= mouseloc_y <= backspace_y + backspace_height/2 + hit_margin):
                             if t > minRT:
@@ -805,18 +805,18 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     
     continue_button = visual.Rect(
         win,
-        width=0.3,
-        height=0.1,
+        width=0.3*0.75,
+        height=0.1*0.75,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.35)
+        pos=(0, -0.35*0.6)
     )
     continue_text = visual.TextStim(
         win,
         text=button_text,
         color='black',
-        height=0.05,
-        pos=(0, -0.35)
+        height=0.05*0.75,
+        pos=(0, -0.35*0.6)
     )
     
     def draw_screen():
@@ -876,9 +876,9 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                     except:
                         # Fallback to manual calculation
-                        hit_margin = 0.02
-                        button_x, button_y = 0.0, -0.35
-                        button_width, button_height = 0.3, 0.1
+                        hit_margin = 0.02*0.75
+                        button_x, button_y = 0.0, -0.35*0.6
+                        button_width, button_height = 0.3*0.75, 0.1*0.75
                         if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
                             if t > minRT:
@@ -937,10 +937,10 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                         button_x = float(button_pos[0])
                         button_y = float(button_pos[1])
                     else:
-                        button_x, button_y = 0.0, -0.35
+                        button_x, button_y = 0.0, -0.35*0.6
                         continue_button.pos = (button_x, button_y)
                 except (TypeError, ValueError, IndexError):
-                    button_x, button_y = 0.0, -0.35
+                    button_x, button_y = 0.0, -0.35*0.6
                     continue_button.pos = (button_x, button_y)
                 
                 # Get button dimensions
@@ -1010,42 +1010,42 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
         win,
         text=question_text,
         color='black',
-        height=0.06,
-        pos=(0, 0.2),
-        wrapWidth=1.4
+        height=0.06*0.75,
+        pos=(0, 0.2*0.6),
+        wrapWidth=1.4*0.75
     )
     
     # Create YES and NO buttons
     yes_button = visual.Rect(
         win,
-        width=0.25,
-        height=0.1,
+        width=0.25*0.75,
+        height=0.1*0.75,
         fillColor='lightgreen',
         lineColor='black',
-        pos=(-0.3, -0.2)
+        pos=(-0.3*0.6, -0.2*0.6)
     )
     yes_text = visual.TextStim(
         win,
         text="YES",
         color='black',
-        height=0.05,
-        pos=(-0.3, -0.2)
+        height=0.05*0.75,
+        pos=(-0.3*0.6, -0.2*0.6)
     )
     
     no_button = visual.Rect(
         win,
-        width=0.25,
-        height=0.1,
+        width=0.25*0.75,
+        height=0.1*0.75,
         fillColor='lightcoral',
         lineColor='black',
-        pos=(0.3, -0.2)
+        pos=(0.3*0.6, -0.2*0.6)
     )
     no_text = visual.TextStim(
         win,
         text="NO",
         color='black',
-        height=0.05,
-        pos=(0.3, -0.2)
+        height=0.05*0.75,
+        pos=(0.3*0.6, -0.2*0.6)
     )
     
     mouse = event.Mouse(win=win)
@@ -1220,14 +1220,14 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                     mouse_x, mouse_y = 0.0, 0.0
                 
                 # Check YES button
-                yes_x, yes_y = -0.3, -0.2
-                yes_width, yes_height = 0.25, 0.1
+                yes_x, yes_y = -0.3*0.6, -0.2*0.6
+                yes_width, yes_height = 0.25*0.75, 0.1*0.75
                 on_yes = (yes_x - yes_width/2 <= mouse_x <= yes_x + yes_width/2 and
                          yes_y - yes_height/2 <= mouse_y <= yes_y + yes_height/2)
                 
                 # Check NO button
-                no_x, no_y = 0.3, -0.2
-                no_width, no_height = 0.25, 0.1
+                no_x, no_y = 0.3*0.6, -0.2*0.6
+                no_width, no_height = 0.25*0.75, 0.1*0.75
                 on_no = (no_x - no_width/2 <= mouse_x <= no_x + no_width/2 and
                         no_y - no_height/2 <= mouse_y <= no_y + no_height/2)
                 
@@ -1401,9 +1401,9 @@ try:
              "about the previous image.\n\n"
              "Please pay attention to each image.",
         color='black',
-        height=0.05,
+        height=0.05*0.75,
         pos=(0, 0),
-        wrapWidth=1.4
+        wrapWidth=1.4*0.75
     )
 
     instructions.draw()
@@ -1524,9 +1524,9 @@ try:
         text="LOCALIZER TASK COMPLETE!\n\n"
              "Thank you for your participation.",
         color='black',
-        height=0.06,
+        height=0.06*0.75,
         pos=(0, 0),
-        wrapWidth=1.4
+        wrapWidth=1.4*0.75
     )
 
     completion_text.draw()

@@ -50,49 +50,49 @@ def get_input_method():
             text="What input method are you using?\n\n"
                  "Touch or click the button below:",
             color='black',
-            height=30/720,
-            pos=(0, 200/720),
-            wrapWidth=1000/720,
+            height=30/720*0.75,
+            pos=(0, 200/720*0.6),
+            wrapWidth=1000/720*0.75,
             units='height'
         )
         
         # Create button 1 (TOUCH SCREEN) - height units
         button1 = visual.Rect(
             temp_win,
-            width=520/720,
-            height=180/720,
+            width=520/720*0.75,
+            height=180/720*0.75,
             fillColor='lightgreen',
             lineColor='black',
-            pos=(-320/720, -80/720),
-            lineWidth=1/720,
+            pos=(-320/720*0.6, -80/720*0.6),
+            lineWidth=1/720*0.75,
             units='height'
         )
         button1_text = visual.TextStim(
             temp_win, 
             text="TOUCH SCREEN\n(Tap with finger)", 
             color='black', 
-            height=24/720, 
-            pos=(-320/720, -80/720),
+            height=24/720*0.75, 
+            pos=(-320/720*0.6, -80/720*0.6),
             units='height'
         )
         
         # Create button 2 (MOUSE/TRACKPAD) - height units
         button2 = visual.Rect(
             temp_win,
-            width=520/720,
-            height=180/720,
+            width=520/720*0.75,
+            height=180/720*0.75,
             fillColor='lightblue',
             lineColor='black',
-            pos=(320/720, -80/720),
-            lineWidth=1/720,
+            pos=(320/720*0.6, -80/720*0.6),
+            lineWidth=1/720*0.75,
             units='height'
         )
         button2_text = visual.TextStim(
             temp_win, 
             text="MOUSE/TRACKPAD\n(Click or tap)", 
             color='black', 
-            height=24/720, 
-            pos=(320/720, -80/720),
+            height=24/720*0.75, 
+            pos=(320/720*0.6, -80/720*0.6),
             units='height'
         )
         
@@ -195,9 +195,9 @@ def get_input_method():
                                         mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                         except:
                             # Fallback to manual calculation
-                            hit_margin = 150/720
-                            button2_x, button2_y = 320/720, -80/720
-                            button2_width, button2_height = 520/720, 180/720
+                            hit_margin = 150/720*0.75
+                            button2_x, button2_y = 320/720*0.6, -80/720*0.6
+                            button2_width, button2_height = 520/720*0.75, 180/720*0.75
                             if (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
                                 button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin):
                                 if t > minRT:
@@ -294,9 +294,9 @@ def get_input_method():
                                     mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
                     except:
                         # Fallback to manual calculation
-                        hit_margin = 50/720
-                        button_x, button_y = 0.0, -150.0/720
-                        button_width, button_height = 300/720, 80/720
+                        hit_margin = 50/720*0.75
+                        button_x, button_y = 0.0, -150.0/720*0.6
+                        button_width, button_height = 300/720*0.75, 80/720*0.75
                         if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
                             if t_cont > minRT_cont:
@@ -332,7 +332,7 @@ def get_input_method():
             temp_win,
             text="Loading...",
             color='black',
-            height=50/720,
+            height=50/720*0.75,
             pos=(0, 0),
             units='height'
         )
@@ -767,18 +767,18 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
     # Create continue button
     continue_button = visual.Rect(
         win,
-        width=0.3,
-        height=0.1,
+        width=0.3*0.75,
+        height=0.1*0.75,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.35)
+        pos=(0, -0.35*0.6)
     )
     continue_text = visual.TextStim(
         win,
         text=button_text,
         color='black',
-        height=0.05,
-        pos=(0, -0.35)
+        height=0.05*0.75,
+        pos=(0, -0.35*0.6)
     )
     
     # Draw initial screen once (button should be included in redraw_func)
@@ -1151,11 +1151,11 @@ def get_participant_id():
     # Create text display - adjust positions for touch screen to avoid overlap
     # Layout: prompt at top, input below, buttons below input, keyboard at bottom
     if USE_TOUCH_SCREEN:
-        id_prompt = visual.TextStim(win, text="", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.35))
-        input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.25))
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75, wrapWidth=1.4*0.75, pos=(0, 0.35*0.6))
+        input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75, pos=(0, 0.25*0.6))
     else:
-        id_prompt = visual.TextStim(win, text="", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.3))
-        input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.1))
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
+        input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75, pos=(0, 0.1*0.6))
     
     # Create on-screen keyboard if touch screen (no number row)
     keyboard_buttons = []
@@ -1471,8 +1471,8 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     # Create slider visual elements
     slider_line = visual.Line(
         win,
-        start=(-0.4, -0.2),
-        end=(0.4, -0.2),
+        start=(-0.4*0.6, -0.2*0.6),
+        end=(0.4*0.6, -0.2*0.6),
         lineColor='black',
         lineWidth=3
     )
@@ -1481,27 +1481,27 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         radius=0.02,
         fillColor='blue',
         lineColor='black',
-        pos=(0, -0.2)  # Start at center
+        pos=(0, -0.2*0.6)  # Start at center
     )
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04, pos=(-0.45, -0.2))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04, pos=(0.45, -0.2))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.45*0.6, -0.2*0.6))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.45*0.6, -0.2*0.6))
     
     # Trial number display
     if trial_num is not None:
-        trial_text = visual.TextStim(win, text=f"Trial {trial_num} of {max_trials}", color='gray', height=0.03, pos=(0, 0.4))
+        trial_text = visual.TextStim(win, text=f"Trial {trial_num} of {max_trials}", color='gray', height=0.03*0.75, pos=(0, 0.4*0.6))
     
-    prompt = visual.TextStim(win, text=prompt_text, color='black', height=0.05, pos=(0, 0.3))
+    prompt = visual.TextStim(win, text=prompt_text, color='black', height=0.05*0.75, pos=(0, 0.3*0.6))
     
     # Submit button
     submit_button = visual.Rect(
         win,
-        width=0.15,
-        height=0.06,
+        width=0.15*0.75,
+        height=0.06*0.75,
         fillColor='lightgray',
         lineColor='black',
-        pos=(0, -0.35)
+        pos=(0, -0.35*0.6)
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04, pos=(0, -0.35))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*0.75, pos=(0, -0.35*0.6))
     
     mouse.setVisible(True)
     # Don't set mouse position on macOS or touch screens - it causes errors
@@ -1543,7 +1543,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                 win,
                     text="Time's up! A random answer was selected. This will be logged as an invalid trial.",
                 color='red',
-                height=0.06,
+                height=0.06*0.75,
                 pos=(0, 0)
             )
             if image_stim:
@@ -1586,7 +1586,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         
         # Check if mouse/touch is clicking on slider handle or near slider line
         handle_distance = ((mouse_pos[0] - slider_handle.pos[0])**2 + (mouse_pos[1] - slider_handle.pos[1])**2)**0.5
-        on_slider_line = abs(mouse_pos[1] - (-0.2)) < 0.05  # Within 0.05 of slider line y-position
+        on_slider_line = abs(mouse_pos[1] - (-0.2*0.6)) < 0.05*0.75  # Within 0.05 of slider line y-position
         
         # For touch screen: larger touch area, immediate response
         # For mouse: smaller click area
@@ -1598,8 +1598,8 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                 dragging = True
                 # For touch screen, immediately update position when touched
                 if USE_TOUCH_SCREEN:
-                    x_pos = max(-0.4, min(0.4, mouse_pos[0]))
-                    slider_value = (x_pos + 0.4) / 0.8
+                    x_pos = max(-0.4*0.6, min(0.4*0.6, mouse_pos[0]))
+                    slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)
                     slider_handle.pos = (x_pos, -0.2)
                     if abs(slider_value - 0.5) > 0.01:
                         has_moved = True
@@ -2031,8 +2031,8 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
     # Create slider visualization
     slider_line = visual.Line(
         win,
-        start=(-0.4, -0.2),
-        end=(0.4, -0.2),
+        start=(-0.4*0.6, -0.2*0.6),
+        end=(0.4*0.6, -0.2*0.6),
         lineColor='black',
         lineWidth=3
     )
@@ -2087,7 +2087,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         core.wait(0.05)
     
     # Show handle at final position briefly
-    partner_handle.pos = (target_x, -0.2)
+    partner_handle.pos = (target_x, -0.2*0.6)
     
     # Animate clicking submit button (highlight button)
     for i in range(3):
@@ -2159,21 +2159,21 @@ def show_both_responses(participant_value, partner_value, participant_first):
         radius=0.02,
         fillColor='green',
         lineColor='black',
-        pos=(p_x_pos, -0.1)
+        pos=(p_x_pos, -0.1*0.6)
     )
     
     # Partner handle (blue)
-    a_x_pos = -0.4 + (partner_value * 0.8)
+    a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
     a_handle = visual.Circle(
         win,
-        radius=0.02,
+        radius=0.02*0.75,
         fillColor='blue',
         lineColor='black',
-        pos=(a_x_pos, -0.1)
+        pos=(a_x_pos, -0.1*0.6)
     )
     
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04, pos=(-0.45, -0.1))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04, pos=(0.45, -0.1))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.45*0.6, -0.1*0.6))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.45*0.6, -0.1*0.6))
     
     # Labels
     if participant_value < 0.5:
@@ -2211,36 +2211,36 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     # Create slider visualization showing both choices (like show_both_responses)
     slider_line = visual.Line(
         win,
-        start=(-0.4, 0.05),
-        end=(0.4, 0.05),
+        start=(-0.4*0.6, 0.05*0.6),
+        end=(0.4*0.6, 0.05*0.6),
         lineColor='black',
-        lineWidth=3
+        lineWidth=3*0.75
     )
     
     # Participant handle (green)
     if participant_value is not None:
-        p_x_pos = -0.4 + (participant_value * 0.8)
+        p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
         p_handle = visual.Circle(
             win,
-            radius=0.02,
+            radius=0.02*0.75,
             fillColor='green',
             lineColor='black',
-            pos=(p_x_pos, 0.05)
+            pos=(p_x_pos, 0.05*0.6)
         )
     
     # Partner handle (blue)
     if partner_value is not None:
-        a_x_pos = -0.4 + (partner_value * 0.8)
+        a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
         a_handle = visual.Circle(
             win,
-            radius=0.02,
+            radius=0.02*0.75,
             fillColor='blue',
             lineColor='black',
-            pos=(a_x_pos, 0.05)
+            pos=(a_x_pos, 0.05*0.6)
         )
     
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04, pos=(-0.45, 0.05))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04, pos=(0.45, 0.05))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.45*0.6, 0.05*0.6))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.45*0.6, 0.05*0.6))
     
     # Labels
     if participant_value is not None:
@@ -3148,25 +3148,25 @@ def run_experiment():
         win,
         text="Click the button below to begin the experiment.",
         color='black',
-        height=0.06,
-        pos=(0, 0.2),
-        wrapWidth=1.4
+        height=0.06*0.75,
+        pos=(0, 0.2*0.6),
+        wrapWidth=1.4*0.75
     )
     
     start_button = visual.Rect(
         win,
-        width=0.3,
-        height=0.1,
+        width=0.3*0.75,
+        height=0.1*0.75,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.3)
+        pos=(0, -0.3*0.6)
     )
     start_button_text = visual.TextStim(
         win,
         text="BEGIN",
         color='black',
-        height=0.05,
-        pos=(0, -0.3)
+        height=0.05*0.75,
+        pos=(0, -0.3*0.6)
     )
     
     mouse.setVisible(True)
