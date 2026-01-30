@@ -367,26 +367,49 @@ try:
     # Brief delay to ensure temp window is fully closed
     time.sleep(0.1)  # Small delay to ensure clean transition
     
-    # Create window in windowed mode (not fullscreen)
+    # Create window - fullscreen for touch screens, windowed for mouse/trackpad
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        if USE_TOUCH_SCREEN:
+            # Fullscreen for touch screens
+            win = visual.Window(color='white', units='height', fullscr=True, viewPos=(0, 0))
+            print("Main window created in fullscreen mode for touch screen")
+        else:
+            # Windowed mode for mouse/trackpad
+            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+            print("Main window created with size (1280, 720) in windowed mode")
         # Immediately flip to ensure window is ready
         win.flip()
     except Exception as e:
-        # If window creation fails, try with alternative explicit size
-        print(f"Warning: Could not create window with size (1280, 720) ({e})")
-        print("Trying with alternative size (1024, 768)...")
-        time.sleep(0.1)  # Reduced delay
-        try:
-            win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False, viewPos=(0, 0))
-            win.flip()
-        except Exception as e2:
-            print(f"Error: Could not create window ({e2})")
-            print("Exiting...")
-            core.quit()
-            exit(1)
+        # If window creation fails, try with alternative approach
+        print(f"Warning: Could not create window ({e})")
+        if USE_TOUCH_SCREEN:
+            print("Trying windowed mode as fallback...")
+            time.sleep(0.1)
+            try:
+                win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+                win.flip()
+                print("Main window created in windowed mode (fallback)")
+            except Exception as e2:
+                print(f"Error: Could not create window ({e2})")
+                import traceback
+                traceback.print_exc()
+                print("Exiting...")
+                core.quit()
+                exit(1)
+        else:
+            print("Trying with alternative size (1024, 768)...")
+            time.sleep(0.1)  # Reduced delay
+            try:
+                win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False, viewPos=(0, 0))
+                win.flip()
+                print("Main window created with size (1024, 768)")
+            except Exception as e2:
+                print(f"Error: Could not create window ({e2})")
+                print("Exiting...")
+                core.quit()
+                exit(1)
     
     # Verify window was created successfully
     if win is None:
@@ -1153,7 +1176,7 @@ def get_participant_id():
         # Create keyboard buttons
         button_width = 0.08
         button_height = 0.08
-        start_y = -0.25  # Lower keyboard to make room for buttons at top
+        start_y = 0.0  # Move keyboard higher, closer to buttons
         row_spacing = 0.1
         
         for row_idx, row in enumerate(keyboard_layout):
@@ -1181,16 +1204,16 @@ def get_participant_id():
                 )
                 keyboard_buttons.append((button, button_text, char))
         
-        # Special buttons: Backspace, Space, Continue (larger and more visible) - positioned just above keyboard
-        special_y = 0.15  # Position just above keyboard, below participant ID
+        # Special buttons: Backspace, Space, Continue (smaller fonts, positioned closer to keyboard)
+        special_y = 0.08  # Position closer to keyboard, reduced gap
         backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', lineColor='black', lineWidth=2, pos=(-0.3, special_y))
-        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.04, pos=(-0.3, special_y))
+        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025, pos=(-0.3, special_y))
         
         space_button = visual.Rect(win, width=0.25, height=0.1, fillColor='lightgray', lineColor='black', lineWidth=2, pos=(-0.05, special_y))
-        space_text = visual.TextStim(win, text="SPACE", color='black', height=0.04, pos=(-0.05, special_y))
+        space_text = visual.TextStim(win, text="SPACE", color='black', height=0.025, pos=(-0.05, special_y))
         
         continue_button = visual.Rect(win, width=0.3, height=0.1, fillColor='lightgreen', lineColor='black', lineWidth=2, pos=(0.3, special_y))
-        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.04, pos=(0.3, special_y))
+        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025, pos=(0.3, special_y))
     
     # Key list for keyboard input (non-touch)
     key_list = ['return', 'backspace', 'space'] + [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(48, 58)]

@@ -476,7 +476,7 @@ def get_participant_id():
         ]
         
         keyboard_buttons = []
-        start_y = -0.15  # Lower keyboard to make room for buttons at top
+        start_y = 0.0  # Move keyboard higher, closer to buttons
         row_spacing = 0.12
         
         for row_idx, row in enumerate(keyboard_rows):
@@ -495,19 +495,19 @@ def get_participant_id():
             
             keyboard_buttons.append(row_buttons)
         
-        # Special buttons - arranged horizontally just above keyboard (below participant ID input)
-        button_y_pos = 0.15  # Position just above keyboard, below participant ID
+        # Special buttons - arranged horizontally just above keyboard (reduced spacing)
+        button_y_pos = 0.08  # Position closer to keyboard, reduced gap
         backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', 
                                       lineColor='black', lineWidth=2, pos=(-0.35, button_y_pos))
-        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.04, pos=(-0.35, button_y_pos))
+        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025, pos=(-0.35, button_y_pos))
         
         space_button = visual.Rect(win, width=0.25, height=0.1, fillColor='lightgray', 
                                   lineColor='black', lineWidth=2, pos=(-0.05, button_y_pos))
-        space_text = visual.TextStim(win, text="SPACE", color='black', height=0.04, pos=(-0.05, button_y_pos))
+        space_text = visual.TextStim(win, text="SPACE", color='black', height=0.025, pos=(-0.05, button_y_pos))
         
         continue_button = visual.Rect(win, width=0.3, height=0.1, fillColor='lightgreen', 
                                       lineColor='black', lineWidth=2, pos=(0.3, button_y_pos))
-        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.04, pos=(0.3, button_y_pos))
+        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025, pos=(0.3, button_y_pos))
 
     def redraw():
         id_prompt.draw()
@@ -749,7 +749,7 @@ def get_participant_id():
                         except:
                             # Fallback to manual calculation
                             hit_margin = 0.08
-                            continue_x, continue_y = 0.3, 0.15  # Match button_y_pos
+                            continue_x, continue_y = 0.3, 0.08  # Match button_y_pos
                             continue_width, continue_height = 0.3, 0.1
                             if (continue_x - continue_width/2 - hit_margin <= mouseloc_x <= continue_x + continue_width/2 + hit_margin and
                                 continue_y - continue_height/2 - hit_margin <= mouseloc_y <= continue_y + continue_height/2 + hit_margin):
@@ -1312,30 +1312,51 @@ try:
     
     print("Creating main window...")
     
-    # Create window in windowed mode (not fullscreen)
+    # Create window - fullscreen for touch screens, windowed for mouse/trackpad
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        if USE_TOUCH_SCREEN:
+            # Fullscreen for touch screens
+            win = visual.Window(color='white', units='height', fullscr=True, viewPos=(0, 0))
+            print("Main window created in fullscreen mode for touch screen")
+        else:
+            # Windowed mode for mouse/trackpad
+            win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+            print("Main window created with size (1280, 720) in windowed mode")
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Main window created with size (1280, 720)")
     except Exception as e:
-        # If window creation fails, try with alternative explicit size
-        print(f"Warning: Could not create window with size (1280, 720) ({e})")
-        print("Trying with alternative size (1024, 768)...")
-        time.sleep(0.1)  # Reduced delay
-        try:
-            win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False, viewPos=(0, 0))
-            win.flip()
-            print("Main window created with size (1024, 768)")
-        except Exception as e2:
-            print(f"Error: Could not create window ({e2})")
-            import traceback
-            traceback.print_exc()
-            print("Exiting...")
-            core.quit()
-            exit(1)
+        # If window creation fails, try with alternative approach
+        print(f"Warning: Could not create window ({e})")
+        if USE_TOUCH_SCREEN:
+            print("Trying windowed mode as fallback...")
+            time.sleep(0.1)
+            try:
+                win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False, viewPos=(0, 0))
+                win.flip()
+                print("Main window created in windowed mode (fallback)")
+            except Exception as e2:
+                print(f"Error: Could not create window ({e2})")
+                import traceback
+                traceback.print_exc()
+                print("Exiting...")
+                core.quit()
+                exit(1)
+        else:
+            print("Trying with alternative size (1024, 768)...")
+            time.sleep(0.1)  # Reduced delay
+            try:
+                win = visual.Window(size=(1024, 768), color='white', units='height', fullscr=False, viewPos=(0, 0))
+                win.flip()
+                print("Main window created with size (1024, 768)")
+            except Exception as e2:
+                print(f"Error: Could not create window ({e2})")
+                import traceback
+                traceback.print_exc()
+                print("Exiting...")
+                core.quit()
+                exit(1)
     
     # Verify window was created successfully
     if win is None:
