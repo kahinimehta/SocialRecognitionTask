@@ -779,68 +779,131 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
     draw_screen()
     
     clicked = False
-    prev_mouse_buttons = [False, False, False]
-    last_hover_state = None
     
-    while not clicked:
-        # Check for mouse/touch click
+    if USE_TOUCH_SCREEN:
+        # Position-change detection for touchscreens
+        mouserec = mouse.getPos()
         try:
-            mouse_buttons = mouse.getPressed()
-            mouse_pos = mouse.getPos()
-            
-            # Convert pos to tuple if it's a numpy array
+            mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+        except:
+            mouserec_x, mouserec_y = 0.0, 0.0
+        
+        minRT = 0.2  # Minimum response time
+        clock = core.Clock()
+        clock.reset()
+        
+        while not clicked:
             try:
-                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                mouseloc = mouse.getPos()
+                try:
+                    mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
+                except:
+                    mouseloc_x, mouseloc_y = 0.0, 0.0
+                
+                t = clock.getTime()
+                
+                # Check if mouse position has changed (touch moved)
+                if mouseloc_x == mouserec_x and mouseloc_y == mouserec_y:
+                    # Position hasn't changed, just redraw
+                    draw_screen()
                 else:
+                    # Position has changed - check if touch is within button
+                    try:
+                        if continue_button.contains(mouseloc):
+                            if t > minRT:
+                                continue_button.fillColor = 'lightgreen'
+                                draw_screen()
+                                core.wait(0.2)
+                                clicked = True
+                                break
+                            else:
+                                mouserec = mouse.getPos()
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                    except:
+                        # Fallback to manual calculation
+                        hit_margin = 0.02
+                        button_x, button_y = 0.0, -0.45
+                        button_width, button_height = 0.3, 0.1
+                        if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
+                            button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
+                            if t > minRT:
+                                continue_button.fillColor = 'lightgreen'
+                                draw_screen()
+                                core.wait(0.2)
+                                clicked = True
+                                break
+                            else:
+                                mouserec = mouse.getPos()
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                
+                # Redraw every frame
+                draw_screen()
+                event.clearEvents()
+                core.wait(0.001)  # Very fast polling
+            except Exception:
+                pass
+            
+            # Safe event.getKeys() handling
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if keys:
+                    if 'space' in keys:
+                        clicked = True
+                        break
+                    elif 'escape' in keys:
+                        core.quit()
+            except (AttributeError, Exception):
+                pass
+    else:
+        # Standard mouse click detection for non-touch screens
+        prev_mouse_buttons = [False, False, False]
+        last_hover_state = None
+        
+        while not clicked:
+            try:
+                mouse_buttons = mouse.getPressed()
+                mouse_pos = mouse.getPos()
+                
+                try:
+                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                        mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                    else:
+                        mouse_x, mouse_y = 0.0, 0.0
+                except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
-            except (TypeError, ValueError):
-                mouse_x, mouse_y = 0.0, 0.0
-            
-            # Get button position and size (handle numpy arrays)
-            try:
-                button_pos = continue_button.pos
-                if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
-                    button_x, button_y = float(button_pos[0]), float(button_pos[1])
-                else:
+                
+                try:
+                    button_pos = continue_button.pos
+                    if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                        button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                    else:
+                        button_x, button_y = 0.0, -0.45
+                except (TypeError, ValueError):
                     button_x, button_y = 0.0, -0.45
-            except (TypeError, ValueError):
-                button_x, button_y = 0.0, -0.45
-            
-            try:
-                button_width = float(continue_button.width)
-                button_height = float(continue_button.height)
-            except (TypeError, ValueError):
-                button_width, button_height = 0.3, 0.1
-            
-            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
-            
-            # Check if mouse is over button
-            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
-            
-            # Check for button release (mouse was pressed on button and now released)
-            if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                if on_button:
-                    # Visual feedback
-                    continue_button.fillColor = 'lightgreen'
-                    draw_screen()
-                    core.wait(0.2)
-                    clicked = True
-                    break
-            
-            # Also check for button press (for touch screens, press and release happen quickly)
-            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
-                # For touch screens, trigger immediately on press
-                if USE_TOUCH_SCREEN:
-                    continue_button.fillColor = 'lightgreen'
-                    draw_screen()
-                    core.wait(0.2)
-                    clicked = True
-                    break
-            
-            # Update button color on hover (for click mode) - only redraw if hover state changes
-            if not USE_TOUCH_SCREEN:
+                
+                try:
+                    button_width = float(continue_button.width)
+                    button_height = float(continue_button.height)
+                except (TypeError, ValueError):
+                    button_width, button_height = 0.3, 0.1
+                
+                on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
+                            button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                
+                if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                    if on_button:
+                        continue_button.fillColor = 'lightgreen'
+                        draw_screen()
+                        core.wait(0.2)
+                        clicked = True
+                        break
+                
                 if on_button != last_hover_state:
                     if on_button:
                         continue_button.fillColor = 'lightcyan'
@@ -848,24 +911,24 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                         continue_button.fillColor = 'lightblue'
                     draw_screen()
                     last_hover_state = on_button
+                
+                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+            except (AttributeError, Exception):
+                pass
             
-            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-        except (AttributeError, Exception) as e:
-            # Keep previous state on error
-            pass
-        
-        # Also check for space key as backup
-        try:
-            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
-            if 'space' in keys:
-                clicked = True
-                break
-            elif 'escape' in keys:
-                core.quit()
-        except (AttributeError, Exception):
-            pass
-        
-        core.wait(0.01)
+            # Also check for space key as backup
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if keys:
+                    if 'space' in keys:
+                        clicked = True
+                        break
+                    elif 'escape' in keys:
+                        core.quit()
+            except (AttributeError, Exception):
+                pass
+            
+            core.wait(0.01)
     
     mouse.setVisible(False)
     event.clearEvents()
@@ -1069,9 +1132,13 @@ def get_participant_id():
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
     
-    # Create text display
-    id_prompt = visual.TextStim(win, text="", color='black', height=0.06, wrapWidth=1.4, pos=(0, 0.3))
-    input_display = visual.TextStim(win, text="", color='black', height=0.08, pos=(0, 0.1))
+    # Create text display - adjust positions for touch screen to avoid overlap
+    if USE_TOUCH_SCREEN:
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.06, wrapWidth=1.4, pos=(0, 0.4))
+        input_display = visual.TextStim(win, text="", color='black', height=0.08, pos=(0, 0.25))
+    else:
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.06, wrapWidth=1.4, pos=(0, 0.3))
+        input_display = visual.TextStim(win, text="", color='black', height=0.08, pos=(0, 0.1))
     
     # Create on-screen keyboard if touch screen
     keyboard_buttons = []
@@ -1086,7 +1153,7 @@ def get_participant_id():
         # Create keyboard buttons
         button_width = 0.08
         button_height = 0.08
-        start_y = -0.2
+        start_y = -0.25  # Lower keyboard to make room for buttons at top
         row_spacing = 0.1
         
         for row_idx, row in enumerate(keyboard_layout):
@@ -1114,8 +1181,8 @@ def get_participant_id():
                 )
                 keyboard_buttons.append((button, button_text, char))
         
-        # Special buttons: Backspace, Space, Continue (larger and more visible) - positioned at top above keyboard
-        special_y = start_y + 0.25  # Position above the keyboard
+        # Special buttons: Backspace, Space, Continue (larger and more visible) - positioned at very top above participant ID
+        special_y = 0.5  # Position at top of screen, above participant ID input
         backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', lineColor='black', lineWidth=2, pos=(-0.3, special_y))
         backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.04, pos=(-0.3, special_y))
         
