@@ -12,6 +12,22 @@ import math
 # Global variable to store input method preference (set before window creation)
 USE_TOUCH_SCREEN = False
 
+def safe_window_close(window):
+    """Safely close a window, checking if it's still valid to prevent NoneType errors"""
+    try:
+        if window is not None:
+            # Check if window has a backend and it's not None
+            if hasattr(window, 'backend') and window.backend is not None:
+                window.close()
+            elif hasattr(window, 'close'):
+                # Try to close anyway, but catch any errors
+                try:
+                    window.close()
+                except (AttributeError, RuntimeError, Exception):
+                    pass  # Window already closed or backend is None
+    except (AttributeError, RuntimeError, Exception):
+        pass  # Window already dereferenced or closed
+
 # Create temporary window to ask for input method
 # Try auto-detecting screen size first, fallback to fixed size if that fails
 try:
@@ -158,7 +174,7 @@ def get_input_method():
         try:
             keys = event.getKeys(keyList=['escape'])
             if keys and 'escape' in keys:  # Check keys is not empty first
-                temp_win.close()
+                safe_window_close(temp_win)
                 core.quit()
         except (AttributeError, Exception):
             pass  # Ignore event errors
@@ -253,14 +269,14 @@ def get_input_method():
                     clicked = True
                     break
                 elif 'escape' in keys:
-                    temp_win.close()
+                    safe_window_close(temp_win)
                     core.quit()
         except (AttributeError, Exception):
             pass  # Ignore event errors
         core.wait(0.01)
     
     mouse_temp.setVisible(False)
-    temp_win.close()
+    safe_window_close(temp_win)
     
     # Small delay to ensure window is fully closed before creating new one
     import time
@@ -3294,7 +3310,7 @@ def run_experiment():
             header_color='red',
             body_color='black'
         )
-        win.close()
+        safe_window_close(win)
         return
     
     # Record experiment end time and calculate total time
@@ -3334,7 +3350,7 @@ def run_experiment():
         print(f"⚠ Test participant detected - skipping summary file save")
         print(f"  Total task time: {total_task_time/60:.2f} minutes ({total_task_time:.1f} seconds)")
     
-    win.close()
+    safe_window_close(win)
 
 # =========================
 #  RUN EXPERIMENT
@@ -3344,10 +3360,10 @@ if __name__ == "__main__":
         run_experiment()
     except KeyboardInterrupt:
         print("\nExperiment interrupted by user.")
-        win.close()
+        safe_window_close(win)
     except Exception as e:
         print(f"\nError: {e}")
         import traceback
         traceback.print_exc()
-        win.close()
+        safe_window_close(win)
 

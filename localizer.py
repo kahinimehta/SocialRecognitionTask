@@ -9,6 +9,22 @@ from datetime import datetime
 # Global variable to store input method preference (set before window creation)
 USE_TOUCH_SCREEN = False
 
+def safe_window_close(window):
+    """Safely close a window, checking if it's still valid to prevent NoneType errors"""
+    try:
+        if window is not None:
+            # Check if window has a backend and it's not None
+            if hasattr(window, 'backend') and window.backend is not None:
+                window.close()
+            elif hasattr(window, 'close'):
+                # Try to close anyway, but catch any errors
+                try:
+                    window.close()
+                except (AttributeError, RuntimeError, Exception):
+                    pass  # Window already closed or backend is None
+    except (AttributeError, RuntimeError, Exception):
+        pass  # Window already dereferenced or closed
+
 # Create temporary window to ask for input method
 # Try auto-detecting screen size first, fallback to fixed size if that fails
 try:
@@ -155,7 +171,7 @@ def get_input_method():
         try:
             keys = event.getKeys(keyList=['escape'])
             if keys and 'escape' in keys:  # Check keys is not empty first
-                temp_win.close()
+                safe_window_close(temp_win)
                 core.quit()
         except (AttributeError, Exception):
             pass  # Ignore event errors
@@ -257,14 +273,14 @@ def get_input_method():
                     clicked = True
                     break
                 elif 'escape' in keys:
-                    temp_win.close()
+                    safe_window_close(temp_win)
                     core.quit()
         except (AttributeError, Exception):
             pass  # Ignore event errors
         core.wait(0.01)
     
     mouse_temp.setVisible(False)
-    temp_win.close()
+    safe_window_close(temp_win)
     
     # Small delay to ensure window is fully closed before creating new one
     time.sleep(0.5)
@@ -1002,5 +1018,5 @@ if not is_test_participant(participant_id) and csv_file is None:
 elif is_test_participant(participant_id):
     print(f"⚠ Test participant detected - skipping file save")
 
-# Close window
-win.close()
+# Close window safely
+safe_window_close(win)
