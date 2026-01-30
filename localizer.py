@@ -398,10 +398,15 @@ def get_input_method():
         if temp_win is not None:
             try:
                 temp_win.close()
-            except Exception:
-                pass
-        # Minimal delay - main window creation will happen immediately after
-        time.sleep(0.05)  # Minimized delay for fastest transition
+                # Give the system time to fully close the window
+                time.sleep(0.1)
+            except Exception as e:
+                print(f"ERROR closing temp window: {repr(e)}", file=sys.stderr)
+                traceback.print_exc()
+                # Still wait a bit even if close failed
+                time.sleep(0.1)
+        # Additional delay to ensure temp window is fully closed before main window creation
+        time.sleep(0.1)  # Total delay: 0.1 (from close) + 0.1 (here) = 0.2 seconds
 
 # =========================
 #  STIMULI SETUP (Module-level constants)
@@ -1352,8 +1357,9 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                         break
                 
                 prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-            except (AttributeError, Exception):
-                pass
+            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
+                # Log specific errors instead of silently ignoring
+                print(f"Warning: Error in ask_category_question mouse button handling: {e}", file=sys.stderr)
             
             # Safe event.getKeys() handling
             try:
@@ -1369,8 +1375,8 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                         break
                     elif 'escape' in keys:
                         core.quit()
-            except (AttributeError, Exception):
-                pass
+            except (AttributeError, RuntimeError) as e:
+                print(f"Warning: Error checking keys in ask_category_question: {e}", file=sys.stderr)
             
             core.wait(0.01)
     
@@ -1415,9 +1421,10 @@ try:
     print("Waiting before creating main window...")
     sys.stdout.flush()
     sys.stderr.flush()
-    print("DEBUG: About to sleep 0.2 seconds", file=sys.stderr)
+    # Note: temp window cleanup already includes delays, but add extra safety margin
+    print("DEBUG: About to sleep 0.3 seconds for window cleanup", file=sys.stderr)
     sys.stderr.flush()
-    time.sleep(0.2)  # Additional delay to ensure temp window is fully closed
+    time.sleep(0.3)  # Extra delay to ensure temp window is fully closed and system is ready
     print("DEBUG: Finished sleeping, about to create window", file=sys.stderr)
     sys.stderr.flush()
     
@@ -1529,10 +1536,12 @@ try:
         if platform.system() == 'Darwin':  # macOS
             try:
                 win.winHandle.activate()
-            except:
-                pass
-    except:
-        pass
+            except Exception as e:
+                print(f"Warning: Could not activate window on macOS: {e}", file=sys.stderr)
+                # This is not critical, continue anyway
+    except Exception as e:
+        print(f"Warning: Error checking platform for window activation: {e}", file=sys.stderr)
+        # This is not critical, continue anyway
 
     # Initial flip to ensure window is ready
     print("Performing initial window flip...")
@@ -1606,8 +1615,9 @@ try:
         if win is not None:
             try:
                 win.close()
-            except:
-                pass
+            except Exception as e:
+                print(f"ERROR calling win.close(): {repr(e)}", file=sys.stderr)
+                traceback.print_exc()
         core.quit()
         exit(1)
 
