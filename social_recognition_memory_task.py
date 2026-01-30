@@ -1406,8 +1406,6 @@ def get_participant_id():
             redraw()
             event.clearEvents()
             core.wait(0.001)  # Very fast polling
-            except (AttributeError, Exception):
-                pass
         else:
             # Keyboard input
             keys = event.getKeys(keyList=key_list, timeStamped=False)

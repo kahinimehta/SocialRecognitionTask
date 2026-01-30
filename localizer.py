@@ -684,9 +684,9 @@ def get_participant_id():
                                     except:
                                         mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                         except:
-                        # Fallback to manual calculation
-                        hit_margin = 0.08
-                        space_x, space_y = -0.05, start_y + 0.2
+                            # Fallback to manual calculation
+                            hit_margin = 0.08
+                            space_x, space_y = -0.05, start_y + 0.2
                             space_width, space_height = 0.25, 0.1
                             if (space_x - space_width/2 - hit_margin <= mouseloc_x <= space_x + space_width/2 + hit_margin and
                                 space_y - space_height/2 - hit_margin <= mouseloc_y <= space_y + space_height/2 + hit_margin):
