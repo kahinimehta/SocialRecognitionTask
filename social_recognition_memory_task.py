@@ -385,13 +385,13 @@ try:
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1300, 900), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        win = visual.Window(size=(1350, 900), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Main window created with size (1300, 900)")
+        print("Main window created with size (1350, 900)")
     except Exception as e:
         # If window creation fails, try with alternative explicit size
-        print(f"Warning: Could not create window with size (1300, 900) ({e})")
+        print(f"Warning: Could not create window with size (1350, 900) ({e})")
         import traceback
         traceback.print_exc()
         print("Trying with alternative size (1280, 720)...")
@@ -1159,10 +1159,9 @@ def get_participant_id():
         id_prompt = visual.TextStim(win, text="", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.3))
         input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.1))
     
-    # Create on-screen keyboard if touch screen
+    # Create on-screen keyboard if touch screen (no number row)
     keyboard_buttons = []
     keyboard_layout = [
-        ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
         ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
         ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
         ['z', 'x', 'c', 'v', 'b', 'n', 'm', '_', '-']
