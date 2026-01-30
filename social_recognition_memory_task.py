@@ -28,37 +28,37 @@ def safe_window_close(window):
     except (AttributeError, RuntimeError, Exception):
         pass  # Window already dereferenced or closed
 
-# Create temporary window to ask for input method
-# Try auto-detecting screen size first, fallback to fixed size if that fails
-try:
-    # Let PsychoPy auto-detect screen size (works better with touch screens)
-    temp_win = visual.Window(size=None, color='white', units='height', fullscr=False)
-except:
-    # Fallback to fixed size if auto-detection fails
-    temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
-
 def get_input_method():
     """Ask user whether they're using touch screen (1) or click screen (2)"""
     global USE_TOUCH_SCREEN
     
-    # Ensure window is fully initialized - draw something first to initialize OpenGL context
-    dummy = visual.TextStim(temp_win, text='', color='white', pos=(0, 0))
-    dummy.draw()
-    temp_win.flip()
-    core.wait(0.2)
+    # Create temporary window - handle partial initialization
+    temp_win = None
+    try:
+        # Try auto-detecting screen size first, fallback to fixed size if that fails
+        try:
+            temp_win = visual.Window(size=None, color='white', units='height', fullscr=False)
+        except:
+            temp_win = visual.Window(size=(1280, 720), color='white', units='height', fullscr=False)
+        
+        # Ensure window is fully initialized - draw something first to initialize OpenGL context
+        dummy = visual.TextStim(temp_win, text='', color='white', pos=(0, 0))
+        dummy.draw()
+        temp_win.flip()
+        core.wait(0.2)
     
-    prompt_text = visual.TextStim(
-        temp_win,
-        text="What input method are you using?\n\n"
-             "Click 1 for TOUCH SCREEN\n"
-             "Click 2 for CLICK/MOUSE",
-        color='black',
-        height=0.06,
-        pos=(0, 0.2),
-        wrapWidth=1.4
-    )
-    
-    # Create button 1 (TOUCH SCREEN) - convert all values to Python native types
+        prompt_text = visual.TextStim(
+            temp_win,
+            text="What input method are you using?\n\n"
+                 "Click 1 for TOUCH SCREEN\n"
+                 "Click 2 for CLICK/MOUSE",
+            color='black',
+            height=0.06,
+            pos=(0, 0.2),
+            wrapWidth=1.4
+        )
+        
+        # Create button 1 (TOUCH SCREEN) - convert all values to Python native types
     btn1_w = float(0.25)
     btn1_h = float(0.12)
     btn1_x = float(-0.3)
@@ -71,40 +71,40 @@ def get_input_method():
         lineColor='black', 
         pos=(btn1_x, btn1_y)
     )
-    button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=(btn1_x, btn1_y))
-    
-    # Create button 2 (CLICK/MOUSE) - convert all values to Python native types
-    btn2_w = float(0.25)
-    btn2_h = float(0.12)
-    btn2_x = float(0.3)
-    btn2_y = float(-0.1)
-    button2 = visual.Rect(
-        temp_win, 
-        width=btn2_w, 
-        height=btn2_h, 
-        fillColor='lightblue', 
-        lineColor='black', 
-        pos=(btn2_x, btn2_y)
-    )
-    button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.05, pos=(btn2_x, btn2_y))
-    
-    mouse_temp = event.Mouse(win=temp_win)
-    mouse_temp.setVisible(True)
-    
-    def draw_selection_screen():
-        prompt_text.draw()
-        button1.draw()
-        button1_text.draw()
-        button2.draw()
-        button2_text.draw()
-        temp_win.flip()
-    
-    draw_selection_screen()
-    event.clearEvents()
-    selected = None
-    prev_mouse_buttons = [False, False, False]
-    
-    while selected is None:
+        button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=(btn1_x, btn1_y))
+        
+        # Create button 2 (CLICK/MOUSE) - convert all values to Python native types
+        btn2_w = float(0.25)
+        btn2_h = float(0.12)
+        btn2_x = float(0.3)
+        btn2_y = float(-0.1)
+        button2 = visual.Rect(
+            temp_win, 
+            width=btn2_w, 
+            height=btn2_h, 
+            fillColor='lightblue', 
+            lineColor='black', 
+            pos=(btn2_x, btn2_y)
+        )
+        button2_text = visual.TextStim(temp_win, text="2\nCLICK/MOUSE", color='black', height=0.05, pos=(btn2_x, btn2_y))
+        
+        mouse_temp = event.Mouse(win=temp_win)
+        mouse_temp.setVisible(True)
+        
+        def draw_selection_screen():
+            prompt_text.draw()
+            button1.draw()
+            button1_text.draw()
+            button2.draw()
+            button2_text.draw()
+            temp_win.flip()
+        
+        draw_selection_screen()
+        event.clearEvents()
+        selected = None
+        prev_mouse_buttons = [False, False, False]
+        
+        while selected is None:
         try:
             mouse_buttons = mouse_temp.getPressed()
             mouse_pos = mouse_temp.getPos()
@@ -174,35 +174,34 @@ def get_input_method():
         try:
             keys = event.getKeys(keyList=['escape'])
             if keys and 'escape' in keys:  # Check keys is not empty first
-                safe_window_close(temp_win)
-                core.quit()
+                return None  # Signal to exit - window will be closed in finally
         except (AttributeError, Exception):
             pass  # Ignore event errors
         
-        core.wait(0.01)
-    
-    # Show confirmation
-    confirm_text = visual.TextStim(
-        temp_win,
-        text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
-        color='black',
-        height=0.06,
-        pos=(0, 0),
-        wrapWidth=1.4
-    )
-    
-    # Create continue button for temp window - use width/height with explicit floats
-    cont_w = float(0.3)
-    cont_h = float(0.1)
-    cont_x = float(0.0)
-    cont_y = float(-0.3)
-    continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y))
-    continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(cont_x, cont_y))
-    
-    clicked = False
-    prev_mouse_buttons_cont = [False, False, False]
-    
-    while not clicked:
+            core.wait(0.01)
+        
+        # Show confirmation
+        confirm_text = visual.TextStim(
+            temp_win,
+            text=f"Input method set to: {'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
+            color='black',
+            height=0.06,
+            pos=(0, 0),
+            wrapWidth=1.4
+        )
+        
+        # Create continue button for temp window - use width/height with explicit floats
+        cont_w = float(0.3)
+        cont_h = float(0.1)
+        cont_x = float(0.0)
+        cont_y = float(-0.3)
+        continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y))
+        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=0.05, pos=(cont_x, cont_y))
+        
+        clicked = False
+        prev_mouse_buttons_cont = [False, False, False]
+        
+        while not clicked:
         confirm_text.draw()
         continue_button.draw()
         continue_text.draw()
@@ -269,57 +268,67 @@ def get_input_method():
                     clicked = True
                     break
                 elif 'escape' in keys:
-                    safe_window_close(temp_win)
-                    core.quit()
+                    return None  # Signal to exit
         except (AttributeError, Exception):
             pass  # Ignore event errors
-        core.wait(0.01)
+            core.wait(0.01)
+        
+        mouse_temp.setVisible(False)
+        
+        # Small delay before closing
+        time.sleep(0.1)
+        
+        return USE_TOUCH_SCREEN
     
-    mouse_temp.setVisible(False)
-    safe_window_close(temp_win)
-    
-    # Small delay to ensure window is fully closed before creating new one
-    import time
-    time.sleep(0.5)
-    
-    return USE_TOUCH_SCREEN
+    finally:
+        # Close temp window exactly once in finally block
+        if temp_win is not None:
+            try:
+                temp_win.close()
+            except Exception:
+                pass
+        time.sleep(0.5)  # Delay after closing before creating new window
 
 # Ask for input method first
-get_input_method()
+result = get_input_method()
+if result is None:
+    core.quit()
 
-# Create main window with appropriate settings
-# Add a longer delay to ensure temp window is fully closed and OpenGL context is released
-import time
-time.sleep(0.5)  # Use time.sleep instead of core.wait since we don't have a window yet
-
+# Create main window with appropriate settings - use try/finally pattern
+win = None
 try:
+    import time
+    time.sleep(0.5)  # Use time.sleep instead of core.wait since we don't have a window yet
+    
     # Try creating window with the requested fullscreen setting
-    win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=USE_TOUCH_SCREEN)
-except Exception as e:
-    # If fullscreen fails (especially on macOS), try windowed mode
-    print(f"Warning: Could not create window with fullscr={USE_TOUCH_SCREEN} ({e})")
-    print("Trying windowed mode...")
     try:
+        win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=USE_TOUCH_SCREEN)
+    except Exception as e:
+        # If fullscreen fails (especially on macOS), try windowed mode
+        print(f"Warning: Could not create window with fullscr={USE_TOUCH_SCREEN} ({e})")
+        print("Trying windowed mode...")
         time.sleep(0.3)  # Additional delay
         win = visual.Window(size=[1280, 720], color='white', units='height', fullscr=False)
-    except Exception as e2:
-        print(f"Error: Could not create window: {e2}")
-        raise
+    
+    # Force window to front on macOS
+    try:
+        import platform
+        if platform.system() == 'Darwin':  # macOS
+            try:
+                win.winHandle.activate()
+            except:
+                pass
+    except:
+        pass
 
-# Force window to front on macOS
-try:
-    import platform
-    if platform.system() == 'Darwin':  # macOS
-        try:
-            win.winHandle.activate()
-        except:
-            pass
-except:
-    pass
-
-# Initial flip to ensure window is ready
-win.flip()
-core.wait(0.1)
+    # Initial flip to ensure window is ready
+    win.flip()
+    core.wait(0.1)
+except Exception as e:
+    print(f"Error creating main window: {e}")
+    import traceback
+    traceback.print_exc()
+    core.quit()
 
 # =========================
 #  GENERATE PLACEHOLDER STIMULI
@@ -3310,8 +3319,7 @@ def run_experiment():
             header_color='red',
             body_color='black'
         )
-        safe_window_close(win)
-        return
+        return  # Window will be closed in finally block
     
     # Record experiment end time and calculate total time
     experiment_end_time = time.time()
@@ -3349,9 +3357,6 @@ def run_experiment():
     else:
         print(f"⚠ Test participant detected - skipping summary file save")
         print(f"  Total task time: {total_task_time/60:.2f} minutes ({total_task_time:.1f} seconds)")
-    
-    safe_window_close(win)
-
 # =========================
 #  RUN EXPERIMENT
 # =========================
@@ -3360,10 +3365,16 @@ if __name__ == "__main__":
         run_experiment()
     except KeyboardInterrupt:
         print("\nExperiment interrupted by user.")
-        safe_window_close(win)
     except Exception as e:
         print(f"\nError: {e}")
         import traceback
         traceback.print_exc()
-        safe_window_close(win)
+    finally:
+        # Close window exactly once in finally block
+        if win is not None:
+            try:
+                win.close()
+            except Exception:
+                pass
+        core.quit()
 

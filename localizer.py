@@ -56,18 +56,18 @@ def get_input_method():
         )
         
         # Create button 1 (TOUCH SCREEN) - convert all values to Python native types
-    btn1_w = float(0.25)
-    btn1_h = float(0.12)
-    btn1_x = float(-0.3)
-    btn1_y = float(-0.1)
-    button1 = visual.Rect(
-        temp_win, 
-        width=btn1_w, 
-        height=btn1_h, 
-        fillColor='lightgreen', 
-        lineColor='black', 
-        pos=(btn1_x, btn1_y)
-    )
+        btn1_w = float(0.25)
+        btn1_h = float(0.12)
+        btn1_x = float(-0.3)
+        btn1_y = float(-0.1)
+        button1 = visual.Rect(
+            temp_win, 
+            width=btn1_w, 
+            height=btn1_h, 
+            fillColor='lightgreen', 
+            lineColor='black', 
+            pos=(btn1_x, btn1_y)
+        )
         button1_text = visual.TextStim(temp_win, text="1\nTOUCH SCREEN", color='black', height=0.05, pos=(btn1_x, btn1_y))
         
         # Create button 2 (CLICK/MOUSE) - convert all values to Python native types
