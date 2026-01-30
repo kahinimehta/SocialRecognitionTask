@@ -354,30 +354,44 @@ def get_input_method():
         time.sleep(0.2)  # Reduced delay from 0.5 to 0.2 for faster transition
 
 # Ask for input method first
-result = get_input_method()
+print("Getting input method...")
+try:
+    result = get_input_method()
+    print(f"Input method result: {result}")
+    print(f"Input method type: {type(result)}")
+except Exception as e:
+    print(f"ERROR in get_input_method(): {e}")
+    import traceback
+    traceback.print_exc()
+    core.quit()
+    exit(1)
+
 if result is None:
     print("Input method selection cancelled. Exiting...")
     core.quit()
     exit(0)
+print(f"Input method selected: {'TOUCH SCREEN' if result else 'MOUSE/TRACKPAD'}")
 
 # Create main window with appropriate settings - use try/finally pattern
 win = None
 try:
     import time
     # Brief delay to ensure temp window is fully closed
+    print("Waiting before creating main window...")
     time.sleep(0.1)  # Small delay to ensure clean transition
     
+    print("Creating main window...")
     # Create window in windowed mode with larger size for better visibility
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1325, 950), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        win = visual.Window(size=(1300, 900), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Main window created with size (1325, 950)")
+        print("Main window created with size (1300, 900)")
     except Exception as e:
         # If window creation fails, try with alternative explicit size
-        print(f"Warning: Could not create window with size (1325, 950) ({e})")
+        print(f"Warning: Could not create window with size (1300, 900) ({e})")
         import traceback
         traceback.print_exc()
         print("Trying with alternative size (1280, 720)...")
@@ -1137,9 +1151,10 @@ def get_participant_id():
     mouse.setVisible(True)
     
     # Create text display - adjust positions for touch screen to avoid overlap
+    # Layout: prompt at top, input below, buttons below input, keyboard at bottom
     if USE_TOUCH_SCREEN:
-        id_prompt = visual.TextStim(win, text="", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.4))
-        input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.3))
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.35))
+        input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.25))
     else:
         id_prompt = visual.TextStim(win, text="", color='black', height=0.045, wrapWidth=1.4, pos=(0, 0.3))
         input_display = visual.TextStim(win, text="", color='black', height=0.06, pos=(0, 0.1))
@@ -1157,7 +1172,7 @@ def get_participant_id():
         # Create keyboard buttons
         button_width = 0.08
         button_height = 0.08
-        start_y = 0.0  # Move keyboard higher, closer to buttons
+        start_y = -0.15  # Move keyboard lower to avoid overlap with buttons
         row_spacing = 0.1
         
         for row_idx, row in enumerate(keyboard_layout):
@@ -1185,8 +1200,8 @@ def get_participant_id():
                 )
                 keyboard_buttons.append((button, button_text, char))
         
-        # Special buttons: Backspace, Continue (smaller fonts, positioned closer to keyboard)
-        special_y = 0.12  # Position slightly higher
+        # Special buttons: Backspace, Continue (positioned between input and keyboard)
+        special_y = 0.05  # Position between input (0.25) and keyboard start (-0.15)
         backspace_button = visual.Rect(win, width=0.2, height=0.1, fillColor='lightcoral', lineColor='black', lineWidth=2, pos=(-0.25, special_y))
         backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025, pos=(-0.25, special_y))
         
