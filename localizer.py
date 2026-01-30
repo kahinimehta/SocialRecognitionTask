@@ -454,9 +454,21 @@ def load_all_stimuli():
 
 def get_participant_id():
     """Get participant ID from PsychoPy screen input with on-screen keyboard for touch screens"""
+    print("Inside get_participant_id() - checking win...")
+    if win is None:
+        raise RuntimeError("win is None when get_participant_id() is called!")
+    print(f"win is valid: {win}")
+    
     input_id = ""
-    mouse = event.Mouse(win=win)
-    mouse.setVisible(True)
+    try:
+        mouse = event.Mouse(win=win)
+        mouse.setVisible(True)
+        print("Mouse created successfully")
+    except Exception as e:
+        print(f"Error creating mouse: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
     # Adjust positions for touch screen to avoid overlap
     if USE_TOUCH_SCREEN:
@@ -1258,13 +1270,15 @@ try:
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     try:
-        win = visual.Window(size=(1300, 900), color='white', units='height', fullscr=False, viewPos=(0, 0))
+        win = visual.Window(size=(1325, 950), color='white', units='height', fullscr=False, viewPos=(0, 0))
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Main window created with size (1300, 900)")
+        print("Main window created with size (1325, 950)")
     except Exception as e:
         # If window creation fails, try with alternative explicit size
-        print(f"Warning: Could not create window with size (1300, 900) ({e})")
+        print(f"Warning: Could not create window with size (1325, 950) ({e})")
+        import traceback
+        traceback.print_exc()
         print("Trying with alternative size (1280, 720)...")
         time.sleep(0.1)  # Reduced delay
         try:
@@ -1309,6 +1323,8 @@ try:
         exit(1)
     
     print("Window verification complete, proceeding to experiment...")
+    print(f"Window object: {win}")
+    print(f"Window type: {type(win)}")
     
     # =========================
     #  MAIN EXPERIMENT
@@ -1316,13 +1332,17 @@ try:
 
     # Get participant ID
     print("About to call get_participant_id()...")
+    print(f"USE_TOUCH_SCREEN = {USE_TOUCH_SCREEN}")
     try:
+        print("Entering get_participant_id() function...")
         participant_id = get_participant_id()
         print(f"Got participant ID: {participant_id}")
     except Exception as e:
-        print(f"Error getting participant ID: {e}")
+        print(f"ERROR in get_participant_id(): {e}")
+        print(f"Error type: {type(e).__name__}")
         import traceback
         traceback.print_exc()
+        print("This error was caught - will exit now")
         if win is not None:
             try:
                 win.close()
@@ -1521,11 +1541,19 @@ try:
 except Exception as e:
     # Catch any unhandled exceptions in the main experiment
     print(f"\n{'='*60}")
-    print(f"Unexpected error in experiment: {e}")
+    print(f"CAUGHT EXCEPTION in main experiment block!")
+    print(f"Exception: {e}")
     print(f"Error type: {type(e).__name__}")
+    print(f"Window state: win = {win}")
     import traceback
+    print("Full traceback:")
     traceback.print_exc()
     print(f"{'='*60}\n")
+    print("Press Enter to see error details...")
+    try:
+        input()
+    except:
+        pass
     if win is not None:
         try:
             win.close()
