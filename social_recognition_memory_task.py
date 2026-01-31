@@ -71,7 +71,7 @@ def get_input_method():
         temp_win = visual.Window(
             size=(1300, 800),
             color='white',
-            units='pix',
+            units='height',
             fullscr=False,
             allowGUI=True,
             waitBlanking=False,  # Prevent blocking on display sync
@@ -457,15 +457,22 @@ try:
     import time
     # Window creation happens exactly 0.4 seconds after continue was clicked
     # (delay already handled in get_input_method function)
-    # No additional delays needed - proceed immediately to window creation
+    # Add small delay to ensure temp window is fully closed
+    print("Waiting briefly before creating main window...")
+    time.sleep(0.1)  # Small delay to ensure temp window is fully closed
+    
     print("Creating main window...")
     # Create windowed window
     try:
         print("Creating windowed window (1300x800)...")
+        
+        # Ensure events are cleared before window creation
+        event.clearEvents()
+        
         win = visual.Window(
             size=(1300, 800), 
             color='white', 
-            units='pix',
+            units='height',
             fullscr=False,
             waitBlanking=False,  # Prevent blocking on display sync
             allowGUI=True,  # Ensure GUI is available

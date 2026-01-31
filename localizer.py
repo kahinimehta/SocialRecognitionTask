@@ -61,7 +61,7 @@ def get_input_method():
         temp_win = visual.Window(
             size=(1300, 800),
             color='white',
-            units='pix',
+            units='height',
             fullscr=False,
             allowGUI=True,
             waitBlanking=False,  # Prevent blocking on display sync
@@ -283,6 +283,7 @@ def get_input_method():
         continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
         
         clicked = False
+        continue_click_time = None  # Record when continue is clicked
         
         # POSITION-CHANGE DETECTION: Store initial mouse position
         mouserec_cont = mouse_temp.getPos()
@@ -329,6 +330,7 @@ def get_input_method():
                     try:
                         if continue_button.contains(mouseloc_cont):
                             if t_cont > minRT_cont:
+                                continue_click_time = time.time()  # Record exact time of click
                                 clicked = True
                                 break
                             else:
@@ -347,6 +349,7 @@ def get_input_method():
                         if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
                             if t_cont > minRT_cont:
+                                continue_click_time = time.time()  # Record exact time of click
                                 clicked = True
                                 break
                             else:
@@ -364,6 +367,7 @@ def get_input_method():
             try:
                 keys = event.getKeys(keyList=['space'])
                 if keys and 'space' in keys:
+                    continue_click_time = time.time()  # Record exact time of space key press
                     clicked = True
                     break
             except (AttributeError, RuntimeError) as e:
@@ -389,11 +393,15 @@ def get_input_method():
         transition_text.draw()
         temp_win.flip()
         
-        # Minimal delay before closing for touch screens
-        if USE_TOUCH_SCREEN:
-            time.sleep(0.05)  # Very short delay for touch screens
+        # Calculate remaining time to reach 0.4 seconds total from continue click
+        if continue_click_time is not None:
+            elapsed = time.time() - continue_click_time
+            remaining = 0.4 - elapsed
+            if remaining > 0:
+                time.sleep(remaining)  # Wait exactly 0.4 seconds from continue click
         else:
-            time.sleep(0.1)  # Slightly longer for mouse/trackpad
+            # Fallback if time wasn't recorded (shouldn't happen)
+            time.sleep(0.4)
         
         return USE_TOUCH_SCREEN
     
@@ -1431,7 +1439,12 @@ try:
     import time
     # Window creation happens exactly 0.4 seconds after continue was clicked
     # (delay already handled in get_input_method function)
-    # No additional delays needed - proceed immediately to window creation
+    # Add small delay to ensure temp window is fully closed
+    print("Waiting briefly before creating main window...")
+    sys.stdout.flush()
+    sys.stderr.flush()
+    time.sleep(0.1)  # Small delay to ensure temp window is fully closed
+    
     print("Creating main window...")
     sys.stdout.flush()
     sys.stderr.flush()
@@ -1444,10 +1457,14 @@ try:
         print("Creating windowed window (1300x800)...")
         sys.stdout.flush()
         sys.stderr.flush()
+        
+        # Ensure events are cleared before window creation
+        event.clearEvents()
+        
         win = visual.Window(
             size=(1300, 800), 
             color='white', 
-            units='pix',
+            units='height',
             fullscr=False,
             waitBlanking=False,  # Prevent blocking on display sync
             allowGUI=True,  # Ensure GUI is available
@@ -1455,11 +1472,20 @@ try:
         )
         print("Window object created, about to flip...", file=sys.stderr)
         sys.stderr.flush()
-        # Immediately flip to ensure window is ready
-        win.flip()
+        
+        # Ensure window is ready before proceeding
+        try:
+            # Immediately flip to ensure window is ready
+            win.flip()
+            print("Window flip successful", file=sys.stderr)
+            sys.stderr.flush()
+        except Exception as flip_error:
+            print(f"Warning: Initial flip failed: {flip_error}", file=sys.stderr)
+            sys.stderr.flush()
+            # Try to continue anyway - window might still be usable
+        
         print("Windowed window created successfully")
         sys.stdout.flush()
-        sys.stderr.flush()
         sys.stderr.flush()
     except Exception as e:
         # If window creation fails, show error
