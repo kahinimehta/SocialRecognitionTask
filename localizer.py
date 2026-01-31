@@ -59,7 +59,7 @@ def get_input_method():
         # Create windowed window
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
-            size=(1300, 800),
+            size=(1280, 720),
             color='white',
             units='height',
             fullscr=False,
@@ -409,12 +409,16 @@ def get_input_method():
         # Close temp window exactly once in finally block
         if temp_win is not None:
             try:
+                print("DEBUG: Closing temp window...", file=sys.stderr)
+                sys.stderr.flush()
                 # Ensure window is properly flushed before closing
                 try:
                     temp_win.flip()
                 except:
                     pass
                 temp_win.close()
+                print("DEBUG: Temp window closed", file=sys.stderr)
+                sys.stderr.flush()
                 # Give the system time to fully close the window
                 time.sleep(0.1)
             except Exception as e:
@@ -1439,30 +1443,28 @@ try:
     import time
     # Window creation happens exactly 0.4 seconds after continue was clicked
     # (delay already handled in get_input_method function)
-    # Add small delay to ensure temp window is fully closed
-    print("Waiting briefly before creating main window...")
+    # Add delay to ensure temp window is fully closed
+    print("Waiting before creating main window...")
     sys.stdout.flush()
     sys.stderr.flush()
-    time.sleep(0.1)  # Small delay to ensure temp window is fully closed
+    time.sleep(0.2)  # Longer delay to ensure temp window is fully closed
     
-    print("Creating main window...")
+    print("Creating main window (1280x720)...")
     sys.stdout.flush()
     sys.stderr.flush()
     # Create windowed window
     try:
-        print("About to call visual.Window()...", file=sys.stderr)
-        sys.stderr.flush()
-        print("DEBUG: Right before visual.Window() call", file=sys.stderr)
-        sys.stderr.flush()
-        print("Creating windowed window (1300x800)...")
-        sys.stdout.flush()
+        print("DEBUG: About to call visual.Window()...", file=sys.stderr)
         sys.stderr.flush()
         
         # Ensure events are cleared before window creation
         event.clearEvents()
         
+        print("DEBUG: Calling visual.Window(size=(1280, 720), fullscr=False)...", file=sys.stderr)
+        sys.stderr.flush()
+        
         win = visual.Window(
-            size=(1300, 800), 
+            size=(1280, 720), 
             color='white', 
             units='height',
             fullscr=False,
@@ -1470,6 +1472,9 @@ try:
             allowGUI=True,  # Ensure GUI is available
             useFBO=False  # Disable framebuffer objects to prevent hangs
         )
+        
+        print("DEBUG: visual.Window() call completed successfully", file=sys.stderr)
+        sys.stderr.flush()
         print("Window object created, about to flip...", file=sys.stderr)
         sys.stderr.flush()
         
