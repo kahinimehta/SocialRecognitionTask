@@ -136,17 +136,8 @@ def get_input_method():
         event.clearEvents()
         selected = None
         
-        # POSITION-CHANGE DETECTION: Store initial mouse position
-        mouserec = mouse_temp.getPos()
-        try:
-            mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-        except (ValueError, TypeError, IndexError) as e:
-            print(f"Warning: Could not parse initial mouse position: {e}", file=sys.stderr)
-            mouserec_x, mouserec_y = 0.0, 0.0
-        
-        minRT = 0.05  # Minimum response time
-        clock = core.Clock()
-        clock.reset()
+        # BUTTON PRESS DETECTION: Track button state for press/release detection
+        prev_mouse_buttons = [False, False, False]
         
         while selected is None:
             # Check for escape key FIRST, before clearing events
@@ -157,105 +148,79 @@ def get_input_method():
             except (AttributeError, RuntimeError) as e:
                 print(f"Warning: Error checking escape key: {e}", file=sys.stderr)
             
+            # Redraw screen
+            draw_selection_screen()
+            
             try:
+                mouse_buttons = mouse_temp.getPressed()
                 mouseloc = mouse_temp.getPos()
-                try:
-                    mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
-                except (ValueError, TypeError, IndexError) as e:
-                    print(f"Warning: Could not parse mouse position: {e}", file=sys.stderr)
-                    mouseloc_x, mouseloc_y = 0.0, 0.0
                 
-                t = clock.getTime()
-                
-                # Check if mouse position has changed (touch moved)
-                if mouseloc_x == mouserec_x and mouseloc_y == mouserec_y:
-                    # Position hasn't changed, just redraw
-                    draw_selection_screen()
-                else:
-                    # Position has changed - check if touch is within any button
+                # Check for button release (was pressed, now released)
+                if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                    # Button was released - check if it was over a button
                     # Check button 1
                     try:
                         if button1.contains(mouseloc):
-                            if t > minRT:
-                                USE_TOUCH_SCREEN = True
-                                selected = 'touch'
-                                button1.fillColor = 'green'
-                                draw_selection_screen()
-                                core.wait(0.05)
-                                break
-                            else:
-                                mouserec = mouse_temp.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except (ValueError, TypeError, IndexError) as e:
-                                    print(f"Warning: Could not parse mouse position after button1 check: {e}", file=sys.stderr)
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except (AttributeError, RuntimeError) as e:
-                        # Fallback to manual calculation if .contains() fails
-                        print(f"Warning: button1.contains() failed, using fallback: {e}", file=sys.stderr)
+                            USE_TOUCH_SCREEN = True
+                            selected = 'touch'
+                            button1.fillColor = 'green'
+                            draw_selection_screen()
+                            core.wait(0.05)
+                            break
+                    except Exception as e:
+                        # Fallback to manual calculation
+                        print(f"ERROR in button1.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
+                        try:
+                            mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
+                        except:
+                            mouseloc_x, mouseloc_y = 0.0, 0.0
                         hit_margin = 150/720*0.75
                         button1_x, button1_y = -320/720*0.6, -80/720*0.6
                         button1_width, button1_height = 520/720*0.75, 180/720*0.75
                         if (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
                             button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin):
-                            if t > minRT:
-                                USE_TOUCH_SCREEN = True
-                                selected = 'touch'
-                                button1.fillColor = 'green'
-                                draw_selection_screen()
-                                core.wait(0.05)
-                                break
-                            else:
-                                mouserec = mouse_temp.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                            USE_TOUCH_SCREEN = True
+                            selected = 'touch'
+                            button1.fillColor = 'green'
+                            draw_selection_screen()
+                            core.wait(0.05)
+                            break
                     
                     # Check button 2
                     if selected is None:
                         try:
                             if button2.contains(mouseloc):
-                                if t > minRT:
-                                    USE_TOUCH_SCREEN = False
-                                    selected = 'click'
-                                    button2.fillColor = 'blue'
-                                    draw_selection_screen()
-                                    core.wait(0.05)
-                                    break
-                                else:
-                                    mouserec = mouse_temp.getPos()
-                                    try:
-                                        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                    except (ValueError, TypeError, IndexError) as e:
-                                        print(f"Warning: Could not parse mouse position after button2 check: {e}", file=sys.stderr)
-                                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                                USE_TOUCH_SCREEN = False
+                                selected = 'click'
+                                button2.fillColor = 'blue'
+                                draw_selection_screen()
+                                core.wait(0.05)
+                                break
                         except Exception as e:
                             # Fallback to manual calculation
-                            print(f"ERROR in button2 fallback calculation: {repr(e)}", file=sys.stderr)
+                            print(f"ERROR in button2.contains() fallback: {repr(e)}", file=sys.stderr)
                             traceback.print_exc()
+                            try:
+                                mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
+                            except:
+                                mouseloc_x, mouseloc_y = 0.0, 0.0
                             hit_margin = 150/720*0.75
                             button2_x, button2_y = 320/720*0.6, -80/720*0.6
                             button2_width, button2_height = 520/720*0.75, 180/720*0.75
                             if (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
                                 button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin):
-                                if t > minRT:
-                                    USE_TOUCH_SCREEN = False
-                                    selected = 'click'
-                                    button2.fillColor = 'blue'
-                                    draw_selection_screen()
-                                    core.wait(0.05)
-                                    break
-                                else:
-                                    mouserec = mouse_temp.getPos()
-                                    try:
-                                        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                    except:
-                                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
-                # Log specific errors instead of silently ignoring
-                print(f"Warning: Error in input method selection loop: {e}", file=sys.stderr)
-                # Continue loop instead of breaking
+                                USE_TOUCH_SCREEN = False
+                                selected = 'click'
+                                button2.fillColor = 'blue'
+                                draw_selection_screen()
+                                core.wait(0.05)
+                                break
+                
+                # Update previous button state
+                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+            except Exception as e:
+                pass
             
             # Clear events only once per loop iteration, after all checks
             event.clearEvents()
