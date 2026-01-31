@@ -149,6 +149,10 @@ def get_input_method():
         # BUTTON PRESS DETECTION: Track button state for press/release detection
         prev_mouse_buttons = [False, False, False]
         
+        # Double-tap detection for touch screen button
+        last_tap_time = None
+        double_tap_window = 0.5  # 500ms window for double-tap
+        
         while selected is None:
             # Check for escape key FIRST, before clearing events
             try:
@@ -168,15 +172,24 @@ def get_input_method():
                 # Check for button release (was pressed, now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
                     # Button was released - check if it was over a button
-                    # Check button 1
+                    # Check button 1 (TOUCH SCREEN - requires double-tap)
                     try:
                         if button1.contains(mouseloc):
-                            USE_TOUCH_SCREEN = True
-                            selected = 'touch'
-                            button1.fillColor = 'green'
-                            draw_selection_screen()
-                            core.wait(0.05)
-                            break
+                            current_time = time.time()
+                            if last_tap_time is None:
+                                # First tap
+                                last_tap_time = current_time
+                            elif current_time - last_tap_time <= double_tap_window:
+                                # Second tap within window - double-tap detected!
+                                USE_TOUCH_SCREEN = True
+                                selected = 'touch'
+                                button1.fillColor = 'green'
+                                draw_selection_screen()
+                                core.wait(0.05)
+                                break
+                            else:
+                                # Too much time passed, reset to first tap
+                                last_tap_time = current_time
                     except Exception as e:
                         # Fallback to manual calculation
                         print(f"ERROR in button1.contains() fallback: {repr(e)}", file=sys.stderr)
@@ -190,12 +203,18 @@ def get_input_method():
                         button1_width, button1_height = 520/720*0.75, 180/720*0.75
                         if (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
                             button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin):
-                            USE_TOUCH_SCREEN = True
-                            selected = 'touch'
-                            button1.fillColor = 'green'
-                            draw_selection_screen()
-                            core.wait(0.05)
-                            break
+                            current_time = time.time()
+                            if last_tap_time is None:
+                                last_tap_time = current_time
+                            elif current_time - last_tap_time <= double_tap_window:
+                                USE_TOUCH_SCREEN = True
+                                selected = 'touch'
+                                button1.fillColor = 'green'
+                                draw_selection_screen()
+                                core.wait(0.05)
+                                break
+                            else:
+                                last_tap_time = current_time
                     
                     # Check button 2
                     if selected is None:

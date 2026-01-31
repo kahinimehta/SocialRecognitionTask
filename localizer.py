@@ -139,6 +139,10 @@ def get_input_method():
         # BUTTON PRESS DETECTION: Track button state for press/release detection
         prev_mouse_buttons = [False, False, False]
         
+        # Double-tap detection for touch screen button
+        last_tap_time = None
+        double_tap_window = 0.5  # 500ms window for double-tap
+        
         while selected is None:
             # Check for escape key FIRST, before clearing events
             try:
@@ -158,15 +162,49 @@ def get_input_method():
                 # Check for button release (was pressed, now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
                     # Button was released - check if it was over a button
-                    # Check button 1
+                    # Check button 1 (TOUCH SCREEN - requires double-tap)
                     try:
                         if button1.contains(mouseloc):
-                            USE_TOUCH_SCREEN = True
-                            selected = 'touch'
-                            button1.fillColor = 'green'
-                            draw_selection_screen()
-                            core.wait(0.05)
-                            break
+                            current_time = time.time()
+                            if last_tap_time is None:
+                                # First tap
+                                last_tap_time = current_time
+                            elif current_time - last_tap_time <= double_tap_window:
+                                # Second tap within window - double-tap detected!
+                                USE_TOUCH_SCREEN = True
+                                selected = 'touch'
+                                button1.fillColor = 'green'
+                                draw_selection_screen()
+                                core.wait(0.05)
+                                break
+                            else:
+                                # Too much time passed, reset to first tap
+                                last_tap_time = current_time
+                    except Exception as e:
+                        # Fallback to manual calculation
+                        print(f"ERROR in button1.contains() fallback: {repr(e)}", file=sys.stderr)
+                        traceback.print_exc()
+                        try:
+                            mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
+                        except:
+                            mouseloc_x, mouseloc_y = 0.0, 0.0
+                        hit_margin = 150/720*0.75
+                        button1_x, button1_y = -320/720*0.6, -80/720*0.6
+                        button1_width, button1_height = 520/720*0.75, 180/720*0.75
+                        if (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
+                            button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin):
+                            current_time = time.time()
+                            if last_tap_time is None:
+                                last_tap_time = current_time
+                            elif current_time - last_tap_time <= double_tap_window:
+                                USE_TOUCH_SCREEN = True
+                                selected = 'touch'
+                                button1.fillColor = 'green'
+                                draw_selection_screen()
+                                core.wait(0.05)
+                                break
+                            else:
+                                last_tap_time = current_time
                     except Exception as e:
                         # Fallback to manual calculation
                         print(f"ERROR in button1.contains() fallback: {repr(e)}", file=sys.stderr)
@@ -250,99 +288,167 @@ def get_input_method():
         clicked = False
         continue_click_time = None  # Record when continue is clicked
         
-        # POSITION-CHANGE DETECTION: Store initial mouse position
-        mouserec_cont = mouse_temp.getPos()
-        try:
-            mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-        except (ValueError, TypeError, IndexError) as e:
-            print(f"Warning: Could not parse initial continue button mouse position: {e}", file=sys.stderr)
-            mouserec_cont_x, mouserec_cont_y = 0.0, 0.0
-        
-        minRT_cont = 0.05  # Minimum response time
-        clock_cont = core.Clock()
-        clock_cont.reset()
-        
-        while not clicked:
-            # Check for escape key FIRST
+        if USE_TOUCH_SCREEN:
+            # POSITION-CHANGE DETECTION for touch screen
+            mouserec_cont = mouse_temp.getPos()
             try:
-                keys = event.getKeys(keyList=['escape'])
-                if keys and 'escape' in keys:
-                    return None, None
-            except (AttributeError, RuntimeError) as e:
-                print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
+                mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+            except (ValueError, TypeError, IndexError) as e:
+                print(f"Warning: Could not parse initial continue button mouse position: {e}", file=sys.stderr)
+                mouserec_cont_x, mouserec_cont_y = 0.0, 0.0
             
-            confirm_text.draw()
-            continue_button.draw()
-            continue_text.draw()
-            temp_win.flip()
+            minRT_cont = 0.05  # Minimum response time
+            clock_cont = core.Clock()
+            clock_cont.reset()
             
-            try:
-                mouseloc_cont = mouse_temp.getPos()
+            while not clicked:
+                # Check for escape key FIRST
                 try:
-                    mouseloc_cont_x, mouseloc_cont_y = float(mouseloc_cont[0]), float(mouseloc_cont[1])
-                except (ValueError, TypeError, IndexError) as e:
-                    print(f"Warning: Could not parse continue button mouse position: {e}", file=sys.stderr)
-                    mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
+                    keys = event.getKeys(keyList=['escape'])
+                    if keys and 'escape' in keys:
+                        return None, None
+                except (AttributeError, RuntimeError) as e:
+                    print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
                 
-                t_cont = clock_cont.getTime()
+                confirm_text.draw()
+                continue_button.draw()
+                continue_text.draw()
+                temp_win.flip()
                 
-                # Check if mouse position has changed (touch moved)
-                if mouseloc_cont_x == mouserec_cont_x and mouseloc_cont_y == mouserec_cont_y:
-                    # Position hasn't changed, continue loop
-                    pass
-                else:
-                    # Position has changed - check if touch is within button
+                try:
+                    mouseloc_cont = mouse_temp.getPos()
                     try:
-                        if continue_button.contains(mouseloc_cont):
-                            if t_cont > minRT_cont:
+                        mouseloc_cont_x, mouseloc_cont_y = float(mouseloc_cont[0]), float(mouseloc_cont[1])
+                    except (ValueError, TypeError, IndexError) as e:
+                        print(f"Warning: Could not parse continue button mouse position: {e}", file=sys.stderr)
+                        mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
+                    
+                    t_cont = clock_cont.getTime()
+                    
+                    # Check if mouse position has changed (touch moved)
+                    if mouseloc_cont_x == mouserec_cont_x and mouseloc_cont_y == mouserec_cont_y:
+                        # Position hasn't changed, continue loop
+                        pass
+                    else:
+                        # Position has changed - check if touch is within button
+                        try:
+                            if continue_button.contains(mouseloc_cont):
+                                if t_cont > minRT_cont:
+                                    continue_click_time = time.time()  # Record exact time of click
+                                    clicked = True
+                                    break
+                                else:
+                                    mouserec_cont = mouse_temp.getPos()
+                                    try:
+                                        mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+                                    except (ValueError, TypeError, IndexError) as e:
+                                        print(f"Warning: Could not parse mouse position after continue button check: {e}", file=sys.stderr)
+                                        mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+                        except (AttributeError, RuntimeError) as e:
+                            # Fallback to manual calculation if .contains() fails
+                            print(f"Warning: continue_button.contains() failed, using fallback: {e}", file=sys.stderr)
+                            hit_margin = 50/720*0.75
+                            button_x, button_y = 0.0, -150.0/720*0.6
+                            button_width, button_height = 300/720*0.75, 80/720*0.75
+                            if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
+                                button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
+                                if t_cont > minRT_cont:
+                                    continue_click_time = time.time()  # Record exact time of click
+                                    clicked = True
+                                    break
+                                else:
+                                    mouserec_cont = mouse_temp.getPos()
+                                    try:
+                                        mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+                                    except (ValueError, TypeError, IndexError) as e:
+                                        print(f"Warning: Could not parse mouse position in continue button fallback: {e}", file=sys.stderr)
+                                        mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+                except (AttributeError, RuntimeError, ValueError, TypeError) as e:
+                    # Log specific errors instead of silently ignoring
+                    print(f"Warning: Error in continue button loop: {e}", file=sys.stderr)
+                
+                # Check for space key (escape already checked at start of loop)
+                try:
+                    keys = event.getKeys(keyList=['space'])
+                    if keys and 'space' in keys:
+                        continue_click_time = time.time()  # Record exact time of space key press
+                        clicked = True
+                        break
+                except (AttributeError, RuntimeError) as e:
+                    print(f"Warning: Error checking space key: {e}", file=sys.stderr)
+                
+                # Clear events AFTER checking keys
+                event.clearEvents()
+                
+                # Reduced polling delay for faster touch response
+                core.wait(0.005)  # Faster polling for touch screens
+        else:
+            # BUTTON PRESS/RELEASE DETECTION for mouse/click mode
+            prev_mouse_buttons_cont = [False, False, False]
+            
+            while not clicked:
+                # Check for escape key FIRST
+                try:
+                    keys = event.getKeys(keyList=['escape'])
+                    if keys and 'escape' in keys:
+                        return None, None
+                except (AttributeError, RuntimeError) as e:
+                    print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
+                
+                confirm_text.draw()
+                continue_button.draw()
+                continue_text.draw()
+                temp_win.flip()
+                
+                try:
+                    mouse_buttons_cont = mouse_temp.getPressed()
+                    mouseloc_cont = mouse_temp.getPos()
+                    
+                    # Check for button release (was pressed, now released)
+                    if prev_mouse_buttons_cont[0] and not mouse_buttons_cont[0]:
+                        # Button was released - check if it was over the continue button
+                        try:
+                            if continue_button.contains(mouseloc_cont):
                                 continue_click_time = time.time()  # Record exact time of click
                                 clicked = True
                                 break
-                            else:
-                                mouserec_cont = mouse_temp.getPos()
-                                try:
-                                    mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-                                except (ValueError, TypeError, IndexError) as e:
-                                    print(f"Warning: Could not parse mouse position after continue button check: {e}", file=sys.stderr)
-                                    mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
-                    except (AttributeError, RuntimeError) as e:
-                        # Fallback to manual calculation if .contains() fails
-                        print(f"Warning: continue_button.contains() failed, using fallback: {e}", file=sys.stderr)
-                        hit_margin = 50/720*0.75
-                        button_x, button_y = 0.0, -150.0/720*0.6
-                        button_width, button_height = 300/720*0.75, 80/720*0.75
-                        if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
-                            if t_cont > minRT_cont:
+                        except Exception as e:
+                            # Fallback to manual calculation
+                            print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
+                            traceback.print_exc()
+                            try:
+                                mouseloc_cont_x, mouseloc_cont_y = float(mouseloc_cont[0]), float(mouseloc_cont[1])
+                            except:
+                                mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
+                            hit_margin = 50/720*0.75
+                            button_x, button_y = 0.0, -150.0/720*0.6
+                            button_width, button_height = 300/720*0.75, 80/720*0.75
+                            if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
+                                button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
                                 continue_click_time = time.time()  # Record exact time of click
                                 clicked = True
                                 break
-                            else:
-                                mouserec_cont = mouse_temp.getPos()
-                                try:
-                                    mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-                                except (ValueError, TypeError, IndexError) as e:
-                                    print(f"Warning: Could not parse mouse position in continue button fallback: {e}", file=sys.stderr)
-                                    mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
-            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
-                # Log specific errors instead of silently ignoring
-                print(f"Warning: Error in continue button loop: {e}", file=sys.stderr)
-            
-            # Check for space key (escape already checked at start of loop)
-            try:
-                keys = event.getKeys(keyList=['space'])
-                if keys and 'space' in keys:
-                    continue_click_time = time.time()  # Record exact time of space key press
-                    clicked = True
-                    break
-            except (AttributeError, RuntimeError) as e:
-                print(f"Warning: Error checking space key: {e}", file=sys.stderr)
-            
-            # Clear events AFTER checking keys
-            event.clearEvents()
-            
-            # Reduced polling delay for faster touch response
-            core.wait(0.005)  # Faster polling for touch screens
+                    
+                    # Update previous button state
+                    prev_mouse_buttons_cont = mouse_buttons_cont.copy() if hasattr(mouse_buttons_cont, 'copy') else list(mouse_buttons_cont)
+                except Exception as e:
+                    pass
+                
+                # Check for space key (escape already checked at start of loop)
+                try:
+                    keys = event.getKeys(keyList=['space'])
+                    if keys and 'space' in keys:
+                        continue_click_time = time.time()  # Record exact time of space key press
+                        clicked = True
+                        break
+                except (AttributeError, RuntimeError) as e:
+                    print(f"Warning: Error checking space key: {e}", file=sys.stderr)
+                
+                # Clear events AFTER checking keys
+                event.clearEvents()
+                
+                # Reduced polling delay for faster touch response
+                core.wait(0.001)  # Very fast polling
         
         mouse_temp.setVisible(False)
         
