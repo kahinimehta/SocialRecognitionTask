@@ -69,7 +69,7 @@ def get_input_method():
         # Create windowed window
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
-            size=(1280, 720),
+            size=(1400, 900),
             color='white',
             units='height',
             fullscr=False,
@@ -493,7 +493,7 @@ try:
     sys.stderr.flush()
     time.sleep(0.2)  # Longer delay to ensure temp window is fully closed
     
-    print("Creating main window (1280x720)...")
+    print("Creating main window (1400x900)...")
     sys.stdout.flush()
     sys.stderr.flush()
     # Create windowed window
@@ -504,11 +504,11 @@ try:
         # Ensure events are cleared before window creation
         event.clearEvents()
         
-        print("DEBUG: Calling visual.Window(size=(1280, 720), fullscr=False)...", file=sys.stderr)
+        print("DEBUG: Calling visual.Window(size=(1400, 900), fullscr=False)...", file=sys.stderr)
         sys.stderr.flush()
         
         win = visual.Window(
-            size=(1280, 720), 
+            size=(1400, 900), 
             color='white', 
             units='height',
             fullscr=False,
