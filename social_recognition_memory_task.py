@@ -68,30 +68,15 @@ def get_input_method():
     try:
         # Use height units for windowed mode (not fullscreen)
         # Add waitBlanking=False and useFBO=False to prevent hanging
-        # Try GLFW backend first, fall back to default if not available
-        try:
-            temp_win = visual.Window(
-                size=(1280, 720),
-                color='white',
-                units='height',
-                fullscr=False,  # Windowed mode for temp window
-                allowGUI=True,
-                waitBlanking=False,  # Prevent blocking on display sync
-                useFBO=False,  # Disable framebuffer objects to prevent hangs
-                winType='glfw'  # Use GLFW backend
-            )
-        except (AttributeError, ValueError, RuntimeError) as e:
-            # Fall back to default backend if GLFW is not available
-            print(f"Warning: GLFW backend not available ({e}), using default backend", file=sys.stderr)
-            temp_win = visual.Window(
-                size=(1280, 720),
-                color='white',
-                units='height',
-                fullscr=False,  # Windowed mode for temp window
-                allowGUI=True,
-                waitBlanking=False,  # Prevent blocking on display sync
-                useFBO=False  # Disable framebuffer objects to prevent hangs
-            )
+        temp_win = visual.Window(
+            size=(1280, 720),
+            color='white',
+            units='height',
+            fullscr=False,  # Windowed mode for temp window
+            allowGUI=True,
+            waitBlanking=False,  # Prevent blocking on display sync
+            useFBO=False  # Disable framebuffer objects to prevent hangs
+        )
         temp_win.flip()
     
         prompt_text = visual.TextStim(
@@ -481,32 +466,16 @@ try:
     try:
         print("Attempting to create fullscreen window...")
         # Try with timeout protection: use waitBlanking=False to prevent blocking
-        # Try GLFW backend first, fall back to default if not available
-        try:
-            win = visual.Window(
-                size=(1280, 720), 
-                color='white', 
-                units='height', 
-                fullscr=True, 
-                viewPos=(0, 0),
-                waitBlanking=False,  # Prevent blocking on display sync
-                allowGUI=True,  # Ensure GUI is available
-                useFBO=False,  # Disable framebuffer objects to prevent hangs
-                winType='glfw'  # Use GLFW backend
-            )
-        except (AttributeError, ValueError, RuntimeError) as e:
-            # Fall back to default backend if GLFW is not available
-            print(f"Warning: GLFW backend not available ({e}), using default backend", file=sys.stderr)
-            win = visual.Window(
-                size=(1280, 720), 
-                color='white', 
-                units='height', 
-                fullscr=True, 
-                viewPos=(0, 0),
-                waitBlanking=False,  # Prevent blocking on display sync
-                allowGUI=True,  # Ensure GUI is available
-                useFBO=False  # Disable framebuffer objects to prevent hangs
-            )
+        win = visual.Window(
+            size=(1280, 720), 
+            color='white', 
+            units='height', 
+            fullscr=True, 
+            viewPos=(0, 0),
+            waitBlanking=False,  # Prevent blocking on display sync
+            allowGUI=True,  # Ensure GUI is available
+            useFBO=False  # Disable framebuffer objects to prevent hangs
+        )
         # Immediately flip to ensure window is ready
         win.flip()
         print("Fullscreen window created successfully")
@@ -518,32 +487,16 @@ try:
         print("Trying windowed mode as fallback...")
         time.sleep(0.1)  # Reduced delay
         try:
-            # Try GLFW first, fall back to default if not available
-            try:
-                win = visual.Window(
-                    size=(1280, 720), 
-                    color='white', 
-                    units='height', 
-                    fullscr=False, 
-                    viewPos=(0, 0),
-                    waitBlanking=False,
-                    allowGUI=True,
-                    useFBO=False,
-                    winType='glfw'  # Use GLFW backend
-                )
-            except (AttributeError, ValueError, RuntimeError) as e:
-                # Fall back to default backend if GLFW is not available
-                print(f"Warning: GLFW backend not available ({e}), using default backend", file=sys.stderr)
-                win = visual.Window(
-                    size=(1280, 720), 
-                    color='white', 
-                    units='height', 
-                    fullscr=False, 
-                    viewPos=(0, 0),
-                    waitBlanking=False,
-                    allowGUI=True,
-                    useFBO=False
-                )
+            win = visual.Window(
+                size=(1280, 720), 
+                color='white', 
+                units='height', 
+                fullscr=False, 
+                viewPos=(0, 0),
+                waitBlanking=False,
+                allowGUI=True,
+                useFBO=False
+            )
             win.flip()
             print("Windowed mode window created successfully")
         except Exception as e2:
