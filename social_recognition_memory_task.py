@@ -636,23 +636,13 @@ try:
     print("WINDOW CREATION SUCCESSFUL")
     print("="*60)
     
-    # Now that main window is fully set up and operational, close the temp window
+    # Don't close temp window - keep it open to prevent PsychoPy from auto-quitting
+    # Closing it causes PsychoPy to detect all windows are closed and quit
+    # We'll just leave it open (it's behind the main window anyway)
     if temp_win is not None:
-        try:
-            print("DEBUG: Closing temp window after main window is fully set up...", file=sys.stderr)
-            sys.stderr.flush()
-            # Ensure main window is active before closing temp window
-            win.flip()
-            core.wait(0.1)
-            temp_win.close()
-            print("DEBUG: Temp window closed successfully", file=sys.stderr)
-            sys.stderr.flush()
-            # Flip main window again to ensure it stays active
-            win.flip()
-            time.sleep(0.1)  # Brief delay after closing
-        except Exception as close_err:
-            print(f"WARNING: Error closing temp window (non-critical): {close_err}", file=sys.stderr)
-            sys.stderr.flush()
+        print("DEBUG: Keeping temp window open to prevent PsychoPy auto-quit", file=sys.stderr)
+        sys.stderr.flush()
+        # Don't close temp_win - leave it open
     
 except Exception as e:
     print("="*60)
