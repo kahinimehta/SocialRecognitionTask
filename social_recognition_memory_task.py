@@ -297,10 +297,18 @@ def get_input_method():
         
         clicked = False
         continue_click_time = None  # Record when continue is clicked
-        event.clearEvents()  # Clear any pending events
         
-        # BUTTON PRESS DETECTION: Track button state for press/release detection
-        prev_mouse_buttons_cont = [False, False, False]
+        # POSITION-CHANGE DETECTION: Store initial mouse position
+        mouserec_cont = mouse_temp.getPos()
+        try:
+            mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+        except (ValueError, TypeError, IndexError) as e:
+            print(f"Warning: Could not parse initial continue button mouse position: {e}", file=sys.stderr)
+            mouserec_cont_x, mouserec_cont_y = 0.0, 0.0
+        
+        minRT_cont = 0.05  # Minimum response time
+        clock_cont = core.Clock()
+        clock_cont.reset()
         
         while not clicked:
             # Check for escape key FIRST
@@ -317,38 +325,56 @@ def get_input_method():
             temp_win.flip()
             
             try:
-                mouse_buttons_cont = mouse_temp.getPressed()
                 mouseloc_cont = mouse_temp.getPos()
                 try:
                     mouseloc_cont_x, mouseloc_cont_y = float(mouseloc_cont[0]), float(mouseloc_cont[1])
-                except:
+                except (ValueError, TypeError, IndexError) as e:
+                    print(f"Warning: Could not parse continue button mouse position: {e}", file=sys.stderr)
                     mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
                 
-                # Check for button release (was pressed, now released)
-                if prev_mouse_buttons_cont[0] and not mouse_buttons_cont[0]:
-                    # Button was released - check if it was over the continue button
+                t_cont = clock_cont.getTime()
+                
+                # Check if mouse position has changed (touch moved)
+                if mouseloc_cont_x == mouserec_cont_x and mouseloc_cont_y == mouserec_cont_y:
+                    # Position hasn't changed, continue loop
+                    pass
+                else:
+                    # Position has changed - check if touch is within button
                     try:
                         if continue_button.contains(mouseloc_cont):
-                            continue_click_time = time.time()  # Record exact time of click
-                            clicked = True
-                            break
-                    except Exception as e:
-                        # Fallback to manual calculation
-                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
-                        traceback.print_exc()
+                            if t_cont > minRT_cont:
+                                continue_click_time = time.time()  # Record exact time of click
+                                clicked = True
+                                break
+                            else:
+                                mouserec_cont = mouse_temp.getPos()
+                                try:
+                                    mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+                                except (ValueError, TypeError, IndexError) as e:
+                                    print(f"Warning: Could not parse mouse position after continue button check: {e}", file=sys.stderr)
+                                    mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+                    except (AttributeError, RuntimeError) as e:
+                        # Fallback to manual calculation if .contains() fails
+                        print(f"Warning: continue_button.contains() failed, using fallback: {e}", file=sys.stderr)
                         hit_margin = 50/720*0.75
                         button_x, button_y = 0.0, -150.0/720*0.6
                         button_width, button_height = 300/720*0.75, 80/720*0.75
                         if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
-                            continue_click_time = time.time()  # Record exact time of click
-                            clicked = True
-                            break
-                
-                # Update previous button state
-                prev_mouse_buttons_cont = mouse_buttons_cont.copy() if hasattr(mouse_buttons_cont, 'copy') else list(mouse_buttons_cont)
-            except Exception as e:
-                pass
+                            if t_cont > minRT_cont:
+                                continue_click_time = time.time()  # Record exact time of click
+                                clicked = True
+                                break
+                            else:
+                                mouserec_cont = mouse_temp.getPos()
+                                try:
+                                    mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+                                except (ValueError, TypeError, IndexError) as e:
+                                    print(f"Warning: Could not parse mouse position in continue button fallback: {e}", file=sys.stderr)
+                                    mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
+                # Log specific errors instead of silently ignoring
+                print(f"Warning: Error in continue button loop: {e}", file=sys.stderr)
             
             # Check for space key (escape already checked at start of loop)
             try:
