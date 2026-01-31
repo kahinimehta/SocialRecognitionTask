@@ -68,6 +68,7 @@ def get_input_method():
     try:
         # Use height units for windowed mode (not fullscreen)
         # Add waitBlanking=False and useFBO=False to prevent hanging
+        # Use GLFW backend for better stability
         temp_win = visual.Window(
             size=(1280, 720),
             color='white',
@@ -75,7 +76,8 @@ def get_input_method():
             fullscr=False,  # Windowed mode for temp window
             allowGUI=True,
             waitBlanking=False,  # Prevent blocking on display sync
-            useFBO=False  # Disable framebuffer objects to prevent hangs
+            useFBO=False,  # Disable framebuffer objects to prevent hangs
+            winType='glfw'  # Use GLFW backend
         )
         temp_win.flip()
     
@@ -429,6 +431,7 @@ try:
     try:
         print("Attempting to create fullscreen window...")
         # Try with timeout protection: use waitBlanking=False to prevent blocking
+        # Use GLFW backend for better stability
         win = visual.Window(
             size=(1280, 720), 
             color='white', 
@@ -437,7 +440,8 @@ try:
             viewPos=(0, 0),
             waitBlanking=False,  # Prevent blocking on display sync
             allowGUI=True,  # Ensure GUI is available
-            useFBO=False  # Disable framebuffer objects to prevent hangs
+            useFBO=False,  # Disable framebuffer objects to prevent hangs
+            winType='glfw'  # Use GLFW backend
         )
         # Immediately flip to ensure window is ready
         win.flip()
@@ -458,7 +462,8 @@ try:
                 viewPos=(0, 0),
                 waitBlanking=False,
                 allowGUI=True,
-                useFBO=False
+                useFBO=False,
+                winType='glfw'  # Use GLFW backend
             )
             win.flip()
             print("Windowed mode window created successfully")
