@@ -459,18 +459,18 @@ try:
     # (delay already handled in get_input_method function)
     # No additional delays needed - proceed immediately to window creation
     print("Creating main window...")
-    # Create window in fullscreen mode
+    # Create window in windowed mode (avoiding fullscreen backend issues)
     # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
     # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
     # Add waitBlanking=False and allowGUI=True to prevent hanging
     try:
-        print("Attempting to create fullscreen window...")
-        # Try with timeout protection: use waitBlanking=False to prevent blocking
+        print("Creating windowed window (avoiding fullscreen backend issues)...")
+        # Use windowed mode to avoid backend issues with fullscreen
         win = visual.Window(
             size=(1280, 720), 
             color='white', 
             units='height', 
-            fullscr=True, 
+            fullscr=False,  # Windowed mode to avoid backend issues
             viewPos=(0, 0),
             waitBlanking=False,  # Prevent blocking on display sync
             allowGUI=True,  # Ensure GUI is available
@@ -478,40 +478,24 @@ try:
         )
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Fullscreen window created successfully")
+        print("Windowed window created successfully")
     except Exception as e:
-        # If fullscreen fails, try windowed mode as fallback
+        # If window creation fails, show error
         import traceback
         traceback.print_exc()
-        print(f"Fullscreen window creation failed: {e}")
-        print("Trying windowed mode as fallback...")
-        time.sleep(0.1)  # Reduced delay
+        print(f"Window creation failed: {e}")
+        print("="*60)
+        print(f"ERROR: Could not create window ({e})")
+        print("="*60)
+        import traceback
+        traceback.print_exc()
+        print("Press Enter to exit...")
         try:
-            win = visual.Window(
-                size=(1280, 720), 
-                color='white', 
-                units='height', 
-                fullscr=False, 
-                viewPos=(0, 0),
-                waitBlanking=False,
-                allowGUI=True,
-                useFBO=False
-            )
-            win.flip()
-            print("Windowed mode window created successfully")
-        except Exception as e2:
-            print("="*60)
-            print(f"ERROR: Could not create window in either mode ({e2})")
-            print("="*60)
-            import traceback
-            traceback.print_exc()
-            print("Press Enter to exit...")
-            try:
-                input()
-            except:
-                pass
-            core.quit()
-            exit(1)
+            input()
+        except:
+            pass
+        core.quit()
+        exit(1)
     
     # Verify window was created successfully
     if win is None:
@@ -1743,8 +1727,8 @@ def load_image_stimulus(image_path):
 #  SLIDER FOR OLD-NEW RATING
 # =========================
 def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_num=None, max_trials=10, timeout=7.0):
-    """Get slider response from participant using click-and-drag slider with submit button
-    Works with both touch screen and mouse input"""
+    """Get slider response from participant using click-based slider with submit button
+    Works with both touch screen and mouse input - click anywhere on the slider line to set value"""
     # Create slider visual elements
     slider_line = visual.Line(
         win,
@@ -1781,21 +1765,11 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*0.75, pos=(0, -0.35*0.6))
     
     mouse.setVisible(True)
-    # Don't set mouse position on macOS or touch screens - it causes errors
-    # Mouse will start wherever it is, touch position is determined by user
-    if not USE_TOUCH_SCREEN:
-        try:
-            mouse.setPos((0, -0.2))  # Start mouse at center
-        except (AttributeError, Exception):
-            # macOS compatibility - skip setPos if it fails
-            pass
     
     slider_value = 0.5  # Start at center (0.5)
     start_time = time.time()
     slider_commit_time = None
-    slider_stop_time = None  # Time when slider stops moving
-    dragging = False
-    prev_dragging = False  # Track previous dragging state
+    slider_stop_time = None  # Time when slider value is set (clicked)
     prev_mouse_buttons = [False, False, False]
     has_moved = False  # Track if slider has been moved from center
     timed_out = False
@@ -1842,66 +1816,28 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             # Handle macOS event handling issues - try to recover
             try:
                 event.clearEvents()
-                # Try to reset mouse (only for non-touch screens)
-                if not USE_TOUCH_SCREEN:
-                    try:
-                        mouse.setPos(mouse_pos)  # Keep current position
-                    except:
-                        pass
             except:
                 pass
             # Keep using previous mouse state instead of defaulting
             core.wait(0.02)  # Slightly longer wait to let system recover
         
-        # Clear events periodically to prevent queue buildup (less frequently)
-        if int(elapsed * 5) % 10 == 0:  # Every 2 seconds instead of 0.5
-            try:
-                # Only clear non-mouse events to preserve click detection
-                pass  # Don't clear events too aggressively
-            except:
-                pass
-        
-        # Check if mouse/touch is clicking on slider handle or near slider line
-        handle_distance = ((mouse_pos[0] - slider_handle.pos[0])**2 + (mouse_pos[1] - slider_handle.pos[1])**2)**0.5
+        # Check if clicking on slider line (click-based, not drag)
         on_slider_line = abs(mouse_pos[1] - (-0.2*0.6)) < 0.05*0.75  # Within 0.05 of slider line y-position
+        on_slider_x_range = -0.4*0.6 <= mouse_pos[0] <= 0.4*0.6  # Within slider x range
         
-        # For touch screen: larger touch area, immediate response
-        # For mouse: smaller click area
-        touch_threshold = 0.08 if USE_TOUCH_SCREEN else 0.05
-        
-        # Start dragging if clicked/touched on handle or slider line
-        if mouse_buttons[0] and not prev_mouse_buttons[0]:
-            if handle_distance < touch_threshold or (on_slider_line and -0.4 <= mouse_pos[0] <= 0.4):
-                dragging = True
-                # For touch screen, immediately update position when touched
-                if USE_TOUCH_SCREEN:
-                    x_pos = max(-0.4*0.6, min(0.4*0.6, mouse_pos[0]))
-                    slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)
-                    slider_handle.pos = (x_pos, -0.2)
-                    if abs(slider_value - 0.5) > 0.01:
-                        has_moved = True
-        
-        if dragging and mouse_buttons[0]:
-            # Constrain to slider line (x from -0.4 to 0.4)
-            x_pos = max(-0.4, min(0.4, mouse_pos[0]))
-            
-            # Convert to slider value (0 to 1)
-            slider_value = (x_pos + 0.4) / 0.8  # Map -0.4 to 0.4 -> 0 to 1
-            
-            # Check if moved from center (0.5)
-            if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
-                has_moved = True
-            
-            # Update handle position
-            slider_handle.pos = (x_pos, -0.2)
-        elif not mouse_buttons[0]:
-            dragging = False
-        
-        # Track when slider stops moving (when dragging transitions from True to False)
-        if prev_dragging and not dragging and slider_stop_time is None:
-            slider_stop_time = time.time()
-        
-        prev_dragging = dragging
+        # Click detection: button was just pressed (not dragging)
+        if prev_mouse_buttons[0] and not mouse_buttons[0]:
+            # Button was just released - check if it was on slider line
+            if on_slider_line and on_slider_x_range:
+                # Clicked on slider line - set value based on x position
+                x_pos = max(-0.4*0.6, min(0.4*0.6, mouse_pos[0]))
+                slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
+                slider_handle.pos = (x_pos, -0.2*0.6)
+                
+                # Check if moved from center (0.5)
+                if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
+                    has_moved = True
+                    slider_stop_time = time.time()  # Record when value was set
         
         # Check if submit button is clicked/touched (on mouse/touch release)
         submit_x, submit_y = submit_button.pos
@@ -1912,7 +1848,6 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                          submit_y - submit_height/2 - hit_margin <= mouse_pos[1] <= submit_y + submit_height/2 + hit_margin)
         
         # Only allow submit if slider has been moved from center
-        # For touch screen, also allow immediate submit on touch release
         if prev_mouse_buttons[0] and not mouse_buttons[0] and submit_clicked and has_moved:
             slider_commit_time = time.time()
             break
@@ -2932,7 +2867,7 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
     )
     
     trust_value = 0.5  # Start at center (0.5)
-    slider_dragging = False
+    prev_mouse_buttons = [False, False, False]
     start_time = time.time()
     trust_response_time = None
     
@@ -2992,10 +2927,21 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
             mouse_pos = mouse.getPos()
             mouse_buttons = mouse.getPressed()
             
-            if mouse_buttons[0]:  # Mouse button pressed or touch
-                # For touch screen, use slightly larger hit area
-                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+            # Check if clicking on slider line (click-based, not drag)
+            on_slider_line = abs(mouse_pos[1]) < 0.05  # Within 0.05 of slider line y-position
+            on_slider_x_range = -0.4 <= mouse_pos[0] <= 0.4  # Within slider x range
+            
+            # Click detection: button was just released
+            if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                # Button was just released - check if it was on slider line
+                if on_slider_line and on_slider_x_range:
+                    # Clicked on slider line - set value based on x position
+                    new_value = (mouse_pos[0] + 0.4) / 0.8
+                    trust_value = max(0.0, min(1.0, new_value))
+                    redraw_question()
+                
                 # Check if clicking/touching on submit button
+                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
                 button_pos = submit_button.pos
                 button_size = submit_button.size
                 if (abs(mouse_pos[0] - button_pos[0]) < button_size[0]/2 + hit_margin and
@@ -3006,19 +2952,8 @@ def ask_block_questions(block_num, participant_id, questions_file=None, timeout=
                     redraw_question()
                     core.wait(0.3)
                     break
-                
-                # Check if clicking/touching on slider
-                handle_x = -0.4 + trust_value * 0.8
-                touch_threshold = 0.12 if USE_TOUCH_SCREEN else 0.1
-                if abs(mouse_pos[0] - handle_x) < touch_threshold and abs(mouse_pos[1]) < 0.05:
-                    slider_dragging = True
-                
-                if slider_dragging:
-                    # Update slider value based on mouse/touch X position
-                    new_value = (mouse_pos[0] + 0.4) / 0.8
-                    trust_value = max(0.0, min(1.0, new_value))
-            else:
-                slider_dragging = False
+            
+            prev_mouse_buttons = mouse_buttons.copy()
         except:
             pass
         
@@ -3608,10 +3543,10 @@ def run_experiment():
         "RATING WITH THE SLIDER:\n\n"
         "- You'll rate each image on a slider\n"
         "- The slider measures your CONFIDENCE level\n"
-        "- Move the slider LEFT for OLD (studied)\n"
-        "- Move the slider RIGHT for NEW (not studied)\n"
-        "- Where you place it shows how confident you are\n"
-        "- Click and drag the slider handle\n"
+        "- Click LEFT on the slider for OLD (studied)\n"
+        "- Click RIGHT on the slider for NEW (not studied)\n"
+        "- Where you click shows how confident you are\n"
+        "- Click anywhere on the slider line to set your rating\n"
         "- Click the SUBMIT button when ready",
         header_color='purple',
         body_color='black'
@@ -3801,7 +3736,7 @@ def run_experiment():
         "   - Rate your confidence on the slider\n"
         "   - LEFT = OLD (studied)\n"
         "   - RIGHT = NEW (not studied)\n"
-        "   - Click and drag the slider, then click SUBMIT",
+        "   - Click anywhere on the slider line to set your rating, then click SUBMIT",
         header_color='darkred',
         body_color='black'
     )

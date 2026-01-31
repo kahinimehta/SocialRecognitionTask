@@ -147,7 +147,7 @@ The localizer task generates one CSV file:
 
 ### `participant_slider_stop_time`
 - **Type**: Float (Unix timestamp) or None
-- **Description**: Time when participant stopped moving the slider (released mouse button after dragging). None if they never dragged.
+- **Description**: Time when participant clicked on the slider to set their rating. None if they never clicked on the slider.
 - **Example**: `1764818195.5`, `None`
 
 ---

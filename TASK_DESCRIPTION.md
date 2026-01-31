@@ -98,9 +98,9 @@ Each of the 10 trials follows this structure:
 - **Right side** = NEW (not studied)
 - Slider position indicates **confidence level**
 - Participants must:
-  1. Click and drag the slider handle
+  1. Click anywhere on the slider line to set their rating
   2. Click the "SUBMIT" button to confirm
-  3. Cannot submit if slider hasn't moved from center
+  3. Cannot submit if slider hasn't been clicked (still at center)
 - **Timeout**: 7 seconds (random answer selected if timeout)
 
 ### AI Partner Rating
@@ -189,9 +189,9 @@ The closer the final answer is to the correct answer, the more points earned.
 ### Data Recorded Each Trial
 
 #### Participant Data
-- **Response Time (RT)**: Time to move slider and submit
+- **Response Time (RT)**: Time to click on slider and submit
 - **Decision Commitment Time**: Time when submit button is clicked
-- **Slider Stop Time**: Time when slider handle is released
+- **Slider Stop Time**: Time when slider value is set (clicked)
 - **Old-New Slider Value**: Final slider position (0.0 = OLD, 1.0 = NEW)
 - **Switch/Stay Decision**: Choice made
 - **Switch/Stay RT**: Time to make decision

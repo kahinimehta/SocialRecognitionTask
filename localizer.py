@@ -1441,15 +1441,15 @@ try:
         sys.stderr.flush()
         print("DEBUG: Right before visual.Window() call", file=sys.stderr)
         sys.stderr.flush()
-        print("Attempting to create fullscreen window...")
+        print("Creating windowed window (avoiding fullscreen backend issues)...")
         sys.stdout.flush()
         sys.stderr.flush()
-        # Try with timeout protection: use waitBlanking=False to prevent blocking
+        # Use windowed mode to avoid backend issues with fullscreen
         win = visual.Window(
             size=(1280, 720), 
             color='white', 
             units='height', 
-            fullscr=True, 
+            fullscr=False,  # Windowed mode to avoid backend issues
             viewPos=(0, 0),
             waitBlanking=False,  # Prevent blocking on display sync
             allowGUI=True,  # Ensure GUI is available
@@ -1459,59 +1459,33 @@ try:
         sys.stderr.flush()
         # Immediately flip to ensure window is ready
         win.flip()
-        print("Fullscreen window created successfully")
+        print("Windowed window created successfully")
         sys.stdout.flush()
         sys.stderr.flush()
         sys.stderr.flush()
     except Exception as e:
-        # If fullscreen fails, try windowed mode as fallback
+        # If window creation fails, show error
         import traceback
         print("="*60, file=sys.stderr)
-        print("FULLSCREEN WINDOW CREATION FAILED", file=sys.stderr)
+        print("WINDOW CREATION FAILED", file=sys.stderr)
         print("="*60, file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
         sys.stderr.flush()
         traceback.print_exc()
-        print(f"Fullscreen window creation failed: {e}")
+        print(f"Window creation failed: {e}")
         sys.stdout.flush()
-        print("Trying windowed mode as fallback...")
-        sys.stdout.flush()
-        time.sleep(0.1)  # Reduced delay
+        print("Press Enter to exit...")
         try:
-            win = visual.Window(
-                size=(1280, 720), 
-                color='white', 
-                units='height', 
-                fullscr=False, 
-                viewPos=(0, 0),
-                waitBlanking=False,
-                allowGUI=True,
-                useFBO=False
-            )
-            win.flip()
-            print("Windowed mode window created successfully")
-            sys.stdout.flush()
-        except Exception as e2:
-            print("="*60)
-            print(f"ERROR: Could not create window in either mode ({e2})")
-            print("="*60)
-            traceback.print_exc(file=sys.stderr)
-            sys.stderr.flush()
-            import traceback
+            input()
+        except Exception as e:
+            print(f"ERROR in input() call: {repr(e)}", file=sys.stderr)
             traceback.print_exc()
-            print("Press Enter to exit...")
-            sys.stdout.flush()
-            try:
-                input()
-            except Exception as e:
-                print(f"ERROR in input() call: {repr(e)}", file=sys.stderr)
-                traceback.print_exc()
-            try:
-                core.quit()
-            except Exception as e:
-                print(f"ERROR calling core.quit(): {repr(e)}", file=sys.stderr)
-                traceback.print_exc()
-            exit(1)
+        try:
+            core.quit()
+        except Exception as e:
+            print(f"ERROR calling core.quit(): {repr(e)}", file=sys.stderr)
+            traceback.print_exc()
+        exit(1)
     
     # Verify window was created successfully
     if win is None:
