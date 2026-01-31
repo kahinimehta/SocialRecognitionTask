@@ -109,7 +109,7 @@ Each of the 10 trials follows this structure:
 - **AI Response Time (RT)**: Drawn from a log-normal distribution (jittered)
 - **AI Confidence**: Drawn from a Gaussian distribution
 - **AI Accuracy**: Varies by block (see below)
-- Animation shows AI's slider moving and clicking submit
+- Animation shows AI's slider clicking (handle appears at chosen position) and clicking submit
 
 ### Turn-Taking Manipulation
 

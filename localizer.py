@@ -56,13 +56,13 @@ def get_input_method():
     # Create temporary window - handle partial initialization
     temp_win = None
     try:
-        # Use height units for windowed mode (not fullscreen)
+        # Create windowed window
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
-            size=(1280, 720),
+            size=(1300, 800),
             color='white',
-            units='height',
-            fullscr=False,  # Windowed mode for temp window
+            units='pix',
+            fullscr=False,
             allowGUI=True,
             waitBlanking=False,  # Prevent blocking on display sync
             useFBO=False  # Disable framebuffer objects to prevent hangs
@@ -526,7 +526,7 @@ def is_test_participant(participant_id):
     return "test" in participant_id.lower()
 
 def load_all_stimuli():
-    """Load all 100 Image files from STIMULI directory"""
+    """Load all 100 Image files and 100 Lure files from STIMULI directory (200 total)"""
     stimuli_list = []
     
     for category in CATEGORY_MAPPING.keys():
@@ -538,25 +538,28 @@ def load_all_stimuli():
             
             for obj_folder in sorted(object_folders):
                 obj_path = os.path.join(category_dir, obj_folder)
-                # Look for Image_XXX.jpg files
+                # Look for both Image_XXX.jpg and Lure_XXX.jpg files
                 for filename in os.listdir(obj_path):
-                    if filename.startswith("Image_") and filename.endswith(".jpg"):
-                        # Extract stimulus number from filename (e.g., Image_001.jpg -> 1)
+                    if (filename.startswith("Image_") or filename.startswith("Lure_")) and filename.endswith(".jpg"):
+                        # Extract stimulus number from filename (e.g., Image_001.jpg -> 1, Lure_001.jpg -> 1)
                         try:
                             stimulus_num = int(filename.split("_")[1].split(".")[0])
+                            is_lure = filename.startswith("Lure_")
                             full_path = os.path.join(obj_path, filename)
                             if os.path.exists(full_path):
                                 stimuli_list.append({
                                     'path': full_path,
                                     'number': stimulus_num,
                                     'category': category,
-                                    'object_name': obj_folder
+                                    'object_name': obj_folder,
+                                    'is_lure': is_lure,
+                                    'stimulus_type': 'Lure' if is_lure else 'Image'
                                 })
                         except (ValueError, IndexError):
                             continue
     
-    # Sort by stimulus number to ensure we have all 100
-    stimuli_list.sort(key=lambda x: x['number'])
+    # Sort by stimulus number, then by type (Image first, then Lure) to ensure consistent ordering
+    stimuli_list.sort(key=lambda x: (x['number'], x['is_lure']))
     return stimuli_list
 
 def get_participant_id():
@@ -1432,25 +1435,20 @@ try:
     print("Creating main window...")
     sys.stdout.flush()
     sys.stderr.flush()
-    # Create window in fullscreen mode
-    # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
-    # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
-    # Add waitBlanking=False and allowGUI=True to prevent hanging
+    # Create windowed window
     try:
         print("About to call visual.Window()...", file=sys.stderr)
         sys.stderr.flush()
         print("DEBUG: Right before visual.Window() call", file=sys.stderr)
         sys.stderr.flush()
-        print("Creating windowed window (avoiding fullscreen backend issues)...")
+        print("Creating windowed window (1300x800)...")
         sys.stdout.flush()
         sys.stderr.flush()
-        # Use windowed mode to avoid backend issues with fullscreen
         win = visual.Window(
-            size=(1280, 720), 
+            size=(1300, 800), 
             color='white', 
-            units='height', 
-            fullscr=False,  # Windowed mode to avoid backend issues
-            viewPos=(0, 0),
+            units='pix',
+            fullscr=False,
             waitBlanking=False,  # Prevent blocking on display sync
             allowGUI=True,  # Ensure GUI is available
             useFBO=False  # Disable framebuffer objects to prevent hangs
@@ -1619,8 +1617,8 @@ try:
     print("Loading stimuli...")
     all_stimuli = load_all_stimuli()
 
-    if len(all_stimuli) != 100:
-        print(f"Warning: Expected 100 stimuli, found {len(all_stimuli)}")
+    if len(all_stimuli) != 200:
+        print(f"Warning: Expected 200 stimuli (100 Image + 100 Lure), found {len(all_stimuli)}")
 
     # Randomize order
     random.shuffle(all_stimuli)
@@ -1629,7 +1627,7 @@ try:
     instructions = visual.TextStim(
         win,
         text="LOCALIZER TASK\n\n"
-             "You will see 100 images one at a time.\n\n"
+             "You will see 200 images one at a time.\n\n"
              "Every few images, you will be asked a question\n"
              "about the previous image.\n\n"
              "Please pay attention to each image.",
@@ -1660,8 +1658,9 @@ try:
         # Define fieldnames for all images (will include question fields for every 10th)
         fieldnames = [
             'participant_id', 'trial', 'stimulus_number', 'object_name', 'category',
-            'presentation_time', 'is_question_trial', 'question_category', 'question_text',
-            'answer', 'correct_answer', 'correct', 'timed_out', 'response_time'
+            'stimulus_type', 'is_lure', 'presentation_time', 'is_question_trial', 
+            'question_category', 'question_text', 'answer', 'correct_answer', 
+            'correct', 'timed_out', 'response_time'
         ]
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
@@ -1708,6 +1707,8 @@ try:
                     'stimulus_number': current_stimulus['number'],
                     'object_name': current_stimulus['object_name'],
                     'category': current_stimulus['category'],
+                    'stimulus_type': current_stimulus['stimulus_type'],
+                    'is_lure': current_stimulus['is_lure'],
                     'presentation_time': presentation_timestamp,
                     'is_question_trial': True,
                     'question_category': correct_category,
@@ -1726,6 +1727,8 @@ try:
                     'stimulus_number': stimulus['number'],
                     'object_name': stimulus['object_name'],
                     'category': stimulus['category'],
+                    'stimulus_type': stimulus['stimulus_type'],
+                    'is_lure': stimulus['is_lure'],
                     'presentation_time': presentation_timestamp,
                     'is_question_trial': False,
                     'question_category': None,

@@ -66,13 +66,13 @@ def get_input_method():
     # Create temporary window - handle partial initialization
     temp_win = None
     try:
-        # Use height units for windowed mode (not fullscreen)
+        # Create windowed window
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
-            size=(1280, 720),
+            size=(1300, 800),
             color='white',
-            units='height',
-            fullscr=False,  # Windowed mode for temp window
+            units='pix',
+            fullscr=False,
             allowGUI=True,
             waitBlanking=False,  # Prevent blocking on display sync
             useFBO=False  # Disable framebuffer objects to prevent hangs
@@ -459,19 +459,14 @@ try:
     # (delay already handled in get_input_method function)
     # No additional delays needed - proceed immediately to window creation
     print("Creating main window...")
-    # Create window in windowed mode (avoiding fullscreen backend issues)
-    # Use explicit size (never use size=None on Surface Pro/touchscreen mode)
-    # Explicitly set viewPos to prevent broadcasting errors on hi-DPI Windows setups
-    # Add waitBlanking=False and allowGUI=True to prevent hanging
+    # Create windowed window
     try:
-        print("Creating windowed window (avoiding fullscreen backend issues)...")
-        # Use windowed mode to avoid backend issues with fullscreen
+        print("Creating windowed window (1300x800)...")
         win = visual.Window(
-            size=(1280, 720), 
+            size=(1300, 800), 
             color='white', 
-            units='height', 
-            fullscr=False,  # Windowed mode to avoid backend issues
-            viewPos=(0, 0),
+            units='pix',
+            fullscr=False,
             waitBlanking=False,  # Prevent blocking on display sync
             allowGUI=True,  # Ensure GUI is available
             useFBO=False  # Disable framebuffer objects to prevent hangs
@@ -2092,7 +2087,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         ai_start_time = time.time()
         ai_confidence, ai_rt, ai_correct, ground_truth = ai_collaborator.make_decision(is_studied, trial_type)
         
-        # Animate partner's slider moving and clicking submit
+        # Animate partner's slider clicking and clicking submit
         ai_decision_time = time.time()
         ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim)
         
@@ -2161,7 +2156,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         ai_start_time = time.time()
         ai_confidence, ai_rt, ai_correct, ground_truth = ai_collaborator.make_decision(is_studied, trial_type)
         
-        # Animate partner's slider moving and clicking submit
+        # Animate partner's slider clicking and clicking submit
         ai_decision_time = time.time()
         ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim)
         
@@ -2239,7 +2234,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     return trial_data, points_earned
 
 def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
-    """Animate partner's slider moving and clicking submit"""
+    """Animate partner's slider clicking (not sliding) and clicking submit"""
     # Create slider visualization
     slider_line = visual.Line(
         win,
@@ -2253,7 +2248,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         radius=0.02,
         fillColor='blue',
         lineColor='black',
-        pos=(0, -0.2)  # Start at center
+        pos=(0, -0.2*0.6)  # Will be set to target position on click
     )
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04, pos=(-0.45, -0.2))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04, pos=(0.45, -0.2))
@@ -2270,21 +2265,42 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
     )
     submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04, pos=(0, -0.35))
     
-    # Animate slider moving from center to target position
-    start_pos = 0.0  # Center
-    target_x = -0.4 + (partner_value * 0.8)  # Target position
-    animation_duration = partner_rt * 0.7  # Use 70% of RT for animation
-    num_steps = int(animation_duration / 0.05)  # Update every 50ms
+    # Calculate target position
+    target_x = -0.4*0.6 + (partner_value * 0.8*0.6)  # Target position
     
-    slider_display_time = None
+    # Wait for most of RT (70%) before showing the click
+    # This maintains RT distribution while showing click instead of slide
+    wait_before_click = partner_rt * 0.7
+    elapsed_wait = 0.0
+    start_time = time.time()
     
-    for step in range(num_steps + 1):
-        # Interpolate position
-        progress = step / num_steps if num_steps > 0 else 1.0
-        current_x = start_pos + (target_x - start_pos) * progress
-        partner_handle.pos = (current_x, -0.2)
+    # Show slider without handle (partner thinking/deciding)
+    while elapsed_wait < wait_before_click:
+        if image_stim:
+            image_stim.draw()
+        partner_text.draw()
+        slider_line.draw()
+        old_label.draw()
+        new_label.draw()
+        # Don't draw handle yet - partner hasn't clicked
+        submit_button.draw()
+        submit_text.draw()
+        win.flip()
         
-        # Draw everything
+        elapsed_wait = time.time() - start_time
+        if elapsed_wait < wait_before_click:
+            core.wait(0.05)
+    
+    # Show click: handle appears at target position (like a click)
+    slider_display_time = time.time()
+    partner_handle.pos = (target_x, -0.2*0.6)
+    
+    # Brief visual feedback for the click (handle appears)
+    for i in range(2):
+        # Make handle slightly larger/brighten to show click
+        partner_handle.fillColor = 'lightblue' if i == 0 else 'blue'
+        partner_handle.radius = 0.025 if i == 0 else 0.02
+        
         if image_stim:
             image_stim.draw()
         partner_text.draw()
@@ -2296,10 +2312,12 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         submit_text.draw()
         win.flip()
         
-        core.wait(0.05)
+        core.wait(0.1)
     
-    # Show handle at final position briefly
-    partner_handle.pos = (target_x, -0.2*0.6)
+    # Wait remaining RT time before submit
+    remaining_rt = partner_rt - (time.time() - start_time)
+    if remaining_rt > 0:
+        core.wait(remaining_rt)
     
     # Animate clicking submit button (highlight button)
     for i in range(3):
@@ -2314,10 +2332,6 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         submit_button.draw()
         submit_text.draw()
         win.flip()
-        
-        # Record commit time on first submit button click (when AI commits)
-        if i == 0:
-            slider_display_time = time.time()
         
         core.wait(0.1)
         
