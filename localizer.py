@@ -153,7 +153,7 @@ def get_input_method():
             try:
                 keys = event.getKeys(keyList=['escape'])
                 if keys and 'escape' in keys:
-                    return None  # Signal to exit - window will be closed in finally
+                    return None, None  # Signal to exit - window will be closed in exception handler
             except (AttributeError, RuntimeError) as e:
                 print(f"Warning: Error checking escape key: {e}", file=sys.stderr)
             
@@ -302,7 +302,7 @@ def get_input_method():
             try:
                 keys = event.getKeys(keyList=['escape'])
                 if keys and 'escape' in keys:
-                    return None
+                    return None, None
             except (AttributeError, RuntimeError) as e:
                 print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
             
@@ -403,31 +403,30 @@ def get_input_method():
             # Fallback if time wasn't recorded (shouldn't happen)
             time.sleep(0.4)
         
-        return USE_TOUCH_SCREEN
+        print(f"DEBUG: About to return USE_TOUCH_SCREEN = {USE_TOUCH_SCREEN}", file=sys.stderr)
+        sys.stderr.flush()
+        # Return both the result and the temp window reference
+        # Don't close temp window here - close it after main window is created
+        return USE_TOUCH_SCREEN, temp_win
     
-    finally:
-        # Close temp window exactly once in finally block
+    except Exception as e:
+        # If there's an error, close temp window in exception handler
+        print(f"ERROR in get_input_method: {e}", file=sys.stderr)
+        sys.stderr.flush()
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
         if temp_win is not None:
             try:
-                print("DEBUG: Closing temp window...", file=sys.stderr)
-                sys.stderr.flush()
-                # Ensure window is properly flushed before closing
-                try:
-                    temp_win.flip()
-                except:
-                    pass
                 temp_win.close()
-                print("DEBUG: Temp window closed", file=sys.stderr)
-                sys.stderr.flush()
-                # Give the system time to fully close the window
-                time.sleep(0.1)
-            except Exception as e:
-                print(f"ERROR closing temp window: {repr(e)}", file=sys.stderr)
-                traceback.print_exc()
-                # Still wait a bit even if close failed
-                time.sleep(0.1)
-        # Additional delay to ensure temp window is fully closed before main window creation
-        time.sleep(0.15)  # Slightly longer delay to ensure window resources are fully released
+            except:
+                pass
+        return None, None
+    
+    finally:
+        # Don't close temp window here - it will be closed after main window creation
+        # This prevents PsychoPy from quitting when all windows are closed
+        pass
 
 # =========================
 #  STIMULI SETUP (Module-level constants)
@@ -451,16 +450,29 @@ CATEGORY_MAPPING = {
 # Ask for input method first
 print("Getting input method...")
 result = None
+temp_win = None
 try:
-    result = get_input_method()
+    print("DEBUG: About to call get_input_method()...", file=sys.stderr)
+    sys.stderr.flush()
+    result, temp_win = get_input_method()
+    print(f"DEBUG: get_input_method() returned: result={result}, temp_win={temp_win}", file=sys.stderr)
+    sys.stderr.flush()
     print(f"Input method result: {result}")
     sys.stdout.flush()
-    print(f"Input method type: {type(result)}")
-    sys.stdout.flush()
 except Exception as e:
-    print(f"ERROR in get_input_method(): {e}")
+    print(f"ERROR in get_input_method(): {e}", file=sys.stderr)
+    sys.stderr.flush()
     import traceback
+    traceback.print_exc(file=sys.stderr)
+    sys.stderr.flush()
     traceback.print_exc()
+    print(f"ERROR in get_input_method(): {e}")
+    # Close temp window if it exists
+    if temp_win is not None:
+        try:
+            temp_win.close()
+        except:
+            pass
     print("Press Enter to exit...")
     try:
         input()
@@ -1492,6 +1504,20 @@ try:
         print("Windowed window created successfully")
         sys.stdout.flush()
         sys.stderr.flush()
+        
+        # Now that main window is created, close the temp window
+        if temp_win is not None:
+            try:
+                print("DEBUG: Closing temp window after main window creation...", file=sys.stderr)
+                sys.stderr.flush()
+                temp_win.close()
+                print("DEBUG: Temp window closed successfully", file=sys.stderr)
+                sys.stderr.flush()
+                time.sleep(0.1)  # Brief delay after closing
+            except Exception as close_err:
+                print(f"WARNING: Error closing temp window (non-critical): {close_err}", file=sys.stderr)
+                sys.stderr.flush()
+        
     except Exception as e:
         # If window creation fails, show error
         import traceback
@@ -1514,6 +1540,12 @@ try:
         except Exception as e:
             print(f"ERROR calling core.quit(): {repr(e)}", file=sys.stderr)
             traceback.print_exc()
+        # Close temp window if it still exists
+        if temp_win is not None:
+            try:
+                temp_win.close()
+            except:
+                pass
         exit(1)
     
     # Verify window was created successfully
