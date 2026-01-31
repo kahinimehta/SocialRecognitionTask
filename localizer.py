@@ -59,7 +59,7 @@ def get_input_method():
         # Use height units for windowed mode (not fullscreen)
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
-            size=(1280, 720),
+            #size=(1280, 720),
             color='white',
             units='height',
             fullscr=False,  # Windowed mode for temp window
@@ -1409,7 +1409,7 @@ try:
         sys.stderr.flush()
         # Try with timeout protection: use waitBlanking=False to prevent blocking
         win = visual.Window(
-            size=(1280, 720), 
+            #size=(1280, 720), 
             color='white', 
             units='height', 
             fullscr=True, 
@@ -1442,7 +1442,7 @@ try:
         time.sleep(0.1)  # Reduced delay
         try:
             win = visual.Window(
-                size=(1280, 720), 
+                #size=(1280, 720), 
                 color='white', 
                 units='height', 
                 fullscr=False, 
