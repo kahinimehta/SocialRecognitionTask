@@ -113,8 +113,8 @@ The localizer task generates one CSV file:
 
 ### `participant_first`
 - **Type**: Boolean
-- **Description**: True if participant responded first, False if AI/partner responded first
-- **Example**: `True`, `False`
+- **Description**: Always True - participant always responds first in all blocks
+- **Example**: `True`
 
 ---
 
@@ -385,17 +385,31 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
   - Slider and switch/stay decisions: 7 seconds
   - Block-end questions: 7 seconds each
 - The experiment saves data incrementally after each trial, not just at the end
-- Block 0 is the practice block (5 trials), blocks 1-10 are experimental blocks (10 trials each)
+- Block 0 is the practice block (3 trials), blocks 1-5 are experimental blocks (20 trials each)
 - One question (trust rating) is asked after each block (including practice block)
 - Points are calculated based on Euclidean distance: `points = 1.0 - distance(final_answer, ground_truth)`
+- **Block structure**:
+  - Block 1: Reliable (0.75 accuracy), Participant first
+  - Block 2: Unreliable (0.25 accuracy), Participant first
+  - Block 3: Unreliable (0.25 accuracy), Participant first
+  - Block 4: Reliable (0.75 accuracy), Participant first
+  - Block 5: Unreliable (0.25 accuracy), Participant first
+- **Turn-taking**: Participant always goes first in all blocks
 - **Study phase timing**:
   - Images are shown for **1.0 second each** (fixed duration, no jitter)
   - **Jittered fixations** appear between images: **0.25-0.75 seconds** (uniform random distribution)
   - Fixation jitter: `random.uniform(0.25, 0.75)` - each fixation independently drawn
   - No fixation before the first image
-  - 9 fixations per block (between 10 images)
-  - Total study phase duration: ~14.5 seconds (varies due to fixation jitter)
+  - 19 fixations per block (between 20 images)
+  - Total study phase duration: ~29 seconds (varies due to fixation jitter)
 - **Recognition phase timing**:
+  - **Pre-trial fixation**: 0.5 seconds (fixed duration, shown before each image)
+  - Images are shown for **1.0 second each** (fixed duration, no jitter)
+  - **Jittered fixations** appear between trials: **0.25-0.75 seconds** (uniform random distribution)
+  - Inter-trial jitter: `random.uniform(0.25, 0.75)` - each jitter independently drawn
+  - Jitter shown as fixation cross during the inter-trial interval
+  - No jitter after the last trial in each block
+  - 19 jittered fixations per block (between 20 trials)
   - Image remains visible until participant responds or timeout
   - Participant slider timeout: **7.0 seconds** (fixed)
   - AI RT: Log-normal distribution (mu=0.5, sigma=0.3), capped at 5.0 seconds
@@ -466,22 +480,126 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 
 ---
 
+## Localizer Task CSV Variables
+
+The localizer task generates one CSV file:
+- **localizer_[participant_id]_[timestamp].csv** - Localizer task data
+
+**File Format**: Each row represents one image presentation. Question trials (every 10th image) include question response data.
+
+### `participant_id`
+- **Type**: String
+- **Description**: Participant identifier
+- **Example**: `"kini"`, `"P001"`
+
+### `trial`
+- **Type**: Integer
+- **Description**: Trial number (1-indexed, 1-200)
+- **Note**: Questions are asked at trials 10, 20, 30, ..., 200 (every 10th trial)
+- **Example**: `1`, `10`, `50`, `200`
+
+### `stimulus_number`
+- **Type**: Integer (1-100)
+- **Description**: The stimulus number of the image (from Image_001.jpg to Image_100.jpg, or corresponding Lure)
+- **Example**: `1`, `42`, `100`
+
+### `object_name`
+- **Type**: String
+- **Description**: Name of the object folder containing the image (e.g., "Apple", "Car", "Elephant")
+- **Example**: `"Apple"`, `"Car"`, `"Elephant"`
+
+### `category`
+- **Type**: String
+- **Description**: Category folder name that the image belongs to
+- **Possible values**: `"BIG_ANIMAL"`, `"BIG_OBJECT"`, `"BIRD"`, `"FOOD"`, `"FRUIT"`, `"INSECT"`, `"SMALL_ANIMAL"`, `"SMALL_OBJECT"`, `"VEGETABLE"`, `"VEHICLE"`
+- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`
+
+### `stimulus_type`
+- **Type**: String
+- **Description**: Type of stimulus shown
+- **Possible values**: `"Image"` (original image), `"Lure"` (lure version)
+- **Example**: `"Image"`, `"Lure"`
+
+### `is_lure`
+- **Type**: Boolean
+- **Description**: True if this is a lure stimulus, False if it's an original Image
+- **Example**: `True`, `False`
+
+### `presentation_time`
+- **Type**: String (datetime format)
+- **Description**: Timestamp when the image was displayed
+- **Format**: `"YYYY-MM-DD HH:MM:SS.ffffff"`
+- **Example**: `"2026-01-30 23:21:31.123456"`
+
+### `is_question_trial`
+- **Type**: Boolean
+- **Description**: True if this trial included a category question (trials 10, 20, 30, ..., 200), False otherwise
+- **Example**: `True`, `False`
+
+### `question_category`
+- **Type**: String or None
+- **Description**: The category that was asked about in the question (only populated for question trials)
+- **Possible values**: Same as `category`, or `None` for non-question trials
+- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`, `None`
+
+### `question_text`
+- **Type**: String or None
+- **Description**: Full text of the question asked to the participant (only populated for question trials)
+- **Format**: "Was the last object a [category]?" where category is converted from folder name (e.g., "BIG_ANIMAL" → "big animal")
+- **Example**: `"Was the last object a big animal?"`, `"Was the last object a fruit?"`, `None`
+
+### `answer`
+- **Type**: Boolean, String, or None
+- **Description**: Participant's response to the question
+- **Possible values**: 
+  - `True` (YES) for question trials where participant answered YES
+  - `False` (NO) for question trials where participant answered NO
+  - `"TIMEOUT"` if participant timed out (though localizer has no timeout)
+  - `None` for non-question trials
+- **Example**: `True`, `False`, `None`
+
+### `correct_answer`
+- **Type**: Boolean or None
+- **Description**: The correct answer to the question (always True for question trials, since we ask about the category the image actually belongs to)
+- **Example**: `True`, `None`
+
+### `correct`
+- **Type**: Boolean or None
+- **Description**: Whether the participant's answer matches the correct answer
+- **Possible values**: `True` (correct), `False` (incorrect), `None` (non-question trial or timeout)
+- **Example**: `True`, `False`, `None`
+
+### `timed_out`
+- **Type**: Boolean or None
+- **Description**: Whether the participant timed out on the question (always False for localizer, as there is no timeout)
+- **Example**: `False`, `None`
+
+### `response_time`
+- **Type**: Float (seconds) or None
+- **Description**: Time taken to respond to the question, measured from question onset to button press
+- **Example**: `1.234`, `2.567`, `None`
+
+---
+
 ## Notes on Localizer Task
 
 - **Image presentation timing**:
-  - Each image is displayed for **2.0 seconds** (fixed duration, no jitter)
+  - Each image is displayed for **1.0 second** (fixed duration, no jitter)
   - **0.5 second pause** between images (fixed, no jitter)
-  - Total image presentation time: 100 images × 2.0 seconds = 200 seconds (~3.3 minutes)
-  - Total inter-image pause time: 99 pauses × 0.5 seconds = 49.5 seconds
-  - Total task duration: ~250 seconds (~4.2 minutes) plus question response times
+  - Total images: 200 (100 Image + 100 Lure versions)
+  - Total image presentation time: 200 images × 1.0 second = 200 seconds (~3.3 minutes)
+  - Total inter-image pause time: 199 pauses × 0.5 seconds = 99.5 seconds
+  - Total task duration: ~300 seconds (~5 minutes) plus question response times
 - **Question timing**:
-  - Questions are asked at images 10, 20, 30, 40, 50, 60, 70, 80, 90, and 100 (10 questions total)
+  - Questions are asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (20 questions total)
   - **No timeout** for questions - participant must respond (YES/NO buttons)
-  - Question appears immediately after the 10th image is shown
+  - Question appears immediately after the image is shown
 - **Category conversion**: Category names are converted from folder format (e.g., "BIG_ANIMAL") to natural language (e.g., "big animal") for the question
 - **Correct answer**: The correct answer is always True since we ask about the category the image actually belongs to
 - **File saving**: 
   - Skipped if "test" (case-insensitive) is in the participant name
   - For touch screen mode: files saved to `../LOG_FILES/` directory
   - For click/mouse mode: files saved to the current directory
+  - File naming format: `localizer_[participant_id]_[timestamp].csv`
+  - Example: `localizer_kini_20260130_232131.csv`
 

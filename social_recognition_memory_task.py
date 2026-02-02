@@ -421,22 +421,6 @@ def get_input_method():
                 
                 # Reduced polling delay for faster touch response
                 core.wait(0.001)  # Very fast polling
-            
-            # Check for space key (escape already checked at start of loop)
-            try:
-                keys = event.getKeys(keyList=['space'])
-                if keys and 'space' in keys:
-                    continue_click_time = time.time()  # Record exact time of space key press
-                    clicked = True
-                    break
-            except (AttributeError, RuntimeError) as e:
-                print(f"Warning: Error checking space key: {e}", file=sys.stderr)
-            
-            # Clear events AFTER checking keys
-            event.clearEvents()
-            
-            # Reduced polling delay for faster touch response
-            core.wait(0.001)  # Very fast polling
         
         mouse_temp.setVisible(False)
         
@@ -581,8 +565,20 @@ try:
         
         print("DEBUG: visual.Window() call completed successfully", file=sys.stderr)
         sys.stderr.flush()
-        # Immediately flip to ensure window is ready
-        win.flip()
+        print("Window object created, about to flip...", file=sys.stderr)
+        sys.stderr.flush()
+        
+        # Ensure window is ready before proceeding
+        try:
+            # Immediately flip to ensure window is ready
+            win.flip()
+            print("Window flip successful", file=sys.stderr)
+            sys.stderr.flush()
+        except Exception as flip_error:
+            print(f"Warning: Initial flip failed: {flip_error}", file=sys.stderr)
+            sys.stderr.flush()
+            # Try to continue anyway - window might still be usable
+        
         print("Windowed window created successfully")
         sys.stdout.flush()
         sys.stderr.flush()
@@ -591,44 +587,64 @@ try:
     except Exception as e:
         # If window creation fails, show error
         import traceback
+        print("="*60, file=sys.stderr)
+        print("WINDOW CREATION FAILED", file=sys.stderr)
+        print("="*60, file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
         traceback.print_exc()
         print(f"Window creation failed: {e}")
-        print("="*60)
-        print(f"ERROR: Could not create window ({e})")
-        print("="*60)
-        import traceback
-        traceback.print_exc()
+        sys.stdout.flush()
+        print("Press Enter to exit...")
+        try:
+            input()
+        except Exception as e:
+            print(f"ERROR in input() call: {repr(e)}", file=sys.stderr)
+            traceback.print_exc()
+        try:
+            core.quit()
+        except Exception as e:
+            print(f"ERROR calling core.quit(): {repr(e)}", file=sys.stderr)
+            traceback.print_exc()
         # Close temp window if it still exists
         if temp_win is not None:
             try:
                 temp_win.close()
             except:
                 pass
-        print("Press Enter to exit...")
-        try:
-            input()
-        except:
-            pass
-        core.quit()
         exit(1)
     
     # Verify window was created successfully
     if win is None:
-        print("Error: Failed to create main window")
-        # Close temp window if it still exists
-        if temp_win is not None:
-            try:
-                temp_win.close()
-            except:
-                pass
-        core.quit()
+        error_msg = "ERROR: Failed to create main window - win is None"
+        print("="*60, file=sys.stderr)
+        print(error_msg, file=sys.stderr)
+        print("="*60, file=sys.stderr)
+        sys.stderr.flush()
+        print("="*60)
+        print("ERROR: Failed to create main window - win is None")
+        print("="*60)
+        print("Press Enter to exit...")
+        sys.stdout.flush()
+        try:
+            input()
+        except:
+            pass
+        try:
+            core.quit()
+        except:
+            pass
         exit(1)
+    
+    print(f"Window created successfully: {win}")
+    sys.stdout.flush()
     
     # Ensure window is visible and ready
     try:
         win.flip()
         core.wait(0.1)  # Brief wait to ensure window is fully ready
         print("Main window created successfully")
+        sys.stdout.flush()
     except Exception as e:
         print(f"Error preparing window: {e}")
         import traceback
@@ -641,20 +657,42 @@ try:
         if platform.system() == 'Darwin':  # macOS
             try:
                 win.winHandle.activate()
-            except:
-                pass
-    except:
-        pass
+            except Exception as e:
+                print(f"Warning: Could not activate window on macOS: {e}", file=sys.stderr)
+                # This is not critical, continue anyway
+    except Exception as e:
+        print(f"Warning: Error checking platform for window activation: {e}", file=sys.stderr)
+        # This is not critical, continue anyway
 
     # Initial flip to ensure window is ready
     print("Performing initial window flip...")
+    sys.stdout.flush()
     try:
         win.flip()
         print("Initial flip successful")
+        sys.stdout.flush()
     except Exception as e:
         print(f"ERROR during initial flip: {e}")
+        sys.stdout.flush()
         raise
     core.wait(0.1)
+    
+    # Test that window can draw something simple
+    print("Testing window with simple draw...")
+    sys.stdout.flush()
+    try:
+        test_text = visual.TextStim(win, text=" ", color='black', height=0.05*0.75, pos=(0, 0))
+        test_text.draw()
+        win.flip()
+        print("Window draw test successful")
+        sys.stdout.flush()
+        core.wait(0.1)
+    except Exception as e:
+        print(f"ERROR during window draw test: {e}")
+        sys.stdout.flush()
+        import traceback
+        traceback.print_exc()
+        raise
     
     # Verify window is ready before continuing
     if win is None:
@@ -663,19 +701,12 @@ try:
         print("="*60)
         raise RuntimeError("Main window creation failed - win is None")
     
-    # Test that window can draw something simple
-    print("Testing window with simple draw...")
-    try:
-        test_text = visual.TextStim(win, text="Test", color='black', height=0.05*0.75, pos=(0, 0))
-        test_text.draw()
-        win.flip()
-        print("Window draw test successful")
-        core.wait(0.1)
-    except Exception as e:
-        print(f"ERROR during window draw test: {e}")
-        import traceback
-        traceback.print_exc()
-        raise
+    print("Window verification complete, proceeding to experiment...")
+    sys.stdout.flush()
+    print(f"Window object: {win}")
+    sys.stdout.flush()
+    print(f"Window type: {type(win)}")
+    sys.stdout.flush()
     
     print("Main window setup complete. Window is ready.")
     print("="*60)
@@ -743,6 +774,34 @@ except:
     except:
         pass
     exit(1)
+
+# =========================
+#  GENERATE PRACTICE STIMULI
+# =========================
+def generate_practice_shapes(output_dir="PLACEHOLDERS"):
+    """Generate the 3 specific practice shapes: green circle, red circle, blue circle"""
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    # Green circle (practice shape 1)
+    img = Image.new('RGB', (200, 200), color='white')
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([20, 20, 180, 180], fill='green', outline='black', width=3)
+    img.save(os.path.join(output_dir, "PRACTICE_GREEN_CIRCLE.png"))
+    
+    # Red circle (practice shape 2)
+    img = Image.new('RGB', (200, 200), color='white')
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([20, 20, 180, 180], fill='red', outline='black', width=3)
+    img.save(os.path.join(output_dir, "PRACTICE_RED_CIRCLE.png"))
+    
+    # Blue circle (practice shape 3)
+    img = Image.new('RGB', (200, 200), color='white')
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([20, 20, 180, 180], fill='blue', outline='black', width=3)
+    img.save(os.path.join(output_dir, "PRACTICE_BLUE_CIRCLE.png"))
+    
+    print(f"✓ Generated 3 practice shapes in {output_dir}/")
 
 # =========================
 #  GENERATE PLACEHOLDER STIMULI
@@ -915,12 +974,12 @@ def select_study_stimuli_one_per_category():
     return selected
 
 def assign_stimuli_to_blocks():
-    """Assign 100 stimuli to 10 blocks ensuring:
-    - Each block has exactly one item from each of the 10 categories
+    """Assign 100 stimuli to 5 blocks ensuring:
+    - Each block has exactly 2 items from each of the 10 categories (20 stimuli per block)
     - No stimulus appears more than once across all blocks
     
     Returns:
-        list: List of 10 lists, each containing 10 stimulus numbers
+        list: List of 5 lists, each containing 20 stimulus numbers
     """
     # Get all stimuli organized by category
     stimuli_by_category = get_stimuli_by_category()
@@ -929,24 +988,30 @@ def assign_stimuli_to_blocks():
     for category in stimuli_by_category:
         random.shuffle(stimuli_by_category[category])
     
-    # Assign to blocks: each block gets one item from each category
+    # Assign to blocks: each block gets 2 items from each category
     # This ensures no repeats (since we use each category's items exactly once)
     blocks = []
     category_names = list(CATEGORY_MAPPING.keys())
     
-    for block_num in range(10):
+    for block_num in range(5):
         block_stimuli = []
         for category in category_names:
-            # Get the item at position block_num from this category
-            item_index = block_num
-            stimulus_num = stimuli_by_category[category][item_index]
-            block_stimuli.append(stimulus_num)
+            # Get 2 items from this category for this block
+            # Block 0 uses items 0-1, block 1 uses items 2-3, etc.
+            item_index_start = block_num * 2
+            item_index_end = item_index_start + 2
+            for item_index in range(item_index_start, item_index_end):
+                stimulus_num = stimuli_by_category[category][item_index]
+                block_stimuli.append(stimulus_num)
         
         # Shuffle the order within the block for randomization
         random.shuffle(block_stimuli)
         blocks.append(block_stimuli)
     
     return blocks
+
+# Generate practice shapes first
+generate_practice_shapes(PLACEHOLDER_DIR)
 
 # Generate placeholders if they don't exist (for practice block)
 # Skip generation if placeholders already exist
@@ -1192,41 +1257,40 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                     draw_screen()
                 else:
                     # Position has changed - check if touch is within button
+                    # Get button bounds with hit margin for touch screens
+                    hit_margin = 0.02  # Extra margin for touch screens
                     try:
-                        if continue_button.contains(mouseloc):
-                            if t > minRT:
-                                continue_button.fillColor = 'lightgreen'
-                                draw_screen()
-                                core.wait(0.2)
-                                clicked = True
-                                break
-                            else:
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except Exception as e:
-                        # Fallback to manual calculation
-                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
-                        traceback.print_exc()
-                        hit_margin = 0.02
-                        button_x, button_y = 0.0, -0.35
-                        button_width, button_height = 0.3, 0.1
-                        if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
-                            if t > minRT:
-                                continue_button.fillColor = 'lightgreen'
-                                draw_screen()
-                                core.wait(0.2)
-                                clicked = True
-                                break
-                            else:
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                        button_pos = continue_button.pos
+                        button_width = continue_button.width
+                        button_height = continue_button.height
+                        if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                            button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                        else:
+                            button_x, button_y = 0.0, -0.35*0.6
+                        button_width = float(button_width) if button_width else 0.3*0.75
+                        button_height = float(button_height) if button_height else 0.1*0.75
+                    except (TypeError, ValueError, AttributeError):
+                        # Fallback values matching actual button creation
+                        button_x, button_y = 0.0, -0.35*0.6
+                        button_width, button_height = 0.3*0.75, 0.1*0.75
+                    
+                    # Check if touch is within button bounds (with margin)
+                    on_button = (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
+                                button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin)
+                    
+                    if on_button:
+                        if t > minRT:
+                            continue_button.fillColor = 'lightgreen'
+                            draw_screen()
+                            core.wait(0.2)
+                            clicked = True
+                            break
+                        else:
+                            # Touch detected but minRT not met - update recorded position and continue
+                            mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                    else:
+                        # Touch moved but not on button - update recorded position
+                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                 
                 # Redraw every frame
                 draw_screen()
@@ -1269,15 +1333,15 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                     if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                         button_x, button_y = float(button_pos[0]), float(button_pos[1])
                     else:
-                        button_x, button_y = 0.0, -0.35
+                        button_x, button_y = 0.0, -0.35*0.6  # Match actual button position
                 except (TypeError, ValueError):
-                    button_x, button_y = 0.0, -0.35
+                    button_x, button_y = 0.0, -0.35*0.6  # Match actual button position
                 
                 try:
                     button_width = float(continue_button.width)
                     button_height = float(continue_button.height)
                 except (TypeError, ValueError):
-                    button_width, button_height = 0.3, 0.1
+                    button_width, button_height = 0.3*0.75, 0.1*0.75  # Match actual button size
                 
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
                             button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
@@ -1856,8 +1920,8 @@ def load_image_stimulus(image_path):
 #  SLIDER FOR OLD-NEW RATING
 # =========================
 def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_num=None, max_trials=10, timeout=7.0):
-    """Get slider response from participant using click-based slider with submit button
-    Works with both touch screen and mouse input - click anywhere on the slider line to set value"""
+    """Get slider response from participant using click-only slider with submit button
+    Works with both touch screen and mouse input - click/tap anywhere on the slider line to set value (no dragging)"""
     # Create slider visual elements
     slider_line = visual.Line(
         win,
@@ -1905,6 +1969,14 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     mouse_pos = (0, 0)  # Initialize mouse position
     mouse_buttons = [False, False, False]  # Initialize mouse buttons
     
+    # For touch screens, use position-change detection
+    if USE_TOUCH_SCREEN:
+        mouserec = mouse.getPos()
+        try:
+            mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+        except:
+            mouserec_x, mouserec_y = 0.0, 0.0
+    
     while True:
         # Check timeout
         elapsed = time.time() - start_time
@@ -1950,36 +2022,70 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             # Keep using previous mouse state instead of defaulting
             core.wait(0.02)  # Slightly longer wait to let system recover
         
-        # Check if clicking on slider line (click-based, not drag)
+        # Check if clicking/tapping on slider line (click-only, no dragging allowed)
         on_slider_line = abs(mouse_pos[1] - (-0.2*0.6)) < 0.05*0.75  # Within 0.05 of slider line y-position
         on_slider_x_range = -0.4*0.6 <= mouse_pos[0] <= 0.4*0.6  # Within slider x range
         
-        # Click detection: button was just pressed (not dragging)
-        if prev_mouse_buttons[0] and not mouse_buttons[0]:
-            # Button was just released - check if it was on slider line
-            if on_slider_line and on_slider_x_range:
-                # Clicked on slider line - set value based on x position
-                x_pos = max(-0.4*0.6, min(0.4*0.6, mouse_pos[0]))
-                slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
-                slider_handle.pos = (x_pos, -0.2*0.6)
+        if USE_TOUCH_SCREEN:
+            # Position-change detection for touch screens (NO minimum RT delay for task responses)
+            try:
+                mouseloc_x, mouseloc_y = float(mouse_pos[0]), float(mouse_pos[1])
+            except:
+                mouseloc_x, mouseloc_y = 0.0, 0.0
+            
+            # Check if position has changed
+            if mouseloc_x != mouserec_x or mouseloc_y != mouserec_y:
+                # Position changed - check if touch is on slider line
+                if on_slider_line and on_slider_x_range:
+                    # Touched on slider line - set value based on x position
+                    x_pos = max(-0.4*0.6, min(0.4*0.6, mouseloc_x))
+                    slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
+                    slider_handle.pos = (x_pos, -0.2*0.6)
+                    
+                    # Check if moved from center (0.5)
+                    if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
+                        has_moved = True
+                        slider_stop_time = time.time()  # Record when value was set immediately
                 
-                # Check if moved from center (0.5)
-                if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
-                    has_moved = True
-                    slider_stop_time = time.time()  # Record when value was set
-        
-        # Check if submit button is clicked/touched (on mouse/touch release)
-        submit_x, submit_y = submit_button.pos
-        submit_width, submit_height = submit_button.width, submit_button.height
-        # For touch screen, use slightly larger hit area
-        hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
-        submit_clicked = (submit_x - submit_width/2 - hit_margin <= mouse_pos[0] <= submit_x + submit_width/2 + hit_margin and
-                         submit_y - submit_height/2 - hit_margin <= mouse_pos[1] <= submit_y + submit_height/2 + hit_margin)
-        
-        # Only allow submit if slider has been moved from center
-        if prev_mouse_buttons[0] and not mouse_buttons[0] and submit_clicked and has_moved:
-            slider_commit_time = time.time()
-            break
+                # Check if submit button is touched
+                submit_x, submit_y = submit_button.pos
+                submit_width, submit_height = submit_button.width, submit_button.height
+                hit_margin = 0.02  # Extra margin for touch screens
+                submit_clicked = (submit_x - submit_width/2 - hit_margin <= mouseloc_x <= submit_x + submit_width/2 + hit_margin and
+                               submit_y - submit_height/2 - hit_margin <= mouseloc_y <= submit_y + submit_height/2 + hit_margin)
+                
+                if submit_clicked and has_moved:
+                    slider_commit_time = time.time()  # Record immediately, no delay
+                    break
+                
+                # Update recorded position
+                mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+        else:
+            # Standard button release detection for mouse/click mode
+            # Click/tap detection: button was just released (click-only, no dragging)
+            if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                # Button was just released - check if it was on slider line
+                if on_slider_line and on_slider_x_range:
+                    # Clicked on slider line - set value based on x position
+                    x_pos = max(-0.4*0.6, min(0.4*0.6, mouse_pos[0]))
+                    slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
+                    slider_handle.pos = (x_pos, -0.2*0.6)
+                    
+                    # Check if moved from center (0.5)
+                    if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
+                        has_moved = True
+                        slider_stop_time = time.time()  # Record when value was set
+            
+            # Check if submit button is clicked/touched (on mouse/touch release)
+            submit_x, submit_y = submit_button.pos
+            submit_width, submit_height = submit_button.width, submit_button.height
+            submit_clicked = (submit_x - submit_width/2 <= mouse_pos[0] <= submit_x + submit_width/2 and
+                             submit_y - submit_height/2 <= mouse_pos[1] <= submit_y + submit_height/2)
+            
+            # Only allow submit if slider has been moved from center
+            if prev_mouse_buttons[0] and not mouse_buttons[0] and submit_clicked and has_moved:
+                slider_commit_time = time.time()
+                break
         
         # Update submit button color based on whether slider has moved
         if has_moved:
@@ -2221,7 +2327,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         ai_start_time = time.time()
         ai_confidence, ai_rt, ai_correct, ground_truth = ai_collaborator.make_decision(is_studied, trial_type)
         
-        # Animate partner's slider clicking and clicking submit
+        # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
         ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim)
         
@@ -2290,7 +2396,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         ai_start_time = time.time()
         ai_confidence, ai_rt, ai_correct, ground_truth = ai_collaborator.make_decision(is_studied, trial_type)
         
-        # Animate partner's slider clicking and clicking submit
+        # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
         ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim)
         
@@ -2368,7 +2474,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     return trial_data, points_earned
 
 def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
-    """Animate partner's slider clicking (not sliding) and clicking submit"""
+    """Animate partner's slider tapping (not sliding) and clicking submit"""
     # Create slider visualization
     slider_line = visual.Line(
         win,
@@ -2382,10 +2488,10 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         radius=0.02,
         fillColor='blue',
         lineColor='black',
-        pos=(0, -0.2*0.6)  # Will be set to target position on click
+        pos=(0, -0.2*0.6)  # Will be set to target position on tap
     )
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04, pos=(-0.45, -0.2))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04, pos=(0.45, -0.2))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.45*0.6, -0.2*0.6))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.45*0.6, -0.2*0.6))
     partner_text = visual.TextStim(win, text="Your partner is rating...", color='blue', height=0.05, pos=(0, 0.3))
     
     # Submit button
@@ -2402,36 +2508,66 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
     # Calculate target position
     target_x = -0.4*0.6 + (partner_value * 0.8*0.6)  # Target position
     
-    # Wait for most of RT (70%) before showing the click
-    # This maintains RT distribution while showing click instead of slide
-    wait_before_click = partner_rt * 0.7
+    # Wait for most of RT (70%) before showing the tap
+    # This maintains RT distribution while showing tap instead of slide
+    wait_before_tap = partner_rt * 0.7
     elapsed_wait = 0.0
     start_time = time.time()
     
     # Show slider without handle (partner thinking/deciding)
-    while elapsed_wait < wait_before_click:
+    while elapsed_wait < wait_before_tap:
         if image_stim:
             image_stim.draw()
         partner_text.draw()
         slider_line.draw()
         old_label.draw()
         new_label.draw()
-        # Don't draw handle yet - partner hasn't clicked
+        # Don't draw handle yet - partner hasn't tapped
         submit_button.draw()
         submit_text.draw()
         win.flip()
         
         elapsed_wait = time.time() - start_time
-        if elapsed_wait < wait_before_click:
+        if elapsed_wait < wait_before_tap:
             core.wait(0.05)
     
-    # Show click: handle appears at target position (like a click)
+    # Show tap animation: create a tap indicator (ripple/highlight) at tap position
     slider_display_time = time.time()
+    tap_indicator = visual.Circle(
+        win,
+        radius=0.03,
+        fillColor='lightblue',
+        lineColor='blue',
+        lineWidth=2,
+        pos=(target_x, -0.2*0.6),
+        opacity=0.8
+    )
+    
+    # Show tap effect: ripple appears briefly at tap position
+    for i in range(3):
+        # Tap indicator grows and fades
+        tap_indicator.radius = 0.03 + (i * 0.01)
+        tap_indicator.opacity = 0.8 - (i * 0.3)
+        
+        if image_stim:
+            image_stim.draw()
+        partner_text.draw()
+        slider_line.draw()
+        old_label.draw()
+        new_label.draw()
+        tap_indicator.draw()  # Show tap indicator
+        submit_button.draw()
+        submit_text.draw()
+        win.flip()
+        
+        core.wait(0.05)  # Quick tap animation
+    
+    # Handle appears at target position (tap completed)
     partner_handle.pos = (target_x, -0.2*0.6)
     
-    # Brief visual feedback for the click (handle appears)
+    # Brief visual feedback: handle appears with slight highlight
     for i in range(2):
-        # Make handle slightly larger/brighten to show click
+        # Make handle slightly larger/brighten to show tap completion
         partner_handle.fillColor = 'lightblue' if i == 0 else 'blue'
         partner_handle.radius = 0.025 if i == 0 else 0.02
         
@@ -3351,7 +3487,7 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
     total_points = 0.0  # Track total points (correctness only)
     max_possible_points = float(num_trials)  # Max points from correctness only (1.0 per trial)
     
-    for trial_num, img_path, is_studied in trial_sequence:
+    for trial_idx, (trial_num, img_path, is_studied) in enumerate(trial_sequence):
         trial_data, points_earned = run_recognition_trial(
             trial_num, block_num, img_path, is_studied,
             participant_first, ai_collaborator, stimuli_dir, experiment_start_time, max_trials=num_trials, total_points=total_points,
@@ -3373,6 +3509,12 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
                 [], [trial_data], participant_id,
                 study_file=study_file, trial_file=trial_file
             )
+        
+        # Add jittered fixation between recognition trials (0.25-0.75 seconds)
+        # Don't add jitter after the last trial
+        if trial_idx < len(trial_sequence) - 1:
+            jitter_duration = random.uniform(0.25, 0.75)
+            show_fixation(jitter_duration)
     
     # Show block summary with points (total over max possible from correctness)
     show_block_summary(block_num, total_points, max_possible_points)
@@ -3656,205 +3798,335 @@ def run_experiment():
     study_file = f"recognition_study_{participant_id}_{timestamp}.csv"
     trial_file = f"recognition_trials_{participant_id}_{timestamp}.csv"
     
-    # Instructions - broken into smaller chunks with formatting
-    show_instructions(
-        "Welcome to the Social Recognition Memory Task!\n\n"
-        "In this task, you will study complex images and then test your memory\n"
-        "by working with a partner.\n\n"
-        "First, you'll do a practice block with simple shapes.\n"
-        "Then, the actual task will use complex images (objects, animals, and scenes).",
-        header_color='darkblue',
-        body_color='black'
+    # New interactive practice block
+    practice_study = []
+    practice_trials = []
+    practice_points = 0.0
+    
+    # Welcome message (without shapes)
+    welcome_text = visual.TextStim(
+        win,
+        text="Hello & welcome to the social memory game :)\n\n"
+             "You will be working with your online partner to reconstruct images.\n\n"
+             "We will walk you through the basics of this game with the practice here.\n\n"
+             "For now, pay close attention to these shapes:\n\n"
+             "Note: You will click (not drag) on the slider to set your rating.",
+        color='black',
+        height=0.04*0.75,
+        pos=(0, 0.2),
+        wrapWidth=1.2
     )
     
-    show_instructions(
-        "HOW IT WORKS (Actual Task):\n\n"
-        "1. STUDY PHASE: You'll see complex images one at a time.\n"
-        "   These images include various objects, animals, and scenes.\n"
-        "   Try to remember them carefully.\n\n"
-        "(Note: Practice will use simple shapes first)",
-        header_color='darkgreen',
-        body_color='black'
-    )
+    # Show welcome message and wait for button click
+    # Note: wait_for_button will create its own button and handle win.flip()
+    def redraw_welcome():
+        welcome_text.draw()
+        # Don't call win.flip() here - wait_for_button will handle it
     
-    show_instructions(
-        "RECOGNITION PHASE:\n\n"
-        "You'll see complex images again.\n\n"
-        "Some images will be OLD (from the study phase).\n"
-        "Some images will be NEW (you haven't seen them).\n\n"
-        "Pay close attention - some images may look similar!",
-        header_color='darkgreen',
-        body_color='black'
-    )
+    wait_for_button(redraw_func=redraw_welcome)
     
-    show_instructions(
-        "RATING WITH THE SLIDER:\n\n"
-        "- You'll rate each image on a slider\n"
-        "- The slider measures your CONFIDENCE level\n"
-        "- Click LEFT on the slider for OLD (studied)\n"
-        "- Click RIGHT on the slider for NEW (not studied)\n"
-        "- Where you click shows how confident you are\n"
-        "- Click anywhere on the slider line to set your rating\n"
-        "- Click the SUBMIT button when ready",
-        header_color='purple',
-        body_color='black'
-    )
+    # Generate practice shapes as placeholder stimuli (IMAGE_1, IMAGE_2, IMAGE_3)
+    # Green circle
+    img = Image.new('RGB', (200, 200), color='white')
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([20, 20, 180, 180], fill='green', outline='black', width=3)
+    green_circle_path = os.path.join(PLACEHOLDER_DIR, "IMAGE_1.png")
+    img.save(green_circle_path)
     
-    show_instructions(
-        "COLLABORATING WITH YOUR PARTNER:\n\n"
-        "Your partner will also rate each image on the same slider.\n\n"
-        "After you both respond, you'll see both ratings.\n\n"
-        "You can decide to:\n"
-        "- STAY with your original confidence rating\n"
-        "- SWITCH to your partner's confidence rating\n\n"
-        "Even if you both say OLD or both say NEW,\n"
-        "you can still switch to match their confidence level.",
-        header_color='darkorange',
-        body_color='black'
-    )
+    # Red circle
+    img = Image.new('RGB', (200, 200), color='white')
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([20, 20, 180, 180], fill='red', outline='black', width=3)
+    red_circle_path = os.path.join(PLACEHOLDER_DIR, "IMAGE_2.png")
+    img.save(red_circle_path)
     
-    # Split scoring instructions into two pages
-    show_instructions(
-        "SCORING:\n\n"
-        "You earn points based on your confidence and accuracy.\n\n"
-        "The slider shows your CONFIDENCE level.\n\n"
-        "If you're confident and CORRECT:\n"
-        "- You earn MORE points (up to 1.0 point)\n\n"
-        "If you're confident but WRONG:\n"
-        "- You LOSE more points (closer to 0.0 points)\n\n"
-        "The closer your final answer is to the correct answer,\n"
-        "the more points you earn!",
-        header_color='darkgreen',
-        body_color='black'
-    )
+    # Blue square (for trial 3 - it's NEW, not seen before)
+    img = Image.new('RGB', (200, 200), color='white')
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([20, 20, 180, 180], fill='blue', outline='black', width=3)
+    blue_square_path = os.path.join(PLACEHOLDER_DIR, "IMAGE_3.png")
+    img.save(blue_square_path)
     
-    show_instructions(
-        "REWARDS:\n\n"
-        "You'll see your points after each trial.\n\n"
-        "At the end of each block, you'll be asked 2 quick questions.\n\n"
-        "At the end of the game, you'll see a leaderboard showing how\n"
-        "you compared to other participants.",
-        header_color='darkblue',
-        body_color='black'
-    )
-    
-    # Detailed practice instructions
-    show_instructions(
-        "PRACTICE BLOCK\n\n"
-        "For practice, you will see 5 simple shapes (circles and squares).\n\n"
-        "The actual task will use complex images (objects, animals, and scenes),\n"
-        "but practice uses simple shapes to help you learn the task.\n\n"
-        "You will study 5 shapes, then test your memory with your partner.\n\n"
-        "This is just for practice, but go as quick as you can!",
-        header_color='darkred',
-        body_color='black'
-    )
-    
-    # Generate practice stimuli - ensure both circles and squares appear
-    # Check actual image files to find which are circles vs squares
-    # Since IMAGE_X.png files can be either circles or squares (depending on swap),
-    # we need to examine them to ensure we get both types
-    from PIL import Image as PILImage
-    
-    circle_indices = []
-    square_indices = []
-    
-    # Check images to find circles and squares by examining pixel patterns
-    for i in range(1, 101):
-        img_path = os.path.join(PLACEHOLDER_DIR, f"IMAGE_{i}.png")
-        if os.path.exists(img_path):
-            try:
-                img = PILImage.open(img_path)
-                pixels = img.load()
-                width, height = img.size
-                
-                # Check corners - squares have filled corners, circles have rounded (white) corners
-                corner1 = pixels[10, 10]  # top-left corner
-                corner2 = pixels[width-10, 10]  # top-right corner
-                corner3 = pixels[10, height-10]  # bottom-left corner
-                corner4 = pixels[width-10, height-10]  # bottom-right corner
-                
-                # Check center
-                center = pixels[width//2, height//2]
-                
-                # Calculate average RGB for corners and center
-                def rgb_avg(rgb):
-                    if isinstance(rgb, int):  # Grayscale
-                        return rgb
-                    return sum(rgb[:3]) / len(rgb[:3]) if len(rgb) >= 3 else rgb
-                
-                corner_avg = (rgb_avg(corner1) + rgb_avg(corner2) + rgb_avg(corner3) + rgb_avg(corner4)) / 4
-                center_avg = rgb_avg(center)
-                
-                # Squares: corners are filled (similar color to center, not white)
-                # Circles: corners are white/background (very different from center)
-                corner_center_diff = abs(corner_avg - center_avg)
-                
-                # If corners are similar to center (low difference), it's a square
-                # If corners are very different from center (high difference), it's a circle
-                if corner_center_diff < 100:  # Corners similar to center = square
-                    if len(square_indices) < 3:  # Need 3 squares for 5 total (3+2 or 2+3)
-                        square_indices.append(i)
-                else:  # Corners very different = circle
-                    if len(circle_indices) < 3:  # Need 3 circles for 5 total
-                        circle_indices.append(i)
-                
-                if len(circle_indices) >= 2 and len(square_indices) >= 2 and len(circle_indices) + len(square_indices) >= 5:
-                    break
-            except Exception as e:
-                continue
-    
-    # If we found both types, use them; otherwise fallback
-    # Need 5 total: use 3 of one type and 2 of the other (or 2+3)
-    if len(circle_indices) >= 2 and len(square_indices) >= 2:
-        # Use 3 of one type and 2 of the other
-        if len(circle_indices) >= 3:
-            practice_indices = circle_indices[:3] + square_indices[:2]
-        elif len(square_indices) >= 3:
-            practice_indices = circle_indices[:2] + square_indices[:3]
-        else:
-            practice_indices = circle_indices[:2] + square_indices[:2] + random.sample(
-                [i for i in range(1, 101) if i not in circle_indices + square_indices], 1
-            )
-        random.shuffle(practice_indices)
-        practice_indices = practice_indices[:5]  # Ensure exactly 5
-        num_circles = sum(1 for i in practice_indices if i in list(circle_indices))
-        num_squares = 5 - num_circles
-        print(f"Practice block: Using {num_circles} circles and {num_squares} squares")
+    # Show shapes sequentially with fixations (like study phase)
+    # Show green circle
+    show_fixation(0.5)
+    green_circle = load_image_stimulus(green_circle_path)
+    green_circle.pos = (0, 0)
+    green_circle.size = (0.6, 0.6)
+    if hasattr(green_circle, 'draw'):
+        green_circle.draw()
     else:
-        # Fallback: if we can't find enough of one type, just use what we have plus some from the other
-        if len(circle_indices) > 0 and len(square_indices) > 0:
-            # Use what we found, fill the rest randomly
-            needed = 5 - len(circle_indices) - len(square_indices)
-            remaining = [i for i in range(1, 101) if i not in circle_indices + square_indices]
-            practice_indices = circle_indices + square_indices + random.sample(remaining, min(needed, len(remaining)))
-            practice_indices = practice_indices[:5]
-        else:
-            # Last resort: use a spread
-            practice_indices = [1, 25, 50, 75, 10]
-        print(f"Practice block: Using fallback selection (found {len(circle_indices)} circles, {len(square_indices)} squares)")
+        green_circle = visual.Circle(win, radius=0.3, fillColor='green', lineColor='black', pos=(0, 0))
+        green_circle.draw()
+    win.flip()
+    core.wait(1.5)  # Show for 1.5 seconds
     
-    practice_images = [os.path.join(PLACEHOLDER_DIR, f"IMAGE_{i}.png") for i in practice_indices]
+    # Show red circle
+    show_fixation(0.5)
+    red_circle = load_image_stimulus(red_circle_path)
+    red_circle.pos = (0, 0)
+    red_circle.size = (0.6, 0.6)
+    if hasattr(red_circle, 'draw'):
+        red_circle.draw()
+    else:
+        red_circle = visual.Circle(win, radius=0.3, fillColor='red', lineColor='black', pos=(0, 0))
+        red_circle.draw()
+    win.flip()
+    core.wait(1.5)  # Show for 1.5 seconds
+    
+    # Show blue circle
+    show_fixation(0.5)
+    blue_circle = load_image_stimulus(blue_circle_path)
+    blue_circle.pos = (0, 0)
+    blue_circle.size = (0.6, 0.6)
+    if hasattr(blue_circle, 'draw'):
+        blue_circle.draw()
+    else:
+        blue_circle = visual.Circle(win, radius=0.3, fillColor='blue', lineColor='black', pos=(0, 0))
+        blue_circle.draw()
+    win.flip()
+    core.wait(1.5)  # Show for 1.5 seconds
+    
+    # Now show green circle again for Trial 1 (like a study phase presentation)
+    show_fixation(0.5)
+    green_circle = load_image_stimulus(green_circle_path)  # Reload to ensure it renders
+    green_circle.pos = (0, 0)
+    green_circle.size = (0.6, 0.6)
+    if hasattr(green_circle, 'draw'):
+        green_circle.draw()
+    else:
+        green_circle = visual.Circle(win, radius=0.3, fillColor='green', lineColor='black', pos=(0, 0))
+        green_circle.draw()
+    win.flip()
+    core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
+    
+    # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3) to match regular task
+    
+    # Trial 1: Participant only rates (green circle - it's OLD since we just showed it)
+    participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1 = get_slider_response(
+        "Click once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\").",
+        image_stim=green_circle, trial_num=1, max_trials=3, timeout=7.0
+    )
+    
+    # Show outcome for trial 1
+    correct_answer_t1 = 0.0  # OLD (we just showed it)
+    final_answer_t1 = participant_value_t1
+    euclidean_distance_t1 = abs(final_answer_t1 - correct_answer_t1)
+    correctness_points_t1 = max(0.0, 1.0 - euclidean_distance_t1)
+    participant_accuracy_t1 = euclidean_distance_t1 < 0.5
+    
+    outcome_text_t1 = "Correct!" if participant_accuracy_t1 else "Incorrect"
+    color_t1 = 'green' if participant_accuracy_t1 else 'red'
+    outcome_stim_t1 = visual.TextStim(win, text=f"{outcome_text_t1}\n\nPoints earned this trial: {correctness_points_t1:.2f}", 
+                                      color=color_t1, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
+    outcome_stim_t1.draw()
+    win.flip()
+    core.wait(1.5)
+    practice_points += correctness_points_t1
+    
+    # Record trial 1 data
+    trial_data_t1 = {
+        'block': 0,
+        'trial': 1,
+        'trial_type': 'studied',
+        'image_path': green_circle_path,
+        'participant_slider_value': participant_value_t1,
+        'participant_rt': participant_rt_t1,
+        'participant_commit_time': participant_commit_time_t1,
+        'participant_slider_timeout': participant_slider_timeout_t1,
+        'participant_slider_stop_time': participant_slider_stop_time_t1,
+        'ai_slider_value': None,
+        'ai_rt': None,
+        'switch_stay_decision': None,
+        'final_answer': final_answer_t1,
+        'correct_answer': correct_answer_t1,
+        'participant_accuracy': participant_accuracy_t1,
+        'points_earned': correctness_points_t1
+    }
+    practice_trials.append(trial_data_t1)
+    
+    # Show red circle
+    show_fixation(0.5)
+    red_circle = load_image_stimulus(red_circle_path)  # Reload to ensure it renders
+    red_circle.pos = (0, 0)
+    red_circle.size = (0.6, 0.6)
+    if hasattr(red_circle, 'draw'):
+        red_circle.draw()
+    else:
+        red_circle = visual.Circle(win, radius=0.3, fillColor='red', lineColor='black', pos=(0, 0))
+        red_circle.draw()
+    win.flip()
+    core.wait(1.0)
+    
+    # Trial 2: Show message first, then AI rates (all the way OLD), then participant rates
+    # Show message that partner is confident
+    partner_message = visual.TextStim(win, text="your partner is confident they've seen this before", 
+                                      color='blue', height=0.05*0.75, pos=(0, 0.4))
+    # Temporarily move red circle up to avoid overlap with message
+    red_circle.pos = (0, -0.1)
+    partner_message.draw()
+    red_circle.draw()
+    win.flip()
+    core.wait(1.5)
+    
+    # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3) to match regular task
+    
+    # AI rates first (all the way OLD)
     ai_collaborator = AICollaborator(accuracy_rate=0.5)
+    ai_confidence_t2 = 0.0  # All the way OLD
+    ai_rt_t2 = 2.0  # Fixed RT for practice
+    ai_correct_t2 = True  # It's OLD (we're showing it)
+    ground_truth_t2 = 0.0
     
-    try:
-        practice_study, practice_trials, study_file, trial_file, practice_points = run_block(
-            0, practice_images, participant_first=True, 
-            ai_collaborator=ai_collaborator, stimuli_dir=PLACEHOLDER_DIR, num_trials=5,
-            experiment_start_time=experiment_start_time, participant_id=participant_id,
-            study_file=study_file, trial_file=trial_file
-        )
-        
-        # Practice data is already saved trial-by-trial in run_block
-    except Exception as e:
-        print(f"Error in practice block: {e}")
-        import traceback
-        traceback.print_exc()
-        # Continue anyway with empty practice data
-        practice_study = []
-        practice_trials = []
+    # Show AI rating
+    ai_slider_display_time_t2 = show_animated_partner_slider(ai_confidence_t2, ai_rt_t2, image_stim=red_circle)
+    
+    # Participant rates
+    participant_value_t2, participant_rt_t2, participant_commit_time_t2, participant_slider_timeout_t2, participant_slider_stop_time_t2 = get_slider_response(
+        "Rate your memory: OLD or NEW?",
+        image_stim=red_circle, trial_num=2, max_trials=3, timeout=7.0
+    )
+    
+    # Show outcome for trial 2
+    correct_answer_t2 = 0.0  # OLD
+    final_answer_t2 = participant_value_t2
+    euclidean_distance_t2 = abs(final_answer_t2 - correct_answer_t2)
+    correctness_points_t2 = max(0.0, 1.0 - euclidean_distance_t2)
+    participant_accuracy_t2 = euclidean_distance_t2 < 0.5
+    
+    outcome_text_t2 = "Correct!" if participant_accuracy_t2 else "Incorrect"
+    color_t2 = 'green' if participant_accuracy_t2 else 'red'
+    # Add explanation of score
+    percent_incorrect = int((1.0 - correctness_points_t2) * 100)
+    explanation_t2 = f"\n\nYou were {percent_incorrect}% away from the correct answer."
+    outcome_stim_t2 = visual.TextStim(win, text=f"{outcome_text_t2}\n\nPoints earned this trial: {correctness_points_t2:.2f}{explanation_t2}", 
+                                      color=color_t2, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
+    outcome_stim_t2.draw()
+    win.flip()
+    core.wait(2.5)  # Longer to read explanation
+    practice_points += correctness_points_t2
+    
+    # Record trial 2 data
+    trial_data_t2 = {
+        'block': 0,
+        'trial': 2,
+        'trial_type': 'studied',
+        'image_path': red_circle_path,
+        'participant_slider_value': participant_value_t2,
+        'participant_rt': participant_rt_t2,
+        'participant_commit_time': participant_commit_time_t2,
+        'participant_slider_timeout': participant_slider_timeout_t2,
+        'participant_slider_stop_time': participant_slider_stop_time_t2,
+        'ai_slider_value': ai_confidence_t2,
+        'ai_rt': ai_rt_t2,
+        'ai_slider_display_time': ai_slider_display_time_t2,
+        'ai_correct': ai_correct_t2,
+        'switch_stay_decision': None,
+        'final_answer': final_answer_t2,
+        'correct_answer': correct_answer_t2,
+        'participant_accuracy': participant_accuracy_t2,
+        'points_earned': correctness_points_t2
+    }
+    practice_trials.append(trial_data_t2)
+    
+    # Show message: "now, work with your partner."
+    work_with_partner_text = visual.TextStim(win, text="now, work with your partner.", 
+                                            color='black', height=0.06*0.75, pos=(0, 0.2))
+    work_with_partner_text.draw()
+    win.flip()
+    core.wait(2.0)
+    
+    # Show blue square (it's NEW - not seen before)
+    show_fixation(0.5)
+    blue_square = load_image_stimulus(blue_square_path)  # Reload to ensure it renders
+    # Use default position and size (same as regular task) - no manual positioning
+    if hasattr(blue_square, 'draw'):
+        blue_square.draw()
+    else:
+        blue_square = visual.Rect(win, width=0.3, height=0.3, fillColor='blue', lineColor='black', pos=(0, 0))
+        blue_square.draw()
+    win.flip()
+    core.wait(1.0)
+    
+    # Trial 3: Full trial with participant, AI, switch/stay
+    # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3)
+    participant_value_t3, participant_rt_t3, participant_commit_time_t3, participant_slider_timeout_t3, participant_slider_stop_time_t3 = get_slider_response(
+        "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=3, max_trials=3, timeout=7.0
+    )
+    
+    # AI rates (all the way OLD) - but it's actually NEW (square), so AI is wrong
+    ai_confidence_t3 = 0.0  # All the way OLD (AI says old, but it's actually new)
+    ai_rt_t3 = 2.0
+    ai_correct_t3 = False  # It's actually NEW (square), so AI is incorrect
+    ground_truth_t3 = 1.0  # NEW
+    ai_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square)
+    
+    # Show both responses
+    show_both_responses(participant_value_t3, ai_confidence_t3, participant_first=True)
+    core.wait(2.0)
+    
+    # Switch/Stay decision
+    switch_decision_t3, switch_rt_t3, switch_commit_time_t3, switch_timeout_t3, decision_onset_time_t3 = get_switch_stay_decision(
+        image_stim=blue_square, participant_value=participant_value_t3, partner_value=ai_confidence_t3, timeout=7.0
+    )
+    
+    # Determine final answer
+    if switch_decision_t3 == "switch":
+        final_answer_t3 = ai_confidence_t3
+        used_ai_answer_t3 = True
+    else:
+        final_answer_t3 = participant_value_t3
+        used_ai_answer_t3 = False
+    
+    # Calculate accuracy and points
+    correct_answer_t3 = 1.0  # NEW (it's a square, not seen before)
+    euclidean_distance_t3 = abs(final_answer_t3 - correct_answer_t3)
+    correctness_points_t3 = max(0.0, 1.0 - euclidean_distance_t3)
+    participant_accuracy_t3 = euclidean_distance_t3 < 0.5
+    
+    # Show outcome with explanation (practice-specific)
+    
+    outcome_text_t3 = "Correct!" if participant_accuracy_t3 else "Incorrect"
+    color_t3 = 'green' if participant_accuracy_t3 else 'red'
+    # Add explanation of score
+    percent_incorrect = int((1.0 - correctness_points_t3) * 100)
+    explanation_t3 = f"\n\nYou were {percent_incorrect}% away from the correct answer."
+    outcome_stim_t3 = visual.TextStim(win, text=f"{outcome_text_t3}\n\nPoints earned this trial: {correctness_points_t3:.2f}{explanation_t3}", 
+                                      color=color_t3, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
+    outcome_stim_t3.draw()
+    win.flip()
+    core.wait(2.5)  # Longer to read explanation
+    practice_points += correctness_points_t3
+    
+    # Record trial 3 data
+    trial_data_t3 = {
+        'block': 0,
+        'trial': 3,
+        'trial_type': 'studied',
+        'image_path': blue_circle_path,
+        'participant_slider_value': participant_value_t3,
+        'participant_rt': participant_rt_t3,
+        'participant_commit_time': participant_commit_time_t3,
+        'participant_slider_timeout': participant_slider_timeout_t3,
+        'participant_slider_stop_time': participant_slider_stop_time_t3,
+        'ai_slider_value': ai_confidence_t3,
+        'ai_rt': ai_rt_t3,
+        'ai_slider_display_time': ai_slider_display_time_t3,
+        'ai_correct': ai_correct_t3,
+        'switch_stay_decision': switch_decision_t3,
+        'switch_rt': switch_rt_t3,
+        'final_answer': final_answer_t3,
+        'correct_answer': correct_answer_t3,
+        'participant_accuracy': participant_accuracy_t3,
+        'points_earned': correctness_points_t3
+    }
+    practice_trials.append(trial_data_t3)
+    
+    # Save practice data
+    if participant_id:
         study_file, trial_file = save_data_incremental(
-            [], [], participant_id
+            practice_study, practice_trials, participant_id,
+            study_file=study_file, trial_file=trial_file
         )
     
     show_instructions(
@@ -3917,65 +4189,55 @@ def run_experiment():
     
     show_instructions(
         "EXPERIMENTAL BLOCKS:\n\n"
-        "You will complete 10 blocks, each with 10 trials.\n\n"
-        "Sometimes your partner will respond first,\n"
-        "sometimes you will respond first.",
+        "You will complete 5 blocks, each with 20 trials.\n\n"
+        "You will always respond first, then your partner will respond.",
         header_color='darkblue',
         body_color='black'
     )
     
-    # Experimental blocks (10 blocks, 10 trials each)
+    # Experimental blocks (5 blocks, 20 trials each)
     all_study_data = []
     all_trial_data = []
     total_experiment_points = 0.0  # Track total points across all experimental blocks
     
     try:
-        # Counterbalance two manipulations:
-        # 1. Turn-taking: Participant first (True) vs AI first (False) - 5 each
-        # 2. AI Accuracy: High (0.75) vs Low (0.25) - 5 each
-        # Create all 4 combinations with balanced distribution:
-        # - Participant first + High accuracy: 2-3 blocks
-        # - Participant first + Low accuracy: 2-3 blocks
-        # - AI first + High accuracy: 2-3 blocks
-        # - AI first + Low accuracy: 2-3 blocks
+        # Block structure:
+        # Block 1: Reliable (0.75), Participant first
+        # Block 2: Unreliable (0.25), Participant first
+        # Block 3: Unreliable (0.25), Participant first
+        # Block 4: Reliable (0.75), Participant first
+        # Block 5: Unreliable (0.25), Participant first
         
-        # Create list of all 4 combinations
         block_conditions = [
-            (True, 0.75),   # Participant first, High accuracy
-            (True, 0.75),   # Participant first, High accuracy
-            (True, 0.25),   # Participant first, Low accuracy
-            (True, 0.25),   # Participant first, Low accuracy
-            (True, 0.25),   # Participant first, Low accuracy
-            (False, 0.75),  # AI first, High accuracy
-            (False, 0.75),  # AI first, High accuracy
-            (False, 0.75),  # AI first, High accuracy
-            (False, 0.25),  # AI first, Low accuracy
-            (False, 0.25),  # AI first, Low accuracy
+            (True, 0.75),   # Block 1: Participant first, Reliable
+            (True, 0.25),   # Block 2: Participant first, Unreliable
+            (True, 0.25),   # Block 3: Participant first, Unreliable
+            (True, 0.75),   # Block 4: Participant first, Reliable
+            (True, 0.25),   # Block 5: Participant first, Unreliable
         ]
-        # Shuffle to randomize order
-        random.shuffle(block_conditions)
         
-        # Assign stimuli to blocks: each block has one item from each category, no repeats
+        # Assign stimuli to blocks: each block has 2 items from each category (20 stimuli), no repeats
         stimulus_assignments = assign_stimuli_to_blocks()
         
-        for block_num in range(1, 11):
-            # Use pre-assigned stimuli for this block (ensures one per category, no repeats)
+        for block_num in range(1, 6):
+            # Use pre-assigned stimuli for this block (ensures 2 per category, no repeats)
             selected_indices = stimulus_assignments[block_num - 1]
             # Use real stimuli paths instead of placeholders
             studied_images = [get_stimulus_path(i, is_lure=False, use_real_stimuli=True) for i in selected_indices]
             
-            # Get counterbalanced conditions for this block
+            # Get conditions for this block
             participant_first, block_accuracy = block_conditions[block_num - 1]
             
             # Create AI collaborator with block-specific accuracy
             block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy)
             turn_order = "Participant first" if participant_first else "AI first"
-            print(f"Block {block_num}: {turn_order}, AI accuracy = {block_accuracy*100:.0f}%")
+            reliability = "Reliable" if block_accuracy == 0.75 else "Unreliable"
+            print(f"Block {block_num}: {turn_order}, AI {reliability} (accuracy = {block_accuracy*100:.0f}%)")
             print(f"  Stimuli: {selected_indices}")
             
             study_data, trial_data, study_file, trial_file, block_points = run_block(
                 block_num, studied_images, participant_first,
-                block_ai_collaborator, STIMULI_DIR, num_trials=10,
+                block_ai_collaborator, STIMULI_DIR, num_trials=20,
                 experiment_start_time=experiment_start_time, participant_id=participant_id,
                 study_file=study_file, trial_file=trial_file
             )
@@ -3987,7 +4249,7 @@ def run_experiment():
             # Data is already saved after each trial in run_block
             
             # Break between blocks
-            if block_num < 10:
+            if block_num < 5:
                 show_instructions(
                     f"Great job!\n\n"
                     "Take a short break.\n\n"

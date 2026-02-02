@@ -12,10 +12,10 @@ Main PsychoPy script for the entire experiment.
 - Runs the full procedure:  
   - Instructions  
   - Practice block  
-  - 10 experimental blocks  
+  - 5 experimental blocks (20 trials each)  
   - Study phase → Recognition phase → Switch/Stay decision → Outcome feedback  
   - AI turn-taking (participant-first vs. AI-first)  
-  - AI accuracy manipulation (~75% vs. ~25%)  
+  - AI accuracy manipulation (reliable ~75% vs. unreliable ~25%)  
   - Social bonus feedback  
   - Block-end questionnaire  
   - Leaderboard screen
@@ -24,18 +24,20 @@ Main PsychoPy script for the entire experiment.
 #### **`localizer.py`**
 Localizer task script for category verification.
 
-- Shows all 100 images from the STIMULI folder in random order
+- Shows all 200 images from the STIMULI folder (100 Image + 100 Lure versions) in random order
 - **Image presentation timing**:
-  - Each image displayed for **2.0 seconds** (fixed duration)
+  - Each image displayed for **1.0 second** (fixed duration)
   - **0.5 second pause** between images (no jitter)
-  - Questions asked at images 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
-- At every 10th image, asks a category question: "Was the last object a [category]?"
+  - Questions asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (every 10th trial)
+- At every 10th trial, asks a category question: "Was the last object a [category]?"
 - Category is inferred from the folder name (e.g., BIG_ANIMAL → "big animal")
 - **Question timing**: No timeout - participant must respond (YES/NO buttons)
 - Records participant responses (YES/NO) and accuracy
-- Saves data to CSV file with "localizer" in the filename
+- Saves data to CSV file: `localizer_[participant_id]_[timestamp].csv`
+- **Example filename**: `localizer_kini_20260130_232131.csv`
 - Supports both touch screen and click/mouse input modes
 - Skips file saving if "test" is in participant name
+- **See `CSV_VARIABLES_DOCUMENTATION.md` for complete variable definitions**
 
 ---
 
@@ -118,7 +120,12 @@ Summary of experiment time
 
 #### **`localizer_*.csv`**
 Localizer task data.  
-Each row = one category question trial (at images 10, 20, 30, ..., 100).
+- **File naming**: `localizer_[participant_id]_[timestamp].csv`
+- **Example**: `localizer_kini_20260130_232131.csv`
+- **Structure**: Each row = one image presentation (200 total: 100 Image + 100 Lure)
+- **Question trials**: Every 10th trial (trials 10, 20, 30, ..., 200) includes category question data
+- **Variables**: Includes stimulus metadata (number, object name, category, stimulus type), presentation timestamps, and question responses (for question trials)
+- **See `CSV_VARIABLES_DOCUMENTATION.md` for complete variable definitions**
 
 ---
 

@@ -186,25 +186,6 @@ def get_input_method():
                             draw_selection_screen()
                             core.wait(0.05)
                             break
-                    except Exception as e:
-                        # Fallback to manual calculation
-                        print(f"ERROR in button1.contains() fallback: {repr(e)}", file=sys.stderr)
-                        traceback.print_exc()
-                        try:
-                            mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
-                        except:
-                            mouseloc_x, mouseloc_y = 0.0, 0.0
-                        hit_margin = 150/720*0.75
-                        button1_x, button1_y = -320/720*0.6, -80/720*0.6
-                        button1_width, button1_height = 520/720*0.75, 180/720*0.75
-                        if (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
-                            button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin):
-                            USE_TOUCH_SCREEN = True
-                            selected = 'touch'
-                            button1.fillColor = 'green'
-                            draw_selection_screen()
-                            core.wait(0.05)
-                            break
                     
                     # Check button 2
                     if selected is None:

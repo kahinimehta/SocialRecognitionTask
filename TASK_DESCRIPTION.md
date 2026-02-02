@@ -5,7 +5,7 @@
 This task examines how participants collaborate with an AI partner during a recognition memory task. Participants study images and then test their memory by rating images as "OLD" (studied) or "NEW" (not studied), while collaborating with an AI partner who also provides ratings.
 
 **Duration**: 35-45 minutes (50-60 minutes for slower participants)  
-**Structure**: 10 blocks × 10 trials = 100 total trials  
+**Structure**: 5 blocks × 20 trials = 100 total trials  
 **Response Timeout**: 7 seconds per response
 
 ---
@@ -14,11 +14,11 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Overall Design
 
-- **10 experimental blocks**, each containing:
-  - **Study Phase**: View 10 images sequentially (no responses required)
-  - **Recognition Phase**: 10 trials testing memory with AI collaboration
+- **5 experimental blocks**, each containing:
+  - **Study Phase**: View 20 images sequentially (no responses required)
+  - **Recognition Phase**: 20 trials testing memory with AI collaboration
 
-- **1 practice block** (5 trials) to familiarize participants with the task
+- **1 practice block** (3 trials) to familiarize participants with the task
 
 ---
 
@@ -46,10 +46,10 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Study Phase Stimulus Selection
 
-- **Each block contains exactly one item from each of the 10 categories**
-- **No repeats across blocks**: Each of the 100 stimuli appears exactly once across all 10 experimental blocks
-- Example: Block 1 might have Apple (FRUIT), Carrot (VEGETABLE), Chair (BIG_OBJECT), etc.
-- Example: Block 2 might have Banana (FRUIT), Kale (VEGETABLE), Bench (BIG_OBJECT), etc.
+- **Each block contains exactly 2 items from each of the 10 categories (20 stimuli per block)**
+- **No repeats across blocks**: Each of the 100 stimuli appears exactly once across all 5 experimental blocks
+- Example: Block 1 might have Apple and Banana (FRUIT), Carrot and Kale (VEGETABLE), Chair and Bench (BIG_OBJECT), etc.
+- Example: Block 2 might have Orange and Grape (FRUIT), Pepper and Broccoli (VEGETABLE), Couch and Table (BIG_OBJECT), etc.
 
 ### Recognition Trial Distribution
 
@@ -70,7 +70,7 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Phase 1: Study Phase
 
-- Participants view **10 images** sequentially
+- Participants view **20 images** sequentially
 - **No responses required**
 - Each image is shown for **1 second**
 - **Jittered fixations** (0.25-0.75 seconds) appear between images
@@ -79,13 +79,15 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Phase 2: Recognition Phase
 
-Each of the 10 trials follows this structure:
+Each of the 20 trials follows this structure:
 
-1. **Image Presentation**: Shows either the studied image or its lure (50% chance each)
-2. **Participant Rating**: Rate memory confidence on a continuous slider
-3. **AI Partner Rating**: AI partner also rates the image
-4. **Collaboration Decision**: Participant decides to STAY or SWITCH
-5. **Outcome Feedback**: Shows correctness and points earned
+1. **Fixation Cross**: 0.5 seconds (fixed duration)
+2. **Image Presentation**: Shows either the studied image or its lure (50% chance each) for 1.0 second (fixed duration)
+3. **Participant Rating**: Rate memory confidence on a continuous slider
+4. **AI Partner Rating**: AI partner also rates the image
+5. **Collaboration Decision**: Participant decides to STAY or SWITCH
+6. **Outcome Feedback**: Shows correctness and points earned
+7. **Jittered Fixation**: 0.25-0.75 seconds (uniform random distribution) between trials (not after last trial)
 
 ---
 
@@ -113,21 +115,19 @@ Each of the 10 trials follows this structure:
 
 ### Turn-Taking Manipulation
 
-Blocks alternate which agent responds first:
-
-- **Block Type A** (5 blocks): **Participant responds first**
-- **Block Type B** (5 blocks): **AI responds first**
-
-This creates two social-decision conditions to examine how turn order affects collaboration.
+- **Participant always goes first** in all blocks
+- The AI partner responds after the participant in every trial
 
 ### AI Accuracy Manipulation
 
-- **Overall accuracy**: ~50% across all blocks
-- **Block-level variation**:
-  - **High accuracy blocks**: ~75% correct (5 blocks)
-  - **Low accuracy blocks**: ~25% correct (5 blocks)
-- Accuracy is randomized across blocks and co-occurs with turn-taking manipulation
-- **Note**: Not fully counterbalanced (some combinations may occur more frequently)
+- **Reliable blocks**: ~75% correct (Blocks 1 and 4)
+- **Unreliable blocks**: ~25% correct (Blocks 2, 3, and 5)
+- **Block structure**:
+  - Block 1: Reliable (0.75), Participant first
+  - Block 2: Unreliable (0.25), Participant first
+  - Block 3: Unreliable (0.25), Participant first
+  - Block 4: Reliable (0.75), Participant first
+  - Block 5: Unreliable (0.25), Participant first
 
 ### Collaboration Decision (STAY/SWITCH)
 
@@ -212,11 +212,11 @@ The closer the final answer is to the correct answer, the more points earned.
 - **Timeout Flags**: Whether participant timed out on slider or switch/stay decision
 
 #### Trial Metadata
-- **Block Number**: Which block (0 = practice, 1-10 = experimental)
+- **Block Number**: Which block (0 = practice, 1-5 = experimental)
 - **Trial Number**: Trial within block
 - **Trial Type**: "studied" or "lure"
 - **Image Path**: Which image was shown
-- **Participant First**: Whether participant or AI responded first
+- **Participant First**: Always True (participant always responds first)
 - **Time from Experiment Start**: Elapsed time since experiment began
 
 ### Data Storage
@@ -299,22 +299,27 @@ After each block (including practice), participants answer 2 questions:
 ### Stimulus Randomization
 
 - **100 stimuli** organized by category, with items shuffled within each category
-- **Each block contains exactly one item from each of the 10 categories**
+- **Each block contains exactly 2 items from each of the 10 categories (20 stimuli per block)**
 - Each stimulus appears exactly once across all experimental blocks
 - **First recognition image** is never the same as the last study image
 - Items within each block are randomized for presentation order
 
 ### Trial Randomization
 
-- **Studied vs. lure**: Each of the 10 block images appears once in recognition (5 studied, 5 lures)
+- **Studied vs. lure**: Each of the 20 block images appears once in recognition (10 studied, 10 lures)
 - **Trial order**: Randomized within each block
 - **Image assignments**: Randomly assigned to studied/lure conditions
 
 ### Block Counterbalancing
 
-- **Turn-taking**: 5 blocks participant-first, 5 blocks AI-first (randomized order)
-- **AI Accuracy**: 5 blocks high accuracy (~75%), 5 blocks low accuracy (~25%)
-- **Co-occurrence**: Both manipulations randomized together (not fully counterbalanced)
+- **Turn-taking**: Participant always goes first in all blocks
+- **AI Accuracy**: Fixed order - Blocks 1, 4 reliable (~75%); Blocks 2, 3, 5 unreliable (~25%)
+- **Structure**: 
+  - Block 1: Reliable, Participant first
+  - Block 2: Unreliable, Participant first
+  - Block 3: Unreliable, Participant first
+  - Block 4: Reliable, Participant first
+  - Block 5: Unreliable, Participant first
 
 ### AI Behavior Randomization
 
@@ -328,6 +333,63 @@ After each block (including practice), participants answer 2 questions:
 ---
 
 ## Technical Details
+
+### Timing Specifications
+
+#### Study Phase Timing
+- **Image duration**: 1.0 second per image (fixed, no jitter)
+- **Fixation jitter**: 
+  - Duration: 0.25-0.75 seconds (uniform random distribution)
+  - Distribution: `random.uniform(0.25, 0.75)`
+  - Appears between images (after image N, before image N+1)
+  - No fixation before first image
+  - 9 fixations per block (between 10 images)
+- **Total study phase duration**: Approximately 10-14.5 seconds per block
+  - 10 images × 1.0 second = 10 seconds
+  - 9 fixations × (0.25-0.75 seconds average 0.5) = ~4.5 seconds
+
+#### Recognition Phase Timing
+- **Pre-trial fixation**: 0.5 seconds (fixed duration, shown before each image)
+- **Image duration**: 1.0 second per image (fixed, no jitter)
+- **Inter-trial jitter**: 
+  - Duration: 0.25-0.75 seconds (uniform random distribution)
+  - Distribution: `random.uniform(0.25, 0.75)`
+  - Appears between trials (after trial N completes, before trial N+1 starts)
+  - Shown as fixation cross during jitter period
+  - No jitter after the last trial in each block
+  - 19 jittered fixations per block (between 20 trials)
+
+#### Participant Response Timeouts
+- **Slider response**: 7.0 seconds (fixed)
+  - Image remains visible until timeout or submission
+  - Random answer selected if timeout (not center position)
+- **Switch/Stay decision**: 7.0 seconds (fixed)
+  - Decision screen remains visible until timeout or button click
+  - Random decision (STAY or SWITCH) selected if timeout
+
+#### Block-End Questions Timing
+- **Trust rating question**: 7.0 seconds timeout (fixed)
+  - Slider question with "Not at all" (left) to "Completely" (right)
+  - Current slider value used if timeout occurs
+  - Question timeout flag recorded in data
+
+#### AI Response Timing
+- **AI RT distribution**: Log-normal
+  - Underlying normal: mu = 0.5, sigma = 0.3
+  - Mean RT: ~1.5-2.5 seconds
+  - Maximum RT: 5.0 seconds (capped)
+  - Formula: `min(np.random.lognormal(0.5, 0.3), 5.0)`
+
+#### Outcome Feedback Timing
+- Outcome screen displayed immediately after decision
+- Visual feedback duration: ~1.5 seconds (fixed)
+- Brief pause before next trial (jittered fixation)
+
+#### General Timing Notes
+- All timeouts: Random answer/decision selected if timeout occurs
+- All timeout flags recorded in CSV data
+- All reaction times recorded from stimulus onset to response
+- Timestamps recorded in Unix time (seconds since epoch)
 
 ### Response Timeouts
 
