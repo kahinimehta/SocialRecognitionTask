@@ -2466,7 +2466,9 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "ai_rt": ai_rt,
             "ai_decision_time": ai_decision_time,
             "ai_slider_display_time": ai_slider_display_time,
+            "ai_final_slider_display_time": ai_final_slider_display_time,
             "ai_correct": ai_correct,
+            "ai_reliability": ai_collaborator.accuracy_rate,
             "switch_stay_decision": switch_decision,
             "switch_rt": switch_rt,
             "switch_commit_time": switch_commit_time,
@@ -2478,7 +2480,13 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "participant_accuracy": participant_accuracy,
             "euclidean_participant_to_truth": abs(participant_value - correct_answer),
             "euclidean_ai_to_truth": abs(ai_confidence - correct_answer),
-            "euclidean_participant_to_ai": abs(participant_value - ai_confidence)
+            "euclidean_participant_to_ai": abs(participant_value - ai_confidence),
+            "outcome_time": np.nan,  # Will be set after show_trial_outcome
+            "points_earned": np.nan,  # Will be set after show_trial_outcome
+            "block_start_time": np.nan,  # Will be set by update_block_timing_in_csv
+            "block_end_time": np.nan,  # Will be set by update_block_timing_in_csv
+            "block_duration_seconds": np.nan,  # Will be set by update_block_timing_in_csv
+            "block_duration_minutes": np.nan  # Will be set by update_block_timing_in_csv
         }
     else:
         # Partner responds first (show animated slider)
@@ -2552,7 +2560,13 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "participant_accuracy": participant_accuracy,
             "euclidean_participant_to_truth": abs(participant_value - correct_answer),
             "euclidean_ai_to_truth": abs(ai_confidence - correct_answer),
-            "euclidean_participant_to_ai": abs(participant_value - ai_confidence)
+            "euclidean_participant_to_ai": abs(participant_value - ai_confidence),
+            "outcome_time": None,  # Will be set after show_trial_outcome
+            "points_earned": None,  # Will be set after show_trial_outcome
+            "block_start_time": None,  # Will be set by update_block_timing_in_csv
+            "block_end_time": None,  # Will be set by update_block_timing_in_csv
+            "block_duration_seconds": None,  # Will be set by update_block_timing_in_csv
+            "block_duration_minutes": None  # Will be set by update_block_timing_in_csv
         }
     
     # Show outcome
@@ -3651,12 +3665,18 @@ def update_block_timing_in_csv(trial_file, block_num, block_start_time, block_en
         # Update rows for this block
         updated_count = 0
         for row in rows:
-            if int(row.get('block', -1)) == block_num:
-                row['block_start_time'] = block_start_time
-                row['block_end_time'] = block_end_time
-                row['block_duration_seconds'] = block_duration
-                row['block_duration_minutes'] = block_duration / 60.0
-                updated_count += 1
+            # Handle empty string or missing block value
+            block_value = row.get('block', '').strip()
+            if block_value and block_value != '':
+                try:
+                    if int(block_value) == block_num:
+                        row['block_start_time'] = block_start_time
+                        row['block_end_time'] = block_end_time
+                        row['block_duration_seconds'] = block_duration
+                        row['block_duration_minutes'] = block_duration / 60.0
+                        updated_count += 1
+                except (ValueError, TypeError):
+                    continue
         
         # Write updated rows back to CSV
         if updated_count > 0:
@@ -3668,9 +3688,16 @@ def update_block_timing_in_csv(trial_file, block_num, block_start_time, block_en
                         fieldnames.append(field)
             
             with open(trial_file, 'w', newline='') as f:
-                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
                 writer.writeheader()
-                writer.writerows(rows)
+                # Ensure all fields are present and handle NaN values
+                for row in rows:
+                    complete_row = {}
+                    for field in fieldnames:
+                        value = row.get(field, '')
+                        # Convert empty strings to empty strings (keep as is for CSV)
+                        complete_row[field] = value if value != '' else ''
+                    writer.writerow(complete_row)
             
             print(f"✓ Updated block {block_num} timing in CSV ({updated_count} trials)")
     except Exception as e:
@@ -3707,11 +3734,39 @@ def save_data_incremental(all_study_data, all_trial_data, participant_id,
     # Save trial data
     if all_trial_data and len(all_trial_data) > 0:
         file_exists = os.path.exists(trial_file)
+        
+        # Get all unique fieldnames from all trial data rows
+        all_fieldnames = set()
+        for row in all_trial_data:
+            all_fieldnames.update(row.keys())
+        all_fieldnames = sorted(list(all_fieldnames))
+        
+        # If file exists, read existing fieldnames and merge
+        if file_exists:
+            try:
+                with open(trial_file, 'r', newline='') as f:
+                    reader = csv.DictReader(f)
+                    existing_fieldnames = reader.fieldnames or []
+                    # Merge fieldnames, preserving order (existing first, then new)
+                    all_fieldnames = list(existing_fieldnames) + [f for f in all_fieldnames if f not in existing_fieldnames]
+            except Exception as e:
+                print(f"Warning: Could not read existing CSV fieldnames: {e}")
+        
         with open(trial_file, 'a', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=all_trial_data[0].keys())
+            writer = csv.DictWriter(f, fieldnames=all_fieldnames, extrasaction='ignore')
             if not file_exists:
                 writer.writeheader()
-            writer.writerows(all_trial_data)
+            # Ensure all rows have all fields (fill missing with NaN)
+            for row in all_trial_data:
+                complete_row = {}
+                for field in all_fieldnames:
+                    value = row.get(field, np.nan)
+                    # Convert NaN to empty string for CSV (standard CSV representation)
+                    if isinstance(value, float) and np.isnan(value):
+                        complete_row[field] = ''
+                    else:
+                        complete_row[field] = value
+                writer.writerow(complete_row)
             f.flush()
         print(f"✓ Trial data saved ({len(all_trial_data)} rows)")
     
@@ -4303,31 +4358,31 @@ def run_experiment():
         'participant_commit_time': participant_commit_time_t1,
         'participant_slider_timeout': participant_slider_timeout_t1,
         'participant_slider_stop_time': participant_slider_stop_time_t1,
-        'ai_slider_value': None,
-        'ai_rt': None,
-        'ai_decision_time': None,
-        'ai_slider_display_time': None,
-        'ai_final_slider_display_time': None,
-        'ai_correct': None,
+        'ai_slider_value': np.nan,
+        'ai_rt': np.nan,
+        'ai_decision_time': np.nan,
+        'ai_slider_display_time': np.nan,
+        'ai_final_slider_display_time': np.nan,
+        'ai_correct': np.nan,
         'ai_reliability': 0.5,  # Practice block uses 50% reliability
-        'switch_stay_decision': None,
-        'switch_rt': None,
-        'switch_commit_time': None,
-        'switch_timeout': None,
-        'decision_onset_time': None,
+        'switch_stay_decision': np.nan,
+        'switch_rt': np.nan,
+        'switch_commit_time': np.nan,
+        'switch_timeout': np.nan,
+        'decision_onset_time': np.nan,
         'final_answer': final_answer_t1,
         'used_ai_answer': False,
         'ground_truth': correct_answer_t1,
         'participant_accuracy': participant_accuracy_t1,
         'euclidean_participant_to_truth': abs(participant_value_t1 - correct_answer_t1),
-        'euclidean_ai_to_truth': None,
-        'euclidean_participant_to_ai': None,
-        'outcome_time': None,
+        'euclidean_ai_to_truth': np.nan,
+        'euclidean_participant_to_ai': np.nan,
+        'outcome_time': np.nan,
         'points_earned': correctness_points_t1,
-        'block_start_time': None,
-        'block_end_time': None,
-        'block_duration_seconds': None,
-        'block_duration_minutes': None
+        'block_start_time': np.nan,
+        'block_end_time': np.nan,
+        'block_duration_seconds': np.nan,
+        'block_duration_minutes': np.nan
     }
     practice_trials.append(trial_data_t1)
     
@@ -4420,11 +4475,11 @@ def run_experiment():
         'ai_final_slider_display_time': ai_final_slider_display_time_t2,
         'ai_correct': ai_correct_t2,
         'ai_reliability': 0.5,  # Practice block uses 50% reliability
-        'switch_stay_decision': None,
-        'switch_rt': None,
-        'switch_commit_time': None,
-        'switch_timeout': None,
-        'decision_onset_time': None,
+        'switch_stay_decision': np.nan,
+        'switch_rt': np.nan,
+        'switch_commit_time': np.nan,
+        'switch_timeout': np.nan,
+        'decision_onset_time': np.nan,
         'final_answer': final_answer_t2,
         'used_ai_answer': False,
         'ground_truth': correct_answer_t2,
@@ -4432,12 +4487,12 @@ def run_experiment():
         'euclidean_participant_to_truth': abs(participant_value_t2 - correct_answer_t2),
         'euclidean_ai_to_truth': abs(ai_confidence_t2 - correct_answer_t2),
         'euclidean_participant_to_ai': abs(participant_value_t2 - ai_confidence_t2),
-        'outcome_time': None,
+        'outcome_time': np.nan,
         'points_earned': correctness_points_t2,
-        'block_start_time': None,
-        'block_end_time': None,
-        'block_duration_seconds': None,
-        'block_duration_minutes': None
+        'block_start_time': np.nan,
+        'block_end_time': np.nan,
+        'block_duration_seconds': np.nan,
+        'block_duration_minutes': np.nan
     }
     practice_trials.append(trial_data_t2)
     
@@ -4558,10 +4613,10 @@ def run_experiment():
         'euclidean_participant_to_ai': abs(participant_value_t3 - ai_confidence_t3),
         'outcome_time': outcome_time_t3,
         'points_earned': correctness_points_t3,
-        'block_start_time': None,
-        'block_end_time': None,
-        'block_duration_seconds': None,
-        'block_duration_minutes': None
+        'block_start_time': np.nan,
+        'block_end_time': np.nan,
+        'block_duration_seconds': np.nan,
+        'block_duration_minutes': np.nan
     }
     practice_trials.append(trial_data_t3)
     
