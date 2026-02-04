@@ -1276,32 +1276,15 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
     clicked = False
     
     if USE_TOUCH_SCREEN:
-        # Position-based detection with immediate button press check for touch screens
+        # Use mouse position method (same as non-touch screen) for touch screens
         prev_mouse_buttons = [False, False, False]
-        
-        # Get button bounds (matching actual button creation)
-        try:
-            button_pos = continue_button.pos
-            button_width = continue_button.width
-            button_height = continue_button.height
-            if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
-                button_x, button_y = float(button_pos[0]), float(button_pos[1])
-            else:
-                button_x, button_y = 0.0, -0.35*0.6
-            button_width = float(button_width) if button_width else 0.3*0.75
-            button_height = float(button_height) if button_height else 0.1*0.75
-        except (TypeError, ValueError, AttributeError):
-            # Fallback values matching actual button creation
-            button_x, button_y = 0.0, -0.35*0.6
-            button_width, button_height = 0.3*0.75, 0.1*0.75
-        
-        hit_margin = 0.02  # Extra margin for touch screens
         
         while not clicked:
             try:
                 mouse_buttons = mouse.getPressed()
                 mouse_pos = mouse.getPos()
                 
+                # Convert to floats
                 try:
                     if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
                         mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
@@ -1310,25 +1293,30 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                 except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
                 
-                # Check if touch is within button bounds (with margin)
-                on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+                # Get button bounds
+                try:
+                    button_pos = continue_button.pos
+                    if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                        button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                    else:
+                        button_x, button_y = 0.0, -0.35*0.6
+                except (TypeError, ValueError):
+                    button_x, button_y = 0.0, -0.35*0.6
                 
-                # Check for button press (immediate response for touch screens)
-                if mouse_buttons[0] and not prev_mouse_buttons[0]:
-                    if on_button:
-                        # Button is being pressed - respond immediately for touch screens
-                        # No color change in touch screen mode
-                        draw_screen()
-                        core.wait(0.2)
-                        clicked = True
-                        break
+                try:
+                    button_width = float(continue_button.width)
+                    button_height = float(continue_button.height)
+                except (TypeError, ValueError):
+                    button_width, button_height = 0.3*0.75, 0.1*0.75
                 
-                # Also check for button release (fallback)
+                # Check if mouse/touch is over button
+                on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
+                            button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                
+                # Check for button release (mouse/touch was pressed on button and now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
                     if on_button:
-                        # Button was released - respond for touch screens
-                        # No color change in touch screen mode
+                        # Visual feedback (no color change in touch screen mode)
                         draw_screen()
                         core.wait(0.2)
                         clicked = True
@@ -1566,36 +1554,18 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
             on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
                         button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
             
-            # Check for button press first (for touch screens, this is the primary detection method)
-            if mouse_buttons[0] and not prev_mouse_buttons[0]:
-                if on_button:
-                    # Button is being pressed - respond immediately for touch screens
-                    if USE_TOUCH_SCREEN:
-                        # No color change in touch screen mode
-                        redraw()
-                        core.wait(0.2)
-                        clicked = True
-                        break
-                    else:
-                        # Visual feedback for click mode
-                        continue_button.fillColor = 'lightgreen'
-                        redraw()
-                        core.wait(0.2)
-                        clicked = True
-                        break
-            
-            # Also check for button release (fallback for click mode)
+            # Check for button release (mouse/touch was pressed on button and now released)
             if prev_mouse_buttons[0] and not mouse_buttons[0]:
                 if on_button:
                     # Visual feedback (only for click mode, not touch screen)
                     if not USE_TOUCH_SCREEN:
                         continue_button.fillColor = 'lightgreen'
-                        redraw()
-                        core.wait(0.2)
-                        clicked = True
-                        break
+                    redraw()
+                    core.wait(0.2)
+                    clicked = True
+                    break
             
-            # Hover effect for click mode (only redraw if hover state changes)
+            # Hover effect for click mode only (not touch screen)
             if not USE_TOUCH_SCREEN:
                 if on_button != last_hover_state:
                     if on_button:
@@ -1604,6 +1574,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
                         continue_button.fillColor = 'lightblue'
                     redraw()
                     last_hover_state = on_button
+            # Touch screen mode: no hover effects, no color changes - button keeps default color
             
             prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
         except (AttributeError, Exception):
@@ -2986,22 +2957,6 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 decision_commit_time = time.time()
                 break
         
-        # Also check for button press (for touch screens, press and release happen quickly)
-        if mouse_buttons[0] and not prev_mouse_buttons[0]:
-            if USE_TOUCH_SCREEN:
-                if stay_clicked:
-                    # No color change in touch screen mode
-                    decision = "stay"
-                    decision_rt = time.time() - start_time
-                    decision_commit_time = time.time()
-                    break
-                elif switch_clicked:
-                    # No color change in touch screen mode
-                    decision = "switch"
-                    decision_rt = time.time() - start_time
-                    decision_commit_time = time.time()
-                    break
-        
         # Highlight buttons on hover (only for click mode, not touch screen)
         if not USE_TOUCH_SCREEN:
             # In click mode, show hover effect based on mouse position
@@ -3611,32 +3566,15 @@ def run_experiment():
     clicked = False
     
     if USE_TOUCH_SCREEN:
-        # Position-based detection with immediate button press check for touch screens
+        # Use mouse position method (same as non-touch screen) for touch screens
         prev_mouse_buttons = [False, False, False]
-        
-        # Get button bounds (matching actual button creation)
-        try:
-            button_pos = start_button.pos
-            button_width = start_button.width
-            button_height = start_button.height
-            if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
-                button_x, button_y = float(button_pos[0]), float(button_pos[1])
-            else:
-                button_x, button_y = 0.0, -0.3*0.6
-            button_width = float(button_width) if button_width else 0.3*0.75
-            button_height = float(button_height) if button_height else 0.1*0.75
-        except (TypeError, ValueError, AttributeError):
-            # Fallback values matching actual button creation
-            button_x, button_y = 0.0, -0.3*0.6
-            button_width, button_height = 0.3*0.75, 0.1*0.75
-        
-        hit_margin = 0.02  # Extra margin for touch screens
         
         while not clicked:
             try:
                 mouse_buttons = mouse.getPressed()
                 mouse_pos = mouse.getPos()
                 
+                # Convert to floats
                 try:
                     if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
                         mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
@@ -3645,28 +3583,30 @@ def run_experiment():
                 except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
                 
-                # Check if touch is within button bounds (with margin)
-                on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+                # Get button bounds
+                try:
+                    button_pos = start_button.pos
+                    if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                        button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                    else:
+                        button_x, button_y = 0.0, -0.3*0.6
+                except (TypeError, ValueError):
+                    button_x, button_y = 0.0, -0.3*0.6
                 
-                # Check for button press (immediate response for touch screens)
-                if mouse_buttons[0] and not prev_mouse_buttons[0]:
-                    if on_button:
-                        # Button is being pressed - respond immediately for touch screens
-                        # No color change in touch screen mode
-                        start_screen.draw()
-                        start_button.draw()
-                        start_button_text.draw()
-                        win.flip()
-                        core.wait(0.2)
-                        clicked = True
-                        break
+                try:
+                    button_width = float(start_button.width)
+                    button_height = float(start_button.height)
+                except (TypeError, ValueError):
+                    button_width, button_height = 0.3*0.75, 0.1*0.75
                 
-                # Also check for button release (fallback)
+                # Check if mouse/touch is over button
+                on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
+                            button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                
+                # Check for button release (mouse/touch was pressed on button and now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
                     if on_button:
-                        # Button was released - respond for touch screens
-                        # No color change in touch screen mode
+                        # Visual feedback (no color change in touch screen mode)
                         start_screen.draw()
                         start_button.draw()
                         start_button_text.draw()
@@ -3681,7 +3621,6 @@ def run_experiment():
                 start_button_text.draw()
                 win.flip()
                 prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-                core.wait(0.01)  # Fast polling
             except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 print(f"Warning: Error in begin button loop: {e}", file=sys.stderr)
             
@@ -3695,6 +3634,8 @@ def run_experiment():
                     core.quit()
             except (AttributeError, RuntimeError):
                 pass
+            
+            core.wait(0.01)
     else:
         # Standard mouse click detection for non-touch screens
         prev_mouse_buttons = [False, False, False]
@@ -3895,15 +3836,6 @@ def run_experiment():
                     # Visual feedback (only for click mode, not touch screen)
                     if not USE_TOUCH_SCREEN:
                         continue_button_welcome.fillColor = 'lightgreen'
-                    draw_screen()
-                    core.wait(0.2)
-                    clicked = True
-                    break
-            
-            # Also check for button press (for touch screens, press and release happen quickly)
-            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
-                if USE_TOUCH_SCREEN:
-                    # No color change in touch screen mode
                     draw_screen()
                     core.wait(0.2)
                     clicked = True
@@ -4513,14 +4445,6 @@ def run_experiment():
                     clicked_amy_intro = True
                     break
             
-            if mouse_buttons_amy_intro[0] and on_button_amy_intro and not prev_mouse_buttons_amy_intro[0]:
-                if USE_TOUCH_SCREEN:
-                    # No color change in touch screen mode
-                    draw_screen_amy_intro()
-                    core.wait(0.2)
-                    clicked_amy_intro = True
-                    break
-            
             prev_mouse_buttons_amy_intro = list(mouse_buttons_amy_intro)
             core.wait(0.01)
         except Exception as e:
@@ -4751,16 +4675,8 @@ def run_experiment():
                                         clicked = True
                                         break
                                 
-                                # Also check for button press (for touch screens)
-                                if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
-                                    if USE_TOUCH_SCREEN:
-                                        # No color change in touch screen mode
-                                        draw_screen()
-                                        core.wait(0.2)
-                                        clicked = True
-                                        break
-                                
                                 # Hover effect only for click mode (not touch screen)
+                                # Touch screen mode: no hover effects, no color changes - button keeps default color
                                 if not USE_TOUCH_SCREEN:
                                     if on_button:
                                         continue_button.fillColor = 'lightcyan'
@@ -4875,14 +4791,6 @@ def run_experiment():
                                     # Visual feedback (only for click mode, not touch screen)
                                     if not USE_TOUCH_SCREEN:
                                         continue_button_amy_return.fillColor = 'lightgreen'
-                                    draw_screen_amy_return()
-                                    core.wait(0.2)
-                                    clicked_amy_return = True
-                                    break
-                            
-                            if mouse_buttons_amy_return[0] and on_button_amy_return and not prev_mouse_buttons_amy_return[0]:
-                                if USE_TOUCH_SCREEN:
-                                    # No color change in touch screen mode
                                     draw_screen_amy_return()
                                     core.wait(0.2)
                                     clicked_amy_return = True
