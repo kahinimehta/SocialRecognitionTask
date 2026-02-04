@@ -1,0 +1,3 @@
+block,trial,trial_type,image_path,participant_slider_value,participant_rt,participant_commit_time,participant_slider_timeout,participant_slider_stop_time,ai_slider_value,ai_rt,ai_slider_display_time,ai_correct,switch_stay_decision,final_answer,correct_answer,participant_accuracy,points_earned
+0,1,studied,PLACEHOLDERS/IMAGE_1.png,0.006944444444444432,23.648683071136475,1770174167.552201,False,1770174166.546834,,,,,,0.006944444444444432,0.0,True,0.9930555555555556
+0,2,studied,PLACEHOLDERS/IMAGE_2.png,0.0,2.1244308948516846,1770174177.451988,False,1770174176.707215,0.0,2.0,1770174173.569014,True,,0.0,0.0,True,1.0

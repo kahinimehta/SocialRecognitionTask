@@ -154,11 +154,12 @@ The localizer task generates one CSV file:
 ## AI/Partner Response Variables
 
 ### `ai_slider_value`
-- **Type**: Float (0.0 to 1.0)
+- **Type**: Float (0.0 to 1.0) or None
 - **Description**: AI/partner's confidence rating on the slider
   - Values closer to 0.0 = OLD (studied)
   - Values closer to 1.0 = NEW (lure)
-- **Example**: `0.6569413750565093`, `0.3563797294608513`
+  - `None` for practice trial 1 (no AI response)
+- **Example**: `0.6569413750565093`, `0.3563797294608513`, `None`
 
 ### `ai_rt`
 - **Type**: Float (seconds)
@@ -171,9 +172,10 @@ The localizer task generates one CSV file:
 - **Example**: `2.2821904016769365`, `1.2902461381415058`, `4.5`
 
 ### `ai_decision_time`
-- **Type**: Float (Unix timestamp)
+- **Type**: Float (Unix timestamp) or None
 - **Description**: Time when AI internally made its decision (right after make_decision() call)
-- **Example**: `1764818198.338135`
+- **Note**: `None` for practice trial 1 (no AI response)
+- **Example**: `1764818198.338135`, `None`
 
 ### `ai_slider_display_time`
 - **Type**: Float (Unix timestamp)
@@ -181,9 +183,10 @@ The localizer task generates one CSV file:
 - **Example**: `1764818200.155891`
 
 ### `ai_correct`
-- **Type**: Boolean
+- **Type**: Boolean or None
 - **Description**: True if AI's decision was correct (matches ground truth), False otherwise
-- **Example**: `True`, `False`
+- **Note**: `None` for practice trial 1 (no AI response)
+- **Example**: `True`, `False`, `None`
 
 ---
 
@@ -195,9 +198,10 @@ The localizer task generates one CSV file:
 - **Example**: `"stay"`, `"switch"`
 
 ### `switch_rt`
-- **Type**: Float (seconds)
+- **Type**: Float (seconds) or None
 - **Description**: Reaction time from when decision screen appeared to when participant clicked STAY or SWITCH
-- **Example**: `2.829475164413452`, `1.4260890483856201`
+- **Note**: `None` for practice trials 1 and 2 (no switch/stay decision screen shown)
+- **Example**: `2.829475164413452`, `1.4260890483856201`, `None`
 
 ### `switch_commit_time`
 - **Type**: Float (Unix timestamp)
@@ -205,10 +209,11 @@ The localizer task generates one CSV file:
 - **Example**: `1764818206.231731`
 
 ### `switch_timeout`
-- **Type**: Boolean
+- **Type**: Boolean or None
 - **Description**: True if participant timed out on switch/stay decision (didn't respond within 7.0 seconds)
 - **Timeout duration**: 7.0 seconds (fixed, no jitter)
-- **Example**: `True`, `False`
+- **Note**: `None` for practice trials 1 and 2 (no switch/stay decision screen shown)
+- **Example**: `True`, `False`, `None`
 
 ### `decision_onset_time`
 - **Type**: Float (Unix timestamp)
@@ -250,10 +255,11 @@ The localizer task generates one CSV file:
 - **Example**: `0.3142361111111111`, `0.0`
 
 ### `euclidean_ai_to_truth`
-- **Type**: Float
+- **Type**: Float or None
 - **Description**: Euclidean distance between AI's slider value and ground truth
   - Lower values = closer to correct answer
-- **Example**: `0.6569413750565093`, `0.0`
+- **Note**: `None` for practice trial 1 (no AI response)
+- **Example**: `0.6569413750565093`, `0.0`, `None`
 
 ### `euclidean_participant_to_ai`
 - **Type**: Float
@@ -266,9 +272,10 @@ The localizer task generates one CSV file:
 ## Outcome Variables
 
 ### `outcome_time`
-- **Type**: Float (Unix timestamp)
+- **Type**: Float (Unix timestamp) or None
 - **Description**: Time when the outcome screen (Correct/Incorrect) was displayed
-- **Example**: `1764818206.237804`
+- **Note**: `None` for practice trials 1 and 2 (outcome not tracked separately)
+- **Example**: `1764818206.237804`, `None`
 
 ### `block_start_time`
 - **Type**: Float (Unix timestamp)
@@ -276,9 +283,10 @@ The localizer task generates one CSV file:
 - **Example**: `1764818000.0`
 
 ### `block_end_time`
-- **Type**: Float (Unix timestamp)
+- **Type**: Float (Unix timestamp) or None
 - **Description**: Time when the block ended (after block summary screen)
-- **Example**: `1764818300.0`
+- **Note**: `None` for practice block (block 0) - practice block timing not tracked
+- **Example**: `1764818300.0`, `None`
 
 ### `block_duration_seconds`
 - **Type**: Float (seconds)
@@ -286,11 +294,12 @@ The localizer task generates one CSV file:
 - **Example**: `300.5`
 
 ### `block_duration_minutes`
-- **Type**: Float (minutes)
+- **Type**: Float (minutes) or None
 - **Description**: Total duration of the block in minutes
-- **Example**: `5.008`
+- **Note**: `None` for practice block (block 0) - practice block timing not tracked
+- **Example**: `5.008`, `None`
 
-### `coins_earned`
+### `points_earned`
 - **Type**: Float
 - **Description**: Points earned this trial (based on Euclidean distance from correct answer)
   - Formula: `1.0 - euclidean_distance(final_answer, ground_truth)`
@@ -342,6 +351,14 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 - **Narrative context**: The experiment is framed as a photography studio collaboration where participants work with Amy (reliable partner) or Ben (unreliable partner) to help sort images for an exhibition. Scoring is framed as "in-house curator" evaluations.
 - **Scoring display**: Trial outcomes show "The in-house curator scored this image: X points" instead of "Points earned this trial". Block summaries show "The in-house curator scored this collection X points out of a total of 20 points!" (actual points, not scaled).
 - Points are calculated based on Euclidean distance: `points = 1.0 - distance(final_answer, ground_truth)`
+- **Practice Block (Block 0)**:
+  - Contains 3 practice trials with simplified stimuli (colored shapes)
+  - All practice trials include the same fields as regular trials
+  - Fields that don't apply to specific practice trials are set to `None` or `False`:
+    - Trial 1: No AI response (`ai_slider_value`, `ai_rt`, `ai_decision_time`, `ai_slider_display_time`, `ai_correct` all `None`), no switch/stay decision (all switch fields `None`), `euclidean_ai_to_truth` and `euclidean_participant_to_ai` are `None`
+    - Trial 2: Has AI response, but no switch/stay decision (switch fields `None`)
+    - Trial 3: Full trial with participant, AI, and switch/stay decision
+  - All practice trials have `block_start_time`, `block_end_time`, `block_duration_seconds`, and `block_duration_minutes` set to `None` (practice block timing not tracked)
 - **Block structure**:
   - Block 1: Reliable (0.75 accuracy), Participant first
   - Block 2: Unreliable (0.25 accuracy), Participant first

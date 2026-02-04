@@ -2544,7 +2544,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     # Calculate points based on euclidean distance (passed to show_trial_outcome)
     points_earned = show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, total_points=total_points)
     trial_data["outcome_time"] = outcome_time
-    trial_data["coins_earned"] = points_earned  # Keep CSV field name for compatibility
+    trial_data["points_earned"] = points_earned  # Keep CSV field name for compatibility
     
     return trial_data, points_earned
 
@@ -3727,11 +3727,11 @@ def run_experiment():
     amy_path = os.path.join(STIMULI_DIR, "Amy.png")
     if os.path.exists(amy_path):
         amy_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
-        # Position Amy's image below the text
+        # Position Amy's image below the text (moved slightly up)
         if hasattr(amy_image, 'setPos'):
-            amy_image.setPos((0, -0.1))
+            amy_image.setPos((0, -0.05))  # Moved up from -0.1
         elif hasattr(amy_image, 'pos'):
-            amy_image.pos = (0, -0.1)
+            amy_image.pos = (0, -0.05)  # Moved up from -0.1
     else:
         amy_image = None
         print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
@@ -3749,13 +3749,30 @@ def run_experiment():
         wrapWidth=1.2
     )
     
-    # Label for Amy's image (first time shown) - below text
+    # Label for Amy's image (first time shown) - below image (moved up slightly)
     amy_label_1 = visual.TextStim(
         win,
         text="Amy",
         color='black',
         height=0.05*0.75,
-        pos=(0, -0.25)  # Below the image, which is below text
+        pos=(0, -0.2)  # Moved up from -0.25
+    )
+    
+    # Create custom button for this screen (positioned lower)
+    continue_button_welcome = visual.Rect(
+        win,
+        width=0.3*0.75,
+        height=0.1*0.75,
+        fillColor='lightblue',
+        lineColor='black',
+        pos=(0, -0.4*0.6)  # Moved down from -0.35*0.6
+    )
+    continue_text_welcome = visual.TextStim(
+        win,
+        text="CONTINUE",
+        color='black',
+        height=0.05*0.75,
+        pos=(0, -0.4*0.6)  # Moved down from -0.35*0.6
     )
     
     def redraw_welcome_1():
@@ -3763,8 +3780,74 @@ def run_experiment():
         if amy_image:
             amy_image.draw()
         amy_label_1.draw()
+        continue_button_welcome.draw()
+        continue_text_welcome.draw()
     
-    wait_for_button(redraw_func=redraw_welcome_1)
+    # Custom wait for button with custom button position
+    mouse = event.Mouse(win=win)
+    mouse.setVisible(True)
+    
+    def draw_screen():
+        redraw_welcome_1()
+        win.flip()
+    
+    draw_screen()
+    
+    clicked = False
+    prev_mouse_buttons = [False, False, False]
+    
+    while not clicked:
+        try:
+            mouse_buttons = mouse.getPressed()
+            mouse_pos = mouse.getPos()
+            
+            try:
+                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                else:
+                    mouse_x, mouse_y = 0.0, 0.0
+            except (TypeError, ValueError):
+                mouse_x, mouse_y = 0.0, 0.0
+            
+            button_x, button_y = 0.0, -0.4*0.6
+            button_width, button_height = 0.3*0.75, 0.1*0.75
+            
+            on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
+                        button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+            
+            if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                if on_button:
+                    continue_button_welcome.fillColor = 'lightgreen'
+                    draw_screen()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+            
+            if on_button:
+                continue_button_welcome.fillColor = 'lightcyan'
+            else:
+                continue_button_welcome.fillColor = 'lightblue'
+            draw_screen()
+            
+            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+        except (AttributeError, Exception):
+            pass
+        
+        try:
+            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+            if keys:
+                if 'space' in keys:
+                    clicked = True
+                    break
+                elif 'escape' in keys:
+                    core.quit()
+        except (AttributeError, Exception):
+            pass
+        
+        core.wait(0.01)
+    
+    mouse.setVisible(False)
+    event.clearEvents()
     
     # Show second welcome screen (no image, just text)
     welcome_text_2 = visual.TextStim(
@@ -3899,12 +3982,17 @@ def run_experiment():
     core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t1
     
-    # Record trial 1 data
+    # Record trial 1 data - include all fields to match regular trial structure
+    image_onset_t1 = time.time()  # Approximate onset time
     trial_data_t1 = {
         'block': 0,
         'trial': 1,
+        'phase': 'recognition',
         'trial_type': 'studied',
+        'is_studied': True,
         'image_path': green_circle_path,
+        'image_onset': image_onset_t1,
+        'participant_first': True,
         'participant_slider_value': participant_value_t1,
         'participant_rt': participant_rt_t1,
         'participant_commit_time': participant_commit_time_t1,
@@ -3912,13 +4000,27 @@ def run_experiment():
         'participant_slider_stop_time': participant_slider_stop_time_t1,
         'ai_slider_value': None,
         'ai_rt': None,
+        'ai_decision_time': None,
         'ai_slider_display_time': None,
         'ai_correct': None,
         'switch_stay_decision': None,
+        'switch_rt': None,
+        'switch_commit_time': None,
+        'switch_timeout': None,
+        'decision_onset_time': None,
         'final_answer': final_answer_t1,
-        'correct_answer': correct_answer_t1,
+        'used_ai_answer': False,
+        'ground_truth': correct_answer_t1,
         'participant_accuracy': participant_accuracy_t1,
-        'points_earned': correctness_points_t1
+        'euclidean_participant_to_truth': abs(participant_value_t1 - correct_answer_t1),
+        'euclidean_ai_to_truth': None,
+        'euclidean_participant_to_ai': None,
+        'outcome_time': None,
+        'points_earned': correctness_points_t1,
+        'block_start_time': None,
+        'block_end_time': None,
+        'block_duration_seconds': None,
+        'block_duration_minutes': None
     }
     practice_trials.append(trial_data_t1)
     
@@ -3986,12 +4088,18 @@ def run_experiment():
     core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t2
     
-    # Record trial 2 data
+    # Record trial 2 data - include all fields to match regular trial structure
+    image_onset_t2 = time.time()  # Approximate onset time
+    ai_decision_time_t2 = time.time()  # Approximate AI decision time
     trial_data_t2 = {
         'block': 0,
         'trial': 2,
+        'phase': 'recognition',
         'trial_type': 'studied',
+        'is_studied': True,
         'image_path': red_circle_path,
+        'image_onset': image_onset_t2,
+        'participant_first': True,
         'participant_slider_value': participant_value_t2,
         'participant_rt': participant_rt_t2,
         'participant_commit_time': participant_commit_time_t2,
@@ -3999,13 +4107,27 @@ def run_experiment():
         'participant_slider_stop_time': participant_slider_stop_time_t2,
         'ai_slider_value': ai_confidence_t2,
         'ai_rt': ai_rt_t2,
+        'ai_decision_time': ai_decision_time_t2,
         'ai_slider_display_time': ai_slider_display_time_t2,
         'ai_correct': ai_correct_t2,
         'switch_stay_decision': None,
+        'switch_rt': None,
+        'switch_commit_time': None,
+        'switch_timeout': None,
+        'decision_onset_time': None,
         'final_answer': final_answer_t2,
-        'correct_answer': correct_answer_t2,
+        'used_ai_answer': False,
+        'ground_truth': correct_answer_t2,
         'participant_accuracy': participant_accuracy_t2,
-        'points_earned': correctness_points_t2
+        'euclidean_participant_to_truth': abs(participant_value_t2 - correct_answer_t2),
+        'euclidean_ai_to_truth': abs(ai_confidence_t2 - correct_answer_t2),
+        'euclidean_participant_to_ai': abs(participant_value_t2 - ai_confidence_t2),
+        'outcome_time': None,
+        'points_earned': correctness_points_t2,
+        'block_start_time': None,
+        'block_end_time': None,
+        'block_duration_seconds': None,
+        'block_duration_minutes': None
     }
     practice_trials.append(trial_data_t2)
     
@@ -4084,12 +4206,19 @@ def run_experiment():
     core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t3
     
-    # Record trial 3 data
+    # Record trial 3 data - include all fields to match regular trial structure
+    image_onset_t3 = time.time()  # Approximate onset time
+    ai_decision_time_t3 = time.time()  # Approximate AI decision time
+    outcome_time_t3 = time.time()  # Outcome time
     trial_data_t3 = {
         'block': 0,
         'trial': 3,
+        'phase': 'recognition',
         'trial_type': 'studied',
+        'is_studied': False,  # It's actually NEW (blue square)
         'image_path': blue_square_path,
+        'image_onset': image_onset_t3,
+        'participant_first': True,
         'participant_slider_value': participant_value_t3,
         'participant_rt': participant_rt_t3,
         'participant_commit_time': participant_commit_time_t3,
@@ -4097,14 +4226,27 @@ def run_experiment():
         'participant_slider_stop_time': participant_slider_stop_time_t3,
         'ai_slider_value': ai_confidence_t3,
         'ai_rt': ai_rt_t3,
+        'ai_decision_time': ai_decision_time_t3,
         'ai_slider_display_time': ai_slider_display_time_t3,
         'ai_correct': ai_correct_t3,
         'switch_stay_decision': switch_decision_t3,
         'switch_rt': switch_rt_t3,
+        'switch_commit_time': switch_commit_time_t3,
+        'switch_timeout': switch_timeout_t3,
+        'decision_onset_time': decision_onset_time_t3,
         'final_answer': final_answer_t3,
-        'correct_answer': correct_answer_t3,
+        'used_ai_answer': used_ai_answer_t3,
+        'ground_truth': correct_answer_t3,
         'participant_accuracy': participant_accuracy_t3,
-        'points_earned': correctness_points_t3
+        'euclidean_participant_to_truth': abs(participant_value_t3 - correct_answer_t3),
+        'euclidean_ai_to_truth': abs(ai_confidence_t3 - correct_answer_t3),
+        'euclidean_participant_to_ai': abs(participant_value_t3 - ai_confidence_t3),
+        'outcome_time': outcome_time_t3,
+        'points_earned': correctness_points_t3,
+        'block_start_time': None,
+        'block_end_time': None,
+        'block_duration_seconds': None,
+        'block_duration_minutes': None
     }
     practice_trials.append(trial_data_t3)
     
@@ -4278,20 +4420,37 @@ def run_experiment():
                     if os.path.exists(ben_path):
                         ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                         if hasattr(ben_image, 'setPos'):
-                            ben_image.setPos((0, -0.1))  # Below text
+                            ben_image.setPos((0, -0.05))  # Moved up from -0.1
                         elif hasattr(ben_image, 'pos'):
-                            ben_image.pos = (0, -0.1)  # Below text
+                            ben_image.pos = (0, -0.05)  # Moved up from -0.1
                     else:
                         ben_image = None
                         print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
                     
-                    # Label for Ben's image (first time shown) - below image
+                    # Label for Ben's image (first time shown) - below image (moved up slightly)
                     ben_label = visual.TextStim(
                         win,
                         text="Ben",
                         color='black',
                         height=0.05*0.75,
-                        pos=(0, -0.25)  # Below Ben's image
+                        pos=(0, -0.2)  # Moved up from -0.25
+                    )
+                    
+                    # Create custom button for this screen (positioned lower)
+                    continue_button_ben = visual.Rect(
+                        win,
+                        width=0.3*0.75,
+                        height=0.1*0.75,
+                        fillColor='lightblue',
+                        lineColor='black',
+                        pos=(0, -0.4*0.6)  # Moved down from -0.35*0.6
+                    )
+                    continue_text_ben = visual.TextStim(
+                        win,
+                        text="CONTINUE",
+                        color='black',
+                        height=0.05*0.75,
+                        pos=(0, -0.4*0.6)  # Moved down from -0.35*0.6
                     )
                     
                     def redraw_ben():
@@ -4299,8 +4458,74 @@ def run_experiment():
                         if ben_image:
                             ben_image.draw()
                         ben_label.draw()
+                        continue_button_ben.draw()
+                        continue_text_ben.draw()
                     
-                    wait_for_button(redraw_func=redraw_ben)
+                    # Custom wait for button with custom button position
+                    mouse = event.Mouse(win=win)
+                    mouse.setVisible(True)
+                    
+                    def draw_screen():
+                        redraw_ben()
+                        win.flip()
+                    
+                    draw_screen()
+                    
+                    clicked = False
+                    prev_mouse_buttons = [False, False, False]
+                    
+                    while not clicked:
+                        try:
+                            mouse_buttons = mouse.getPressed()
+                            mouse_pos = mouse.getPos()
+                            
+                            try:
+                                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                                else:
+                                    mouse_x, mouse_y = 0.0, 0.0
+                            except (TypeError, ValueError):
+                                mouse_x, mouse_y = 0.0, 0.0
+                            
+                            button_x, button_y = 0.0, -0.4*0.6
+                            button_width, button_height = 0.3*0.75, 0.1*0.75
+                            
+                            on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
+                                        button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                            
+                            if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                                if on_button:
+                                    continue_button_ben.fillColor = 'lightgreen'
+                                    draw_screen()
+                                    core.wait(0.2)
+                                    clicked = True
+                                    break
+                            
+                            if on_button:
+                                continue_button_ben.fillColor = 'lightcyan'
+                            else:
+                                continue_button_ben.fillColor = 'lightblue'
+                            draw_screen()
+                            
+                            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+                        except (AttributeError, Exception):
+                            pass
+                        
+                        try:
+                            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                            if keys:
+                                if 'space' in keys:
+                                    clicked = True
+                                    break
+                                elif 'escape' in keys:
+                                    core.quit()
+                        except (AttributeError, Exception):
+                            pass
+                        
+                        core.wait(0.01)
+                    
+                    mouse.setVisible(False)
+                    event.clearEvents()
                     
                 elif not previous_partner_reliable and current_partner_reliable:
                     # Switched from Ben (unreliable) to Amy (reliable)
