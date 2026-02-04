@@ -3891,11 +3891,12 @@ def run_experiment():
     
     outcome_text_t1 = "Correct!" if participant_accuracy_t1 else "Incorrect"
     color_t1 = 'green' if participant_accuracy_t1 else 'red'
-    outcome_stim_t1 = visual.TextStim(win, text=f"{outcome_text_t1}\n\nThe in-house curator scored this image: {correctness_points_t1:.2f} points based on its quality and how confident you were it fit into the collection", 
+    # Skip in-house curator message in practice - just show correctness
+    outcome_stim_t1 = visual.TextStim(win, text=outcome_text_t1, 
                                       color=color_t1, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t1.draw()
     win.flip()
-    core.wait(2.0)  # Show for 2.0 seconds (increased from 1.5)
+    core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t1
     
     # Record trial 1 data
@@ -3911,6 +3912,8 @@ def run_experiment():
         'participant_slider_stop_time': participant_slider_stop_time_t1,
         'ai_slider_value': None,
         'ai_rt': None,
+        'ai_slider_display_time': None,
+        'ai_correct': None,
         'switch_stay_decision': None,
         'final_answer': final_answer_t1,
         'correct_answer': correct_answer_t1,
@@ -3975,14 +3978,12 @@ def run_experiment():
     
     outcome_text_t2 = "Correct!" if participant_accuracy_t2 else "Incorrect"
     color_t2 = 'green' if participant_accuracy_t2 else 'red'
-    # Add explanation of score
-    percent_incorrect = int((1.0 - correctness_points_t2) * 100)
-    # {percent_incorrect}% away from the correct answer."
-    outcome_stim_t2 = visual.TextStim(win, text=f"{outcome_text_t2}\n\nThe in-house curator scored this image: {correctness_points_t2:.2f} points based on its quality and how confident you were it fit into the collection", 
+    # Skip in-house curator message in practice - just show correctness
+    outcome_stim_t2 = visual.TextStim(win, text=outcome_text_t2, 
                                       color=color_t2, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t2.draw()
     win.flip()
-    core.wait(3.0)  # Show for 3.0 seconds (increased from 2.5)
+    core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t2
     
     # Record trial 2 data
@@ -4075,14 +4076,12 @@ def run_experiment():
     
     outcome_text_t3 = "Correct!" if participant_accuracy_t3 else "Incorrect"
     color_t3 = 'green' if participant_accuracy_t3 else 'red'
-    # Add explanation of score
-    percent_incorrect = int((1.0 - correctness_points_t3) * 100)
-    #explanation_t3 = f"\n\nYou were {percent_incorrect}% away from the correct answer."
-    outcome_stim_t3 = visual.TextStim(win, text=f"{outcome_text_t3}\n\nThe in-house curator scored this image: {correctness_points_t3:.2f} points based on its quality and how confident you were it fit into the collection", 
+    # Skip in-house curator message in practice - just show correctness
+    outcome_stim_t3 = visual.TextStim(win, text=outcome_text_t3, 
                                       color=color_t3, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t3.draw()
     win.flip()
-    core.wait(3.0)  # Show for 3.0 seconds (increased from 2.5)
+    core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t3
     
     # Record trial 3 data
@@ -4155,6 +4154,7 @@ def run_experiment():
 
     show_instructions(
         "   - Remember, confidence matters!\n"
+        "   - An in-house curator will score your collection before the exhibition.\n"
         "   - If you are confident and wrong (eg: you click ALL the way to the left/OLD on an image that shouldn't be part of the collection),"
         "the curator will penalize you more heavily.\n"
         "   - If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit.\n"
