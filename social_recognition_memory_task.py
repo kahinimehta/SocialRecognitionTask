@@ -4267,7 +4267,7 @@ def run_experiment():
     
     # Rules reminder before starting the actual game - split into 3 pages for better readability
     show_instructions(
-        "   Now, you must emember each photo Amy wants in the collection carefully.\n"
+        "   Now, you must remember each photo Amy wants in the collection carefully.\n"
         "   You'll see images of various objects,\n"
         "   animals, and scenes.",
         header_color='darkred',
@@ -4276,28 +4276,28 @@ def run_experiment():
     
     show_instructions(
 
-        "   - After that, you'll see more images. These are all the photos Amy took recently.\n"
-        "   - Rate your confidence on each photo if it belongs in the collection on the slider.\n"
-        "   - LEFT = OLD (should be part of the collection)\n"
-        "   - RIGHT = NEW (I haven't seen these before, they are not part of the collection)\n"
-        "   - Click anywhere on the slider line to set your rating, then click SUBMIT",
+        "   After that, you'll see more images. These are all the photos Amy took recently.\n"
+        "   Rate your confidence on each photo if it belongs in the collection on the slider.\n"
+        "   LEFT = OLD (should be part of the collection)\n"
+        "   RIGHT = NEW (I haven't seen these before, they are not part of the collection)\n"
+        "   Click anywhere on the slider line to set your rating, then click SUBMIT",
         header_color='darkred',
         body_color='black'
     )
     
     show_instructions(
-        "   - Amy will also rate each image, may not always be correct. She's super busy! \n"  # Note: partner_name is used dynamically in actual trial text
-        "   - You can STAY with your answer\n"
-        "   - Or SWITCH to your partner Amy's answer\n"
-        "   - Even if you both agree (OLD or NEW),\n"
+        "   Amy will also rate each image, but may not always be correct. She's super busy! \n"  # Note: partner_name is used dynamically in actual trial text
+        "   You can STAY with your answer\n"
+        "   Or SWITCH to your partner Amy's answer\n"
+        "   Even if you both agree (OLD or NEW),\n"
         "     you can switch to match your partner Amy's confidence level",
         header_color='darkred',
         body_color='black'
     )
 
     show_instructions(
-        "   - Remember, confidence matters!\n"
-        "   - An in-house curator will score your collection before the exhibition.\n"
+        "   Remember, confidence matters!\n"
+        "   An in-house curator will score your collection before the exhibition.\n"
         "   - If you are confident and wrong (eg: you click ALL the way to the left/OLD on an image that shouldn't be part of the collection),"
         "the curator will penalize you more heavily.\n"
         "   - If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit.\n"
@@ -4307,17 +4307,14 @@ def run_experiment():
         body_color='black'
     )
 
-
     show_instructions(
         "We have 5 collections with 20 images each to get through.\n",
         "Because the exhibition is so soon, you will have a time limit on each image decision!",
-        header_color='darkred',
         body_color='black'
     )
 
     show_instructions(
         "Let's get started!",
-        header_color='darkred',
         body_color='black'
     )
     
