@@ -3727,11 +3727,11 @@ def run_experiment():
     amy_path = os.path.join(STIMULI_DIR, "Amy.png")
     if os.path.exists(amy_path):
         amy_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
-        # Position Amy's image above the text
+        # Position Amy's image below the text
         if hasattr(amy_image, 'setPos'):
-            amy_image.setPos((0, 0.3))
+            amy_image.setPos((0, -0.1))
         elif hasattr(amy_image, 'pos'):
-            amy_image.pos = (0, 0.3)
+            amy_image.pos = (0, -0.1)
     else:
         amy_image = None
         print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
@@ -3745,24 +3745,24 @@ def run_experiment():
              "She needs help sorting through large sets of images and deciding which ones truly belong.",
         color='black',
         height=0.04*0.75,
-        pos=(0, 0.0),
+        pos=(0, 0.2),  # Move text up
         wrapWidth=1.2
     )
     
-    # Label for Amy's image (first time shown)
+    # Label for Amy's image (first time shown) - below text
     amy_label_1 = visual.TextStim(
         win,
         text="Amy",
         color='black',
         height=0.05*0.75,
-        pos=(0, 0.15)  # Below the image
+        pos=(0, -0.25)  # Below the image, which is below text
     )
     
     def redraw_welcome_1():
+        welcome_text_1.draw()  # Draw text first
         if amy_image:
             amy_image.draw()
         amy_label_1.draw()
-        welcome_text_1.draw()
     
     wait_for_button(redraw_func=redraw_welcome_1)
     
@@ -3879,7 +3879,7 @@ def run_experiment():
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1 = get_slider_response(
         "CLICK once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\").",
-        image_stim=green_circle, trial_num=1, max_trials=3, timeout=7.0
+        image_stim=green_circle, trial_num=1, max_trials=3, timeout=999999.0  # No timeout in practice
     )
     
     # Show outcome for trial 1
@@ -3966,7 +3966,7 @@ def run_experiment():
     # Participant rates
     participant_value_t2, participant_rt_t2, participant_commit_time_t2, participant_slider_timeout_t2, participant_slider_stop_time_t2 = get_slider_response(
         "Rate your memory: OLD or NEW?",
-        image_stim=red_circle, trial_num=2, max_trials=3, timeout=7.0
+        image_stim=red_circle, trial_num=2, max_trials=3, timeout=999999.0  # No timeout in practice
     )
     
     # Show outcome for trial 2
@@ -4032,7 +4032,7 @@ def run_experiment():
     # Trial 3: Full trial with participant, AI, switch/stay
     # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3)
     participant_value_t3, participant_rt_t3, participant_commit_time_t3, participant_slider_timeout_t3, participant_slider_stop_time_t3 = get_slider_response(
-        "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=3, max_trials=3, timeout=7.0
+        "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=3, max_trials=3, timeout=999999.0  # No timeout in practice
     )
     
     # AI rates (all the way OLD) - but it's actually NEW (square), so AI is wrong (Amy in practice)
@@ -4055,7 +4055,7 @@ def run_experiment():
     
     # Switch/Stay decision (Amy in practice)
     switch_decision_t3, switch_rt_t3, switch_commit_time_t3, switch_timeout_t3, decision_onset_time_t3 = get_switch_stay_decision(
-        image_stim=blue_square, participant_value=participant_value_t3, partner_value=ai_confidence_t3, timeout=7.0, partner_name="Amy"
+        image_stim=blue_square, participant_value=participant_value_t3, partner_value=ai_confidence_t3, timeout=999999.0, partner_name="Amy"  # No timeout in practice
     )
     
     # Determine final answer
@@ -4186,7 +4186,7 @@ def run_experiment():
              "She'll provide her judgments as you work through each collection, but is slighlty distracted with other tasks.",
         color='black',
         height=0.04*0.75,
-        pos=(0, 0.0),
+        pos=(0, 0.2),  # Move text up
         wrapWidth=1.2
     )
     
@@ -4195,27 +4195,27 @@ def run_experiment():
     if os.path.exists(amy_path):
         amy_intro_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
         if hasattr(amy_intro_image, 'setPos'):
-            amy_intro_image.setPos((0, 0.3))
+            amy_intro_image.setPos((0, -0.1))  # Below text
         elif hasattr(amy_intro_image, 'pos'):
-            amy_intro_image.pos = (0, 0.3)
+            amy_intro_image.pos = (0, -0.1)  # Below text
     else:
         amy_intro_image = None
         print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
     
-    # Label for Amy's image (first time shown before experimental blocks)
+    # Label for Amy's image (first time shown before experimental blocks) - below image
     amy_intro_label = visual.TextStim(
         win,
         text="Amy",
         color='black',
         height=0.05*0.75,
-        pos=(0, 0.15)  # Below the image
+        pos=(0, -0.25)  # Below the image
     )
     
     def redraw_amy_intro():
+        amy_intro_text.draw()  # Draw text first
         if amy_intro_image:
             amy_intro_image.draw()
         amy_intro_label.draw()
-        amy_intro_text.draw()
     
     wait_for_button(redraw_func=redraw_amy_intro)
     
@@ -4269,7 +4269,7 @@ def run_experiment():
                              "As always, focus on making the best judgment you can.",
                         color='black',
                         height=0.04*0.75,
-                        pos=(0, 0.0),
+                        pos=(0, 0.2),  # Move text up
                         wrapWidth=1.2
                     )
                     
@@ -4278,27 +4278,27 @@ def run_experiment():
                     if os.path.exists(ben_path):
                         ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                         if hasattr(ben_image, 'setPos'):
-                            ben_image.setPos((0, 0.15))  # Shift down for Ben's white space
+                            ben_image.setPos((0, -0.1))  # Below text
                         elif hasattr(ben_image, 'pos'):
-                            ben_image.pos = (0, 0.15)  # Shift down for Ben's white space
+                            ben_image.pos = (0, -0.1)  # Below text
                     else:
                         ben_image = None
                         print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
                     
-                    # Label for Ben's image (first time shown)
+                    # Label for Ben's image (first time shown) - below image
                     ben_label = visual.TextStim(
                         win,
                         text="Ben",
                         color='black',
                         height=0.05*0.75,
-                        pos=(0, -0.05)  # Below Ben's image (which is already shifted down)
+                        pos=(0, -0.25)  # Below Ben's image
                     )
                     
                     def redraw_ben():
+                        switch_text.draw()  # Draw text first
                         if ben_image:
                             ben_image.draw()
                         ben_label.draw()
-                        switch_text.draw()
                     
                     wait_for_button(redraw_func=redraw_ben)
                     
@@ -4311,7 +4311,7 @@ def run_experiment():
                              "You'll once again see her judgments as you work through this collection.",
                         color='black',
                         height=0.04*0.75,
-                        pos=(0, 0.0),
+                        pos=(0, 0.2),  # Move text up
                         wrapWidth=1.2
                     )
                     
@@ -4320,17 +4320,17 @@ def run_experiment():
                     if os.path.exists(amy_path):
                         amy_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
                         if hasattr(amy_image, 'setPos'):
-                            amy_image.setPos((0, 0.3))
+                            amy_image.setPos((0, -0.1))  # Below text
                         elif hasattr(amy_image, 'pos'):
-                            amy_image.pos = (0, 0.3)
+                            amy_image.pos = (0, -0.1)  # Below text
                     else:
                         amy_image = None
                         print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
                     
                     def redraw_amy():
+                        switch_text.draw()  # Draw text first
                         if amy_image:
                             amy_image.draw()
-                        switch_text.draw()
                     
                     wait_for_button(redraw_func=redraw_amy)
                     
@@ -4341,7 +4341,7 @@ def run_experiment():
                         text="Amy is gone again! Continue working with Ben.",
                         color='black',
                         height=0.04*0.75,
-                        pos=(0, 0.0),
+                        pos=(0, 0.2),  # Move text up
                         wrapWidth=1.2
                     )
                     
@@ -4350,17 +4350,17 @@ def run_experiment():
                     if os.path.exists(ben_path):
                         ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                         if hasattr(ben_image, 'setPos'):
-                            ben_image.setPos((0, 0.15))  # Shift down for Ben's white space
+                            ben_image.setPos((0, -0.1))  # Below text
                         elif hasattr(ben_image, 'pos'):
-                            ben_image.pos = (0, 0.15)  # Shift down for Ben's white space
+                            ben_image.pos = (0, -0.1)  # Below text
                     else:
                         ben_image = None
                         print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
                     
                     def redraw_ben_continue():
+                        switch_text.draw()  # Draw text first
                         if ben_image:
                             ben_image.draw()
-                        switch_text.draw()
                     
                     wait_for_button(redraw_func=redraw_ben_continue)
             
