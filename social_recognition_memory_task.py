@@ -3405,24 +3405,35 @@ def show_leaderboard(participant_id, total_points):
     all_participants = [f"P{i:02d}" for i in range(1, 11)]
     current_participant_label = participant_id if len(participant_id) <= 10 else participant_id[:10]
     
-    # Generate fake scores (higher scores for top ranks)
     # Participant gets rank 1-5 (randomly determined, but ensure they're in top 5)
     participant_rank = random.randint(1, 5)
     
-    # Generate scores: top 5 get higher scores, bottom 5 get lower scores
-    top_scores = sorted([total_points + random.uniform(-2, 5) for _ in range(4)], reverse=True)
-    bottom_scores = sorted([total_points - random.uniform(5, 15) for _ in range(5)], reverse=True)
+    # Generate fake scores: create 9 other scores around the participant's score
+    # Ensure participant's score will be at their assigned rank after sorting
+    fake_scores = []
     
-    # Combine scores and insert participant at their rank
-    all_scores = top_scores[:participant_rank-1] + [total_points] + top_scores[participant_rank-1:] + bottom_scores
+    # Generate scores above participant (for ranks 1 to participant_rank-1)
+    # These must be strictly greater than total_points
+    for _ in range(participant_rank - 1):
+        fake_scores.append(total_points + random.uniform(0.1, 5.0))
+    
+    # Generate scores below participant (for ranks participant_rank+1 to 10)
+    # These must be strictly less than total_points
+    for _ in range(10 - participant_rank):
+        fake_scores.append(total_points - random.uniform(0.1, 15.0))
+    
+    # Combine all scores and sort
+    all_scores = fake_scores + [total_points]
     all_scores = sorted(all_scores, reverse=True)
     
     # Create leaderboard entries
     leaderboard_entries = []
     used_names = set()
     for i, score in enumerate(all_scores[:10], 1):
+        # At the participant's rank, always show their actual total_points
         if i == participant_rank:
             name = f"{current_participant_label} (you)"
+            display_score = total_points  # Always show the actual total_points (out of 100)
             used_names.add(current_participant_label)
         else:
             # Assign fake names, avoiding the current participant's label
@@ -3432,7 +3443,8 @@ def show_leaderboard(participant_id, total_points):
                 used_names.add(name)
             else:
                 name = f"P{i:02d}"
-        leaderboard_entries.append((i, name, score))
+            display_score = score
+        leaderboard_entries.append((i, name, display_score))
     
     # Display leaderboard
     leaderboard_text = "AMY'S EMPLOYEE RANKING & LEADERSHIP BOARD\n\n"
@@ -4037,7 +4049,8 @@ def run_experiment():
         text="Greetings!\n\n"
              "You've just joined a small photography studio.\n\n"
              "Amy, a professional photographer, is preparing images for an upcoming exhibition.\n\n"
-             "She needs help sorting through large sets of images and deciding which ones truly belong.",
+             "She needs help sorting through large sets of images and deciding which ones truly belong. "
+             "At the end of each exhibition she ranks her employees on a leaderboard for a raise -- so you want to make sure you help as much as you can!",
         color='black',
         height=0.04*0.75,
         pos=(0, 0.2),  # Move text up
