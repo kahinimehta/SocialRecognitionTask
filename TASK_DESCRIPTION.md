@@ -81,13 +81,27 @@ This task examines how participants collaborate with an AI partner during a reco
 
 Each of the 20 trials follows this structure:
 
-1. **Fixation Cross**: 0.5 seconds (fixed duration)
+1. **Pre-trial Fixation Cross**: 0.5 seconds (fixed duration, shown before each image)
 2. **Image Presentation**: Shows either the studied image or its lure (50% chance each) for 1.0 second (fixed duration)
+   - Image remains visible until participant responds or timeout (7 seconds)
 3. **Participant Rating**: Rate memory confidence on a continuous slider
+   - Click anywhere on the slider line to set rating (not dragging)
+   - Click SUBMIT button to confirm
+   - Timeout: 7 seconds (random answer selected if timeout)
 4. **AI Partner Rating**: AI partner also rates the image
+   - AI RT: Log-normal distribution (mu=0.5, sigma=0.3), capped at 5.0 seconds
+   - Animation shows AI's slider clicking and submitting
 5. **Collaboration Decision**: Participant decides to STAY or SWITCH
-6. **Outcome Feedback**: Shows correctness and points earned
-7. **Jittered Fixation**: 0.25-0.75 seconds (uniform random distribution) between trials (not after last trial)
+   - Timeout: 7 seconds (random decision selected if timeout)
+6. **Outcome Feedback**: Shows correctness and curator scoring
+   - "Correct!" (green) or "Incorrect" (red)
+   - "The in-house curator scored this image: X points"
+   - Display duration: ~1.5 seconds
+7. **Jittered Fixation**: 0.25-0.75 seconds (uniform random distribution) between trials
+   - Distribution: `random.uniform(0.25, 0.75)` - each jitter independently drawn
+   - Shown as fixation cross during inter-trial interval
+   - **No jitter after the last trial** in each block
+   - **19 jittered fixations per block** (between 20 trials)
 
 ---
 
@@ -161,11 +175,21 @@ Points are earned based on **Euclidean distance** between the final answer and t
 
 The closer the final answer is to the correct answer, the more points earned.
 
-### Point Display
+### Point Display (Curator Scoring Framing)
 
-- **After each trial**: Shows points earned for that trial only
-- **End of each block**: Shows total points earned / maximum possible points
-  - Points are based solely on correctness (Euclidean distance from correct answer)
+All scoring is framed as "in-house curator" evaluations:
+
+- **After each trial**: "The in-house curator scored this image: X points"
+  - Points are based on Euclidean distance from correct answer (1.0 - distance)
+  - Range: 0.0 to 1.0 points per trial
+
+- **End of each block**: "The in-house curator scored this collection X points out of a total of 10 points!"
+  - Block points are scaled from the block's maximum (20 trials × 1.0 max = 20) to a 10-point scale
+  - Formula: `(block_points / 20) × 10`
+
+- **End of experiment**: "The in-house curator scored this collection X points out of a total of 10 points!"
+  - Total experiment points are scaled from maximum (100 trials × 1.0 max = 100) to a 10-point scale
+  - Formula: `(total_points / 100) × 10`
 
 ---
 
@@ -178,7 +202,8 @@ The closer the final answer is to the correct answer, the more points earned.
    - Points earned this trial displayed
 
 2. **Social Reinforcement** (50% chance if switched):
-   - Separate screen: "Thanks for working with your partner! You receive a [X] bonus point!"
+   - Separate screen: "Thanks for working with [partner name]! You receive a [X] bonus point!"
+   - The partner name (Amy or Ben) is dynamically displayed based on the current block
    - The bonus amount (0.50-0.75) is randomly determined each time
    - Shown regardless of whether switching made the answer correct or incorrect
 
@@ -224,7 +249,6 @@ The closer the final answer is to the correct answer, the more points earned.
 - **CSV files updated after each trial** (not each block)
 - **Study Phase Data**: Saved to `recognition_study_[participant_id]_[timestamp].csv`
 - **Trial Data**: Saved to `recognition_trials_[participant_id]_[timestamp].csv`
-- **Questions Data**: Saved to `recognition_questions_[participant_id]_[timestamp].csv`
 - **Summary Data**: Total task time saved to `recognition_summary_[participant_id]_[timestamp].csv`
 
 ---
@@ -233,20 +257,29 @@ The closer the final answer is to the correct answer, the more points earned.
 
 ### Structure
 
-- **5 trials** (instead of 10)
-- **5 shape stimuli** from PLACEHOLDERS folder
-- Same task structure as experimental blocks:
-  - Study phase (5 images)
-  - Recognition phase (5 trials)
-  - Collaboration with AI partner
-  - Outcome feedback
+- **3 trials** (practice only)
+- **3 shape stimuli**: Green circle, red circle, blue circle (for sequential presentation)
+- **Practice recognition trials**:
+  - Trial 1: Green circle (participant rates only)
+  - Trial 2: Red circle (AI rates first, then participant rates)
+  - Trial 3: Blue square (full trial: participant rates, AI rates, switch/stay decision)
+- **Practice flow**:
+  1. Welcome message with Amy's story and picture
+  2. Sequential presentation of 3 shapes (green circle, red circle, blue circle), each for 1.5 seconds with fixations between
+  3. Transition screen: "Now let's see how well you recall the objects you've seen!"
+  4. Trial 1: Green circle - participant rates only
+  5. Trial 2: Red circle - shows "Amy is confident they've seen this before", AI clicks "all the way on the old" side, then participant rates
+  6. Trial 3: Blue square - shows "now, work with Amy", participant rates, then AI clicks "all the way on the old" side (incorrectly, as it's a new square), then participant performs switch/stay decision, outcome shown
+- **Outcome explanations**: For practice trials, outcomes explicitly explain the score (e.g., "You were 67% incorrect!" for a score of 0.33)
+- **Slider instruction**: Explicitly states "Note: You will click (not drag) on the slider to set your rating."
 
 ### Purpose
 
 - Familiarize participants with task mechanics
-- Practice using the slider
+- Practice using the slider (click-only, not dragging)
 - Understand collaboration decisions
-- **Note**: Practice stimuli will not be replaced with final stimuli
+- Learn about the curator scoring system
+- **Note**: Practice stimuli are simple shapes, not replaced with final stimuli
 
 ---
 
@@ -265,19 +298,6 @@ The closer the final answer is to the correct answer, the more points earned.
 - **Color-coded headers** for easy navigation
 - **Formatted text** with emphasis on key concepts
 
-### Block-End Questions
-
-After each block (including practice), participants answer 2 questions:
-
-1. **Multiple Choice** (7 seconds):
-   - "What were you trying to maximize?"
-   - Options: Correctness, Both, Other
-
-2. **Slider Question** (7 seconds):
-   - "How much did you trust your partner?"
-   - Scale: "Not at all" (left) to "Completely" (right)
-   - 0.0 to 1.0 value recorded
-
 ### Leaderboard
 
 - **Displayed at end of experiment**
@@ -288,9 +308,11 @@ After each block (including practice), participants answer 2 questions:
 
 ### Transition Screens
 
-- **Between study and recognition phases**: "STUDY PHASE COMPLETE! Now switching to the recognition phase..."
-- **Between blocks**: "Block X complete! Take a short break."
-- **Final screen**: Shows total task time and thank you message
+- **Initial screen**: "Hello & welcome to the social memory game! Pay careful attention to the text on the screen"
+- **Before practice**: Welcome message with Amy's story and picture
+- **After practice**: Transition message explaining the real work begins with Amy organizing photographs
+- **Between blocks**: Partner switch messages when partner changes (Amy ↔ Ben), or brief break message
+- **Final screen**: Shows cumulative curator scoring, leaderboard, total task time, and thank you message
 
 ---
 
@@ -351,13 +373,14 @@ After each block (including practice), participants answer 2 questions:
 #### Recognition Phase Timing
 - **Pre-trial fixation**: 0.5 seconds (fixed duration, shown before each image)
 - **Image duration**: 1.0 second per image (fixed, no jitter)
+  - Image remains visible until participant responds or timeout (7 seconds)
 - **Inter-trial jitter**: 
   - Duration: 0.25-0.75 seconds (uniform random distribution)
-  - Distribution: `random.uniform(0.25, 0.75)`
+  - Distribution: `random.uniform(0.25, 0.75)` - each jitter independently drawn
   - Appears between trials (after trial N completes, before trial N+1 starts)
   - Shown as fixation cross during jitter period
-  - No jitter after the last trial in each block
-  - 19 jittered fixations per block (between 20 trials)
+  - **No jitter after the last trial** in each block
+  - **19 jittered fixations per block** (between 20 trials)
 
 #### Participant Response Timeouts
 - **Slider response**: 7.0 seconds (fixed)
@@ -366,12 +389,6 @@ After each block (including practice), participants answer 2 questions:
 - **Switch/Stay decision**: 7.0 seconds (fixed)
   - Decision screen remains visible until timeout or button click
   - Random decision (STAY or SWITCH) selected if timeout
-
-#### Block-End Questions Timing
-- **Trust rating question**: 7.0 seconds timeout (fixed)
-  - Slider question with "Not at all" (left) to "Completely" (right)
-  - Current slider value used if timeout occurs
-  - Question timeout flag recorded in data
 
 #### AI Response Timing
 - **AI RT distribution**: Log-normal
@@ -382,8 +399,9 @@ After each block (including practice), participants answer 2 questions:
 
 #### Outcome Feedback Timing
 - Outcome screen displayed immediately after decision
+- Shows correctness ("Correct!" or "Incorrect") and curator scoring message
 - Visual feedback duration: ~1.5 seconds (fixed)
-- Brief pause before next trial (jittered fixation)
+- Brief pause before next trial (jittered fixation: 0.25-0.75 seconds)
 
 #### General Timing Notes
 - All timeouts: Random answer/decision selected if timeout occurs
@@ -395,7 +413,6 @@ After each block (including practice), participants answer 2 questions:
 
 - **Slider response**: 7 seconds
 - **Switch/Stay decision**: 7 seconds
-- **Block-end questions**: 7 seconds each
 - If timeout: Random answer selected, timeout flag recorded in data
 
 ### Window and Display
@@ -442,8 +459,7 @@ After each block (including practice), participants answer 2 questions:
 2. **Points = accuracy + confidence**: More confident + correct = more points
 3. **Collaboration**: Can switch even if both agree (to match confidence levels)
 4. **Bonus points**: Randomly awarded 50% of the time when switching
-5. **Questions**: Quick questions at end of each block
-6. **Leaderboard**: See how you compare to others at the end
+5. **Leaderboard**: See how you compare to others at the end
 
 ### Practice Instructions
 

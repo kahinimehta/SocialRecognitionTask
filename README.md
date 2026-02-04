@@ -2,6 +2,10 @@
 
 This repository contains the full PsychoPy implementation, documentation, and example data outputs for the **Social Recognition Memory with Human–AI Collaboration** experiment.
 
+## Narrative Context
+
+The experiment is framed as a photography studio collaboration task. Participants join a small photography studio where **Amy**, a professional photographer, is preparing images for an upcoming exhibition. Participants help sort through large sets of images and decide which ones truly belong in the collection. During the experiment, participants may work with **Amy** (reliable partner) or **Ben** (another assistant who may rely on different cues, unreliable partner). The task is framed as helping an "in-house curator" score the images, with scoring feedback presented as "The in-house curator scored this image: X points" rather than direct point earnings.
+
 ## Repository Contents
 
 ### 1. Core Task Code
@@ -17,9 +21,8 @@ Main PsychoPy script for the entire experiment.
   - AI turn-taking (participant-first vs. AI-first)  
   - AI accuracy manipulation (reliable ~75% vs. unreliable ~25%)  
   - Social bonus feedback  
-  - Block-end questionnaire  
   - Leaderboard screen
-- Saves trial-level, block-level, and questionnaire data as CSV files.
+- Saves trial-level and block-level data as CSV files.
 
 #### **`localizer.py`**
 Localizer task script for category verification.
@@ -69,7 +72,6 @@ Defines all logged fields, including:
 - Switch/Stay choices and timings  
 - Distances from ground truth  
 - Social feedback  
-- Block-level survey responses  
 
 Use this file when analyzing data.
 
@@ -104,12 +106,6 @@ Each row = one study trial.
 #### **`recognition_trials_*.csv`**
 Recognition-phase (main task) data.  
 Each row = one recognition trial.
-
----
-
-#### **`recognition_questions_*.csv`**
-Block-end questionnaire data.  
-Each row = one block.
 
 ---
 

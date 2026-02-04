@@ -1,5 +1,51 @@
-from psychopy import visual, core, event
-import os, random, time, re
+# Suppress iohub import errors (numpy/tables compatibility issue)
+import warnings
+import sys
+import os
+
+# Suppress the specific numpy/tables compatibility warning
+warnings.filterwarnings('ignore', category=UserWarning, message='.*pkg_resources.*')
+warnings.filterwarnings('ignore', message='.*numpy.dtype size changed.*')
+
+# Prevent iohub from being imported (causes numpy/tables compatibility issues)
+os.environ['PSYCHOPY_IOHUB'] = '0'
+
+# Monkey-patch to prevent tables import error from crashing
+import builtins
+_original_import = builtins.__import__
+
+def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
+    """Import wrapper that catches numpy/tables compatibility errors"""
+    if 'tables' in name or 'iohub' in name:
+        try:
+            return _original_import(name, globals, locals, fromlist, level)
+        except (ValueError, ImportError) as e:
+            if 'numpy.dtype size changed' in str(e) or 'binary incompatibility' in str(e):
+                # Suppress the error and return a dummy module
+                import types
+                dummy_module = types.ModuleType(name)
+                print(f"Warning: Suppressed import error for {name}: {e}", file=sys.stderr)
+                return dummy_module
+            raise
+    return _original_import(name, globals, locals, fromlist, level)
+
+builtins.__import__ = _safe_import
+
+# Suppress stderr temporarily during psychopy import to catch iohub errors
+import io
+from contextlib import redirect_stderr
+
+# Try importing psychopy with stderr suppressed
+stderr_buffer = io.StringIO()
+try:
+    with redirect_stderr(stderr_buffer):
+        from psychopy import visual, core, event
+except Exception as e:
+    # If import fails, try again without suppression to see the real error
+    print(f"Warning: Error importing psychopy: {e}", file=sys.stderr)
+    from psychopy import visual, core, event
+
+import random, time, re
 import numpy as np
 import csv
 from datetime import datetime
@@ -1644,7 +1690,7 @@ def get_participant_id():
     key_list = ['return', 'backspace', 'space'] + [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(48, 58)]
     
     def redraw():
-        id_prompt.text = "Enter Participant ID:"
+        id_prompt.text = "Enter your first name and last initial with no spaces/capitals:"
         input_display.text = f"{input_id}_"
         
         id_prompt.draw()
@@ -1908,10 +1954,29 @@ def get_participant_id():
     mouse.setVisible(False)
     return input_id.strip() or "P001"
 
-def load_image_stimulus(image_path):
-    """Load an image stimulus"""
+def load_image_stimulus(image_path, maintain_aspect_ratio=False):
+    """Load an image stimulus
+    
+    Args:
+        image_path: Path to image file
+        maintain_aspect_ratio: If True, maintain aspect ratio (for partner images like Amy.png, Ben.png)
+    """
     if os.path.exists(image_path):
-        return visual.ImageStim(win, image=image_path, size=(0.3, 0.3))
+        if maintain_aspect_ratio:
+            # Load image to get dimensions
+            from PIL import Image as PILImage
+            img = PILImage.open(image_path)
+            img_width, img_height = img.size
+            
+            # Calculate size maintaining aspect ratio
+            # Use height as reference (0.3) and scale width proportionally
+            aspect_ratio = img_width / img_height
+            height = 0.3
+            width = height * aspect_ratio
+            
+            return visual.ImageStim(win, image=image_path, size=(width, height))
+        else:
+            return visual.ImageStim(win, image=image_path, size=(0.3, 0.3))
     else:
         # Fallback: colored rectangle
         return visual.Rect(win, size=(0.3, 0.3), fillColor='gray', lineColor='black')
@@ -1923,10 +1988,12 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     """Get slider response from participant using click-only slider with submit button
     Works with both touch screen and mouse input - click/tap anywhere on the slider line to set value (no dragging)"""
     # Create slider visual elements
+    # Move slider lower on screen
+    slider_y_pos = -0.3*0.6  # Lower than before (-0.2*0.6)
     slider_line = visual.Line(
         win,
-        start=(-0.4*0.6, -0.2*0.6),
-        end=(0.4*0.6, -0.2*0.6),
+        start=(-0.4*0.6, slider_y_pos),
+        end=(0.4*0.6, slider_y_pos),
         lineColor='black',
         lineWidth=3
     )
@@ -1935,10 +2002,11 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         radius=0.02,
         fillColor='blue',
         lineColor='black',
-        pos=(0, -0.2*0.6)  # Start at center
+        pos=(0, slider_y_pos)  # Start at center
     )
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.45*0.6, -0.2*0.6))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.45*0.6, -0.2*0.6))
+    # Move labels farther from line and lower to avoid overlap with slider circle
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.5*0.6, slider_y_pos - 0.08))
     
     # Trial number display
     if trial_num is not None:
@@ -1946,16 +2014,16 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     
     prompt = visual.TextStim(win, text=prompt_text, color='black', height=0.05*0.75, pos=(0, 0.3*0.6))
     
-    # Submit button
+    # Submit button (positioned below slider)
     submit_button = visual.Rect(
         win,
         width=0.15*0.75,
         height=0.06*0.75,
         fillColor='lightgray',
         lineColor='black',
-        pos=(0, -0.35*0.6)
+        pos=(0, slider_y_pos - 0.12)
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*0.75, pos=(0, -0.35*0.6))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*0.75, pos=(0, slider_y_pos - 0.12))
     
     mouse.setVisible(True)
     
@@ -2023,7 +2091,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             core.wait(0.02)  # Slightly longer wait to let system recover
         
         # Check if clicking/tapping on slider line (click-only, no dragging allowed)
-        on_slider_line = abs(mouse_pos[1] - (-0.2*0.6)) < 0.05*0.75  # Within 0.05 of slider line y-position
+        on_slider_line = abs(mouse_pos[1] - slider_y_pos) < 0.05*0.75  # Within 0.05 of slider line y-position
         on_slider_x_range = -0.4*0.6 <= mouse_pos[0] <= 0.4*0.6  # Within slider x range
         
         if USE_TOUCH_SCREEN:
@@ -2040,7 +2108,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                     # Touched on slider line - set value based on x position
                     x_pos = max(-0.4*0.6, min(0.4*0.6, mouseloc_x))
                     slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
-                    slider_handle.pos = (x_pos, -0.2*0.6)
+                    slider_handle.pos = (x_pos, slider_y_pos)
                     
                     # Check if moved from center (0.5)
                     if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
@@ -2069,7 +2137,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                     # Clicked on slider line - set value based on x position
                     x_pos = max(-0.4*0.6, min(0.4*0.6, mouse_pos[0]))
                     slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
-                    slider_handle.pos = (x_pos, -0.2*0.6)
+                    slider_handle.pos = (x_pos, slider_y_pos)
                     
                     # Check if moved from center (0.5)
                     if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
@@ -2279,7 +2347,7 @@ def extract_stimulus_number(image_path):
     raise ValueError(f"Could not extract stimulus number from path: {image_path}")
 
 def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied, 
-                         participant_first, ai_collaborator, stimuli_dir, experiment_start_time=None, max_trials=10, total_points=0.0, block_start_time=None):
+                         participant_first, ai_collaborator, stimuli_dir, experiment_start_time=None, max_trials=10, total_points=0.0, block_start_time=None, partner_name="Amy"):
     """
     Run a single recognition trial
     NOTE: Recognition phase shows BOTH studied images (Image_XXX.jpg) AND lures (Lure_XXX.jpg)
@@ -2329,17 +2397,17 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         
         # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
-        ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim)
+        ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name)
         
         # Show both responses
-        show_both_responses(participant_value, ai_confidence, participant_first=True)
+        show_both_responses(participant_value, ai_confidence, participant_first=True, partner_name=partner_name)
         
         # Wait a bit to see both responses
         core.wait(2.0)
         
         # Switch/Stay decision (keep image on screen, show euclidean distance)
         switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time = get_switch_stay_decision(
-            image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0
+            image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name
         )
         
         # Determine final answer
@@ -2398,7 +2466,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         
         # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
-        ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim)
+        ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name)
         
         # P1: Participant responds (image stays on screen)
         participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time = get_slider_response(
@@ -2406,12 +2474,12 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         )
         
         # Show both responses
-        show_both_responses(participant_value, ai_confidence, participant_first=False)
+        show_both_responses(participant_value, ai_confidence, participant_first=False, partner_name=partner_name)
         core.wait(2.0)
         
         # Switch/Stay decision (keep image on screen, show euclidean distance)
         switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time = get_switch_stay_decision(
-            image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0
+            image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name
         )
         
         # Determine final answer
@@ -2473,13 +2541,15 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     
     return trial_data, points_earned
 
-def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
+def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, partner_name="Amy"):
     """Animate partner's slider tapping (not sliding) and clicking submit"""
+    # Use same slider positioning as get_slider_response
+    slider_y_pos = -0.3*0.6  # Match get_slider_response positioning
     # Create slider visualization
     slider_line = visual.Line(
         win,
-        start=(-0.4*0.6, -0.2*0.6),
-        end=(0.4*0.6, -0.2*0.6),
+        start=(-0.4*0.6, slider_y_pos),
+        end=(0.4*0.6, slider_y_pos),
         lineColor='black',
         lineWidth=3
     )
@@ -2488,11 +2558,11 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         radius=0.02,
         fillColor='blue',
         lineColor='black',
-        pos=(0, -0.2*0.6)  # Will be set to target position on tap
+        pos=(0, slider_y_pos)  # Will be set to target position on tap
     )
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.45*0.6, -0.2*0.6))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.45*0.6, -0.2*0.6))
-    partner_text = visual.TextStim(win, text="Your partner is rating...", color='blue', height=0.05, pos=(0, 0.3))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.5*0.6, slider_y_pos - 0.08))
+    partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.05, pos=(0, 0.3))
     
     # Submit button
     submit_button = visual.Rect(
@@ -2539,7 +2609,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         fillColor='lightblue',
         lineColor='blue',
         lineWidth=2,
-        pos=(target_x, -0.2*0.6),
+        pos=(target_x, slider_y_pos),
         opacity=0.8
     )
     
@@ -2563,7 +2633,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         core.wait(0.05)  # Quick tap animation
     
     # Handle appears at target position (tap completed)
-    partner_handle.pos = (target_x, -0.2*0.6)
+    partner_handle.pos = (target_x, slider_y_pos)
     
     # Brief visual feedback: handle appears with slight highlight
     for i in range(2):
@@ -2623,7 +2693,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
         label = "OLD"
     else:
         label = "NEW"
-    partner_text.text = f"Your partner rates: {label}"
+    partner_text.text = f"{partner_name} rates: {label}"
     
     if image_stim:
         image_stim.draw()
@@ -2637,39 +2707,42 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None):
     
     return slider_display_time
 
-def show_both_responses(participant_value, partner_value, participant_first):
+def show_both_responses(participant_value, partner_value, participant_first, partner_name="Amy"):
     """Show both participant and partner responses with sliders"""
+    # Use consistent slider positioning (lower, matching get_slider_response)
+    slider_y_pos = -0.3*0.6
     # Create slider visualization for both
     slider_line = visual.Line(
         win,
-        start=(-0.4, -0.1),
-        end=(0.4, -0.1),
+        start=(-0.4*0.6, slider_y_pos),
+        end=(0.4*0.6, slider_y_pos),
         lineColor='black',
         lineWidth=3
     )
     
-    # Participant handle (green)
-    p_x_pos = -0.4 + (participant_value * 0.8)
+    # Participant handle (green) - use consistent sizing
+    p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
     p_handle = visual.Circle(
         win,
         radius=0.02,
         fillColor='green',
         lineColor='black',
-        pos=(p_x_pos, -0.1*0.6)
+        pos=(p_x_pos, slider_y_pos)
     )
     
-    # Partner handle (blue)
+    # Partner handle (blue) - use consistent sizing
     a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
     a_handle = visual.Circle(
         win,
-        radius=0.02*0.75,
+        radius=0.02,
         fillColor='blue',
         lineColor='black',
-        pos=(a_x_pos, -0.1*0.6)
+        pos=(a_x_pos, slider_y_pos)
     )
     
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.45*0.6, -0.1*0.6))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.45*0.6, -0.1*0.6))
+    # Move labels farther from line to avoid overlap
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.5*0.6, slider_y_pos - 0.08))
     
     # Labels
     if participant_value < 0.5:
@@ -2684,10 +2757,10 @@ def show_both_responses(participant_value, partner_value, participant_first):
     
     both_text = visual.TextStim(
         win,
-        text=f"Your rating: {p_label} (green)\n\nYour partner's rating: {a_label} (blue)",
+        text=f"Your rating: {p_label} (green)  |  {partner_name}'s rating: {a_label} (blue)",
         color='black',
-        height=0.05,
-        pos=(0, 0.2),
+        height=0.04*0.75,
+        pos=(0, 0.1),
         wrapWidth=1.2
     )
     
@@ -2699,44 +2772,47 @@ def show_both_responses(participant_value, partner_value, participant_first):
     a_handle.draw()
     win.flip()
 
-def get_switch_stay_decision(image_stim=None, participant_value=None, partner_value=None, timeout=7.0):
+def get_switch_stay_decision(image_stim=None, participant_value=None, partner_value=None, timeout=7.0, partner_name="Amy"):
     """Get switch/stay decision from participant using clickable buttons"""
     # Calculate euclidean distance
     euclidean_dist = abs(participant_value - partner_value) if (participant_value is not None and partner_value is not None) else None
     
     # Create slider visualization showing both choices (like show_both_responses)
+    # Use consistent slider positioning (lower, matching get_slider_response)
+    slider_y_pos = -0.3*0.6
     slider_line = visual.Line(
         win,
-        start=(-0.4*0.6, 0.05*0.6),
-        end=(0.4*0.6, 0.05*0.6),
+        start=(-0.4*0.6, slider_y_pos),
+        end=(0.4*0.6, slider_y_pos),
         lineColor='black',
-        lineWidth=3*0.75
+        lineWidth=3
     )
     
-    # Participant handle (green)
+    # Participant handle (green) - use consistent sizing
     if participant_value is not None:
         p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
         p_handle = visual.Circle(
             win,
-            radius=0.02*0.75,
+            radius=0.02,
             fillColor='green',
             lineColor='black',
-            pos=(p_x_pos, 0.05*0.6)
+            pos=(p_x_pos, slider_y_pos)
         )
     
-    # Partner handle (blue)
+    # Partner handle (blue) - use consistent sizing
     if partner_value is not None:
         a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
         a_handle = visual.Circle(
             win,
-            radius=0.02*0.75,
+            radius=0.02,
             fillColor='blue',
             lineColor='black',
-            pos=(a_x_pos, 0.05*0.6)
+            pos=(a_x_pos, slider_y_pos)
         )
     
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.45*0.6, 0.05*0.6))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.45*0.6, 0.05*0.6))
+    # Move labels farther from line to avoid overlap
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.5*0.6, slider_y_pos - 0.08))
     
     # Labels
     if participant_value is not None:
@@ -2751,45 +2827,45 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         else:
             a_label = "NEW"
     
-    # Create buttons
+    # Create buttons (positioned below slider)
     stay_button = visual.Rect(
         win,
-        width=0.2,
-        height=0.08,
+        width=0.2*0.75,
+        height=0.08*0.75,
         fillColor='lightblue',
         lineColor='black',
-        pos=(-0.3, -0.2)
+        pos=(-0.3*0.6, slider_y_pos - 0.15)
     )
-    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.05, pos=(-0.3, -0.2))
+    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.05*0.75, pos=(-0.3*0.6, slider_y_pos - 0.15))
     
     switch_button = visual.Rect(
         win,
-        width=0.2,
-        height=0.08,
+        width=0.2*0.75,
+        height=0.08*0.75,
         fillColor='lightcoral',
         lineColor='black',
-        pos=(0.3, -0.2)
+        pos=(0.3*0.6, slider_y_pos - 0.15)
     )
-    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.05, pos=(0.3, -0.2))
+    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.05*0.75, pos=(0.3*0.6, slider_y_pos - 0.15))
     
     decision_prompt = visual.TextStim(
         win,
-        text="Do you want to STAY with your answer or SWITCH to your partner's answer?",
+        text=f"Do you want to STAY with your answer or SWITCH to {partner_name}'s answer?",
         color='black',
-        height=0.05,
-        wrapWidth=1.4,
-        pos=(0, 0.4)  # Higher to leave room for image
+        height=0.05*0.75,
+        wrapWidth=1.2,
+        pos=(0, 0.4)  # Higher to ensure it's fully visible
     )
     
     # Show labels for the slider
     if participant_value is not None and partner_value is not None:
         slider_labels = visual.TextStim(
             win,
-            text=f"Your rating: {p_label} (green)  |  Partner's rating: {a_label} (blue)",
+            text=f"Your rating: {p_label} (green)  |  {partner_name}'s rating: {a_label} (blue)",
             color='black',
-            height=0.04,
-            pos=(0, 0.25),  # Below question, above slider
-            wrapWidth=1.4
+            height=0.04*0.75,
+            pos=(0, 0.25),  # Below question, above image
+            wrapWidth=1.2
         )
     
     mouse.setVisible(True)
@@ -2824,10 +2900,12 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     pos=(0, -0.35)  # Lower to avoid overlap with buttons
                 )
                 decision_prompt.draw()
+                if participant_value is not None and partner_value is not None:
+                    slider_labels.draw()
                 if image_stim:
-                    # Position image between slider and buttons
-                    image_stim.pos = (0, -0.05)
-                    image_stim.size = (0.15, 0.15)
+                    # Position image above slider
+                    image_stim.pos = (0, 0.05)
+                    # Don't override size - use default (0.3, 0.3) from load_image_stimulus
                     image_stim.draw()
                 slider_line.draw()
                 old_label.draw()
@@ -2836,8 +2914,6 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     p_handle.draw()
                 if partner_value is not None:
                     a_handle.draw()
-                if participant_value is not None and partner_value is not None:
-                    slider_labels.draw()
                 timeout_alert.draw()
                 win.flip()
                 core.wait(1.5)
@@ -2914,25 +2990,28 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         
         prev_mouse_buttons = mouse_buttons.copy()
         
-        # Draw everything
+        # Draw everything in correct order
         decision_prompt.draw()
+        if participant_value is not None and partner_value is not None:
+            slider_labels.draw()
+        
+        # Draw image above slider (centered)
         if image_stim:
-            # Position image between slider and buttons (centered horizontally)
-            image_stim.pos = (0, -0.05)  # Between slider (y=0.05) and buttons (y=-0.2)
-            image_stim.size = (0.15, 0.15)  # Keep size reasonable
+            # Position image above slider, between ratings text and slider
+            image_stim.pos = (0, 0.0)  # Centered vertically between ratings and slider
+            # Don't override size - use default (0.3, 0.3) from load_image_stimulus
             image_stim.draw()
         
-        # Draw slider visualization
+        # Draw slider visualization below image (with handles showing both ratings)
         slider_line.draw()
-        old_label.draw()
-        new_label.draw()
         if participant_value is not None:
             p_handle.draw()
         if partner_value is not None:
             a_handle.draw()
-        if participant_value is not None and partner_value is not None:
-            slider_labels.draw()
+        old_label.draw()
+        new_label.draw()
         
+        # Draw buttons below slider
         stay_button.draw()
         stay_text.draw()
         switch_button.draw()
@@ -2964,11 +3043,15 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     return decision, decision_rt, decision_commit_time, timed_out, decision_onset_time
 
 def show_block_summary(block_num, total_points, max_points):
-    """Show block summary with total points earned over max possible"""
+    """Show block summary with curator scoring"""
+    # Calculate points out of 10 (assuming max_points is typically 20, so scale to 10)
+    scaled_points = (total_points / max_points) * 10.0 if max_points > 0 else 0.0
+    scaled_points_rounded = round(scaled_points, 2)
+    
     summary_text = visual.TextStim(
         win,
         text=f"Block {block_num} Complete!\n\n"
-             f"Total points: {total_points:.2f} / {max_points:.2f}",
+             f"The in-house curator scored this collection {scaled_points_rounded:.2f} points out of a total of 10 points!",
         color='black',
         height=0.05,
         pos=(0, 0.1),
@@ -3099,185 +3182,6 @@ def show_block_summary(block_num, total_points, max_points):
     mouse_btn.setVisible(False)
     event.clearEvents()
 
-def ask_block_questions(block_num, participant_id, questions_file=None, timeout=7.0):
-    """Ask one question at the end of each block:
-    Slider: How much did you trust your partner?
-    Returns the response and saves to CSV.
-    """
-    mouse = event.Mouse(win=win)
-    mouse.setVisible(True)
-    
-    # Question: Slider for trust
-    question_text = visual.TextStim(
-        win,
-        text="How much did you trust your partner?",
-        color='black',
-        height=0.06,
-        pos=(0, 0.3),
-        wrapWidth=1.4
-    )
-    
-    slider_line = visual.Line(
-        win,
-        start=(-0.4, 0),
-        end=(0.4, 0),
-        lineColor='black',
-        lineWidth=3
-    )
-    
-    slider_handle = visual.Circle(
-        win,
-        radius=0.02,
-        fillColor='blue',
-        lineColor='black',
-        lineWidth=2,
-        pos=(0, 0)  # Start at center
-    )
-    
-    left_label = visual.TextStim(
-        win,
-        text="Not at all",
-        color='black',
-        height=0.04,
-        pos=(-0.4, -0.1)
-    )
-    
-    right_label = visual.TextStim(
-        win,
-        text="Completely",
-        color='black',
-        height=0.04,
-        pos=(0.4, -0.1)
-    )
-    
-    trust_value = 0.5  # Start at center (0.5)
-    prev_mouse_buttons = [False, False, False]
-    start_time = time.time()
-    trust_response_time = None
-    
-    # Submit button
-    submit_button = visual.Rect(
-        win,
-        width=0.3,
-        height=0.08,
-        pos=(0, -0.25),
-        fillColor='lightblue',
-        lineColor='black',
-        lineWidth=2
-    )
-    submit_text = visual.TextStim(
-        win,
-        text="Submit",
-        color='black',
-        height=0.04,
-        pos=(0, -0.25)
-    )
-    
-    def redraw_question():
-        question_text.draw()
-        slider_line.draw()
-        slider_handle.pos = (-0.4 + trust_value * 0.8, 0)
-        slider_handle.draw()
-        left_label.draw()
-        right_label.draw()
-        submit_button.draw()
-        submit_text.draw()
-        win.flip()
-    
-    redraw_question()
-    
-    frame_count = 0
-    last_activation_time = time.time()
-    
-    while trust_response_time is None:
-        elapsed = time.time() - start_time
-        if elapsed >= timeout:
-            # Timeout - use current value
-            trust_response_time = elapsed
-            break
-        
-        frame_count += 1
-        current_time = time.time()
-        
-        # Periodically reactivate window to maintain focus (every 50ms)
-        if current_time - last_activation_time > 0.05:
-            try:
-                win.winHandle.activate()
-                last_activation_time = current_time
-            except:
-                pass
-        
-        try:
-            mouse_pos = mouse.getPos()
-            mouse_buttons = mouse.getPressed()
-            
-            # Check if clicking on slider line (click-based, not drag)
-            on_slider_line = abs(mouse_pos[1]) < 0.05  # Within 0.05 of slider line y-position
-            on_slider_x_range = -0.4 <= mouse_pos[0] <= 0.4  # Within slider x range
-            
-            # Click detection: button was just released
-            if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                # Button was just released - check if it was on slider line
-                if on_slider_line and on_slider_x_range:
-                    # Clicked on slider line - set value based on x position
-                    new_value = (mouse_pos[0] + 0.4) / 0.8
-                    trust_value = max(0.0, min(1.0, new_value))
-                    redraw_question()
-                
-                # Check if clicking/touching on submit button
-                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
-                button_pos = submit_button.pos
-                button_size = submit_button.size
-                if (abs(mouse_pos[0] - button_pos[0]) < button_size[0]/2 + hit_margin and
-                    abs(mouse_pos[1] - button_pos[1]) < button_size[1]/2 + hit_margin):
-                    # Submit clicked/touched - record response time
-                    trust_response_time = time.time() - start_time
-                    submit_button.fillColor = 'green'
-                    redraw_question()
-                    core.wait(0.3)
-                    break
-            
-            prev_mouse_buttons = mouse_buttons.copy()
-        except:
-            pass
-        
-        # Refresh screen periodically to process events (every 33ms = 30Hz)
-        if frame_count % 33 == 0:
-            redraw_question()
-        else:
-            core.wait(0.001)  # Very short wait for responsiveness
-    
-    # Save to CSV
-    if questions_file is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_dir = get_log_directory()
-        questions_file = os.path.join(log_dir, f"recognition_questions_{participant_id}_{timestamp}.csv")
-    
-    # Skip saving if test participant
-    if is_test_participant(participant_id):
-        print(f"⚠ Test participant detected - skipping file save for block {block_num} questions")
-        return {"participant_id": participant_id, "block": block_num, "trust_rating": trust_value, "trust_rt": trust_response_time if trust_response_time else timeout, "question_timeout": trust_response_time is None or (trust_response_time >= timeout)}, None
-    
-    file_exists = os.path.exists(questions_file)
-    question_data = {
-        "participant_id": participant_id,
-        "block": block_num,
-        "trust_rating": trust_value,
-        "trust_rt": trust_response_time if trust_response_time else timeout,
-        "question_timeout": trust_response_time is None or (trust_response_time >= timeout)
-    }
-    
-    with open(questions_file, 'a', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=question_data.keys())
-        if not file_exists:
-            writer.writeheader()
-        writer.writerow(question_data)
-        f.flush()
-    
-    print(f"✓ Block {block_num} questions saved")
-    
-    return question_data, questions_file
-
 def show_leaderboard(participant_id, total_points):
     """Show a fake leaderboard with participant ranked 1-5 out of 10"""
     # Generate fake participant names (P01-P10, excluding current participant)
@@ -3377,8 +3281,8 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
         outcome_text = "Incorrect"
         color = 'red'
     
-    # Show outcome with points (only show points earned this trial, not total)
-    outcome_text_full = f"{outcome_text}\n\nPoints earned this trial: {correctness_points_rounded:.2f}"
+    # Show outcome with curator scoring
+    outcome_text_full = f"{outcome_text}\n\nThe in-house curator scored this image: {correctness_points_rounded:.2f} points"
     outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06, pos=(0, 0), wrapWidth=1.4)
     outcome_stim.draw()
     win.flip()
@@ -3421,11 +3325,14 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
             study_file=study_file, trial_file=trial_file
         )
     
+    # Determine partner name based on block accuracy (Amy = reliable, Ben = unreliable)
+    partner_name = "Amy" if ai_collaborator.accuracy_rate == 0.75 else "Ben"
+    
     # Transition screen: switching to recognition phase
     show_instructions(
         "STUDY PHASE COMPLETE!\n\n"
         "Now switching to the recognition phase.\n\n"
-        "You will see images again and rate them with your partner.",
+        f"You will see images again and rate them with {partner_name}.",
         header_color='darkblue',
         body_color='black'
     )
@@ -3491,7 +3398,7 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
         trial_data, points_earned = run_recognition_trial(
             trial_num, block_num, img_path, is_studied,
             participant_first, ai_collaborator, stimuli_dir, experiment_start_time, max_trials=num_trials, total_points=total_points,
-            block_start_time=block_start_time
+            block_start_time=block_start_time, partner_name=partner_name
         )
         # Add block timing (end time and duration will be updated at end of block)
         trial_data['block_start_time'] = block_start_time
@@ -3519,14 +3426,6 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
     # Show block summary with points (total over max possible from correctness)
     show_block_summary(block_num, total_points, max_possible_points)
     
-    # Ask block-end questions (for both practice and experimental blocks)
-    if participant_id:
-        # Use a consistent questions file name (create once, reuse)
-        if not hasattr(run_block, 'questions_file'):
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            log_dir = get_log_directory()
-            run_block.questions_file = os.path.join(log_dir, f"recognition_questions_{participant_id}_{timestamp}.csv")
-        ask_block_questions(block_num, participant_id, questions_file=run_block.questions_file, timeout=7.0)
     
     # Record block end time and calculate duration
     block_end_time = time.time()
@@ -3648,7 +3547,7 @@ def run_experiment():
     # Initial click-to-start screen with button
     start_screen = visual.TextStim(
         win,
-        text="Click the button below to begin the experiment.",
+        text="Hello & welcome to the social memory game! Pay careful attention to the text on the screen",
         color='black',
         height=0.06*0.75,
         pos=(0, 0.2*0.6),
@@ -3803,27 +3702,69 @@ def run_experiment():
     practice_trials = []
     practice_points = 0.0
     
-    # Welcome message (without shapes)
+    # Welcome message with Amy's story and picture
     welcome_text = visual.TextStim(
         win,
-        text="Hello & welcome to the social memory game :)\n\n"
-             "You will be working with your online partner to reconstruct images.\n\n"
-             "We will walk you through the basics of this game with the practice here.\n\n"
-             "For now, pay close attention to these shapes:\n\n"
-             "Note: You will click (not drag) on the slider to set your rating.",
+        text="Welcome.\n\n"
+             "You've just joined a small photography studio.\n\n"
+             "Amy, a professional photographer, is preparing images for an upcoming exhibition.\n\n"
+             "She needs help sorting through large sets of images and deciding which ones truly belong.\n\n"
+             "Before you begin the real work, you'll complete a short training round to get familiar with the process.\n\n"
+             "For now, focus on the items you're about to see.",
         color='black',
         height=0.04*0.75,
-        pos=(0, 0.2),
+        pos=(0, 0.0),
         wrapWidth=1.2
     )
     
-    # Show welcome message and wait for button click
-    # Note: wait_for_button will create its own button and handle win.flip()
-    def redraw_welcome():
-        welcome_text.draw()
-        # Don't call win.flip() here - wait_for_button will handle it
+    # Load and display Amy's picture (maintain aspect ratio to prevent stretching)
+    amy_path = os.path.join(STIMULI_DIR, "Amy.png")
+    if os.path.exists(amy_path):
+        amy_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
+        # Position Amy's image above the text
+        if hasattr(amy_image, 'setPos'):
+            amy_image.setPos((0, 0.3))
+        elif hasattr(amy_image, 'pos'):
+            amy_image.pos = (0, 0.3)
+    else:
+        amy_image = None
+        print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
     
-    wait_for_button(redraw_func=redraw_welcome)
+    # Show first welcome screen with Amy's picture
+    welcome_text_1 = visual.TextStim(
+        win,
+        text="Welcome.\n\n"
+             "You've just joined a small photography studio.\n\n"
+             "Amy, a professional photographer, is preparing images for an upcoming exhibition.\n\n"
+             "She needs help sorting through large sets of images and deciding which ones truly belong.",
+        color='black',
+        height=0.04*0.75,
+        pos=(0, 0.0),
+        wrapWidth=1.2
+    )
+    
+    def redraw_welcome_1():
+        if amy_image:
+            amy_image.draw()
+        welcome_text_1.draw()
+    
+    wait_for_button(redraw_func=redraw_welcome_1)
+    
+    # Show second welcome screen (no image, just text)
+    welcome_text_2 = visual.TextStim(
+        win,
+        text="Before you begin the real work, you'll complete a short training round to get familiar with the process.\n\n"
+             "For now, focus on the items you're about to see.",
+        color='black',
+        height=0.04*0.75,
+        pos=(0, 0.0),
+        wrapWidth=1.2
+    )
+    
+    def redraw_welcome_2():
+        welcome_text_2.draw()
+    
+    wait_for_button(redraw_func=redraw_welcome_2)
     
     # Generate practice shapes as placeholder stimuli (IMAGE_1, IMAGE_2, IMAGE_3)
     # Green circle
@@ -3840,7 +3781,14 @@ def run_experiment():
     red_circle_path = os.path.join(PLACEHOLDER_DIR, "IMAGE_2.png")
     img.save(red_circle_path)
     
-    # Blue square (for trial 3 - it's NEW, not seen before)
+    # Blue circle (for encoding/sequential presentation)
+    img = Image.new('RGB', (200, 200), color='white')
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([20, 20, 180, 180], fill='blue', outline='black', width=3)
+    blue_circle_path = os.path.join(PLACEHOLDER_DIR, "IMAGE_3_CIRCLE.png")
+    img.save(blue_circle_path)
+    
+    # Blue square (for trial 3 recognition - it's NEW, not seen before)
     img = Image.new('RGB', (200, 200), color='white')
     draw = ImageDraw.Draw(img)
     draw.rectangle([20, 20, 180, 180], fill='blue', outline='black', width=3)
@@ -3848,15 +3796,15 @@ def run_experiment():
     img.save(blue_square_path)
     
     # Show shapes sequentially with fixations (like study phase)
+    # Use default size from load_image_stimulus (0.3, 0.3) and position (0, 0) to match regular task
     # Show green circle
     show_fixation(0.5)
     green_circle = load_image_stimulus(green_circle_path)
-    green_circle.pos = (0, 0)
-    green_circle.size = (0.6, 0.6)
+    # Don't set position/size - use defaults (0, 0) and (0.3, 0.3) to match regular task
     if hasattr(green_circle, 'draw'):
         green_circle.draw()
     else:
-        green_circle = visual.Circle(win, radius=0.3, fillColor='green', lineColor='black', pos=(0, 0))
+        green_circle = visual.Circle(win, radius=0.15, fillColor='green', lineColor='black', pos=(0, 0))
         green_circle.draw()
     win.flip()
     core.wait(1.5)  # Show for 1.5 seconds
@@ -3864,47 +3812,57 @@ def run_experiment():
     # Show red circle
     show_fixation(0.5)
     red_circle = load_image_stimulus(red_circle_path)
-    red_circle.pos = (0, 0)
-    red_circle.size = (0.6, 0.6)
+    # Don't set position/size - use defaults (0, 0) and (0.3, 0.3) to match regular task
     if hasattr(red_circle, 'draw'):
         red_circle.draw()
     else:
-        red_circle = visual.Circle(win, radius=0.3, fillColor='red', lineColor='black', pos=(0, 0))
+        red_circle = visual.Circle(win, radius=0.15, fillColor='red', lineColor='black', pos=(0, 0))
         red_circle.draw()
     win.flip()
     core.wait(1.5)  # Show for 1.5 seconds
     
-    # Show blue circle
+    # Show blue circle (for encoding - last shape in sequential presentation)
     show_fixation(0.5)
-    blue_circle = load_image_stimulus(blue_circle_path)
-    blue_circle.pos = (0, 0)
-    blue_circle.size = (0.6, 0.6)
-    if hasattr(blue_circle, 'draw'):
-        blue_circle.draw()
+    blue_circle_encoding = load_image_stimulus(blue_circle_path)
+    # Use default size from load_image_stimulus (0.3, 0.3) and position (0, 0) to match regular task
+    if hasattr(blue_circle_encoding, 'draw'):
+        blue_circle_encoding.draw()
     else:
-        blue_circle = visual.Circle(win, radius=0.3, fillColor='blue', lineColor='black', pos=(0, 0))
-        blue_circle.draw()
+        blue_circle_encoding = visual.Circle(win, radius=0.15, fillColor='blue', lineColor='black', pos=(0, 0))
+        blue_circle_encoding.draw()
     win.flip()
     core.wait(1.5)  # Show for 1.5 seconds
     
-    # Now show green circle again for Trial 1 (like a study phase presentation)
-    show_fixation(0.5)
-    green_circle = load_image_stimulus(green_circle_path)  # Reload to ensure it renders
-    green_circle.pos = (0, 0)
-    green_circle.size = (0.6, 0.6)
-    if hasattr(green_circle, 'draw'):
-        green_circle.draw()
-    else:
-        green_circle = visual.Circle(win, radius=0.3, fillColor='green', lineColor='black', pos=(0, 0))
-        green_circle.draw()
-    win.flip()
-    core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     
     # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3) to match regular task
     
+    # Transition screen before recognition phase starts
+    transition_text = visual.TextStim(
+        win,
+        text="Now let's see how well you recall the objects you've seen!",
+        color='black',
+        height=0.06*0.75,
+        pos=(0, 0),
+        wrapWidth=1.2
+    )
+    transition_text.draw()
+    win.flip()
+    core.wait(2.0)  # Show for 2 seconds
+    
     # Trial 1: Participant only rates (green circle - it's OLD since we just showed it)
+    # Show green circle again for Trial 1 (like a study phase presentation)
+    show_fixation(0.5)
+    green_circle = load_image_stimulus(green_circle_path)  # Reload to ensure it renders
+    # Don't set position/size - use defaults (0, 0) and (0.3, 0.3) to match regular task
+    if hasattr(green_circle, 'draw'):
+        green_circle.draw()
+    else:
+        green_circle = visual.Circle(win, radius=0.15, fillColor='green', lineColor='black', pos=(0, 0))
+        green_circle.draw()
+    win.flip()
+    core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1 = get_slider_response(
-        "Click once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\").",
+        "CLICK once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\").",
         image_stim=green_circle, trial_num=1, max_trials=3, timeout=7.0
     )
     
@@ -3917,7 +3875,7 @@ def run_experiment():
     
     outcome_text_t1 = "Correct!" if participant_accuracy_t1 else "Incorrect"
     color_t1 = 'green' if participant_accuracy_t1 else 'red'
-    outcome_stim_t1 = visual.TextStim(win, text=f"{outcome_text_t1}\n\nPoints earned this trial: {correctness_points_t1:.2f}", 
+    outcome_stim_t1 = visual.TextStim(win, text=f"{outcome_text_t1}\n\nThe in-house curator scored this image: {correctness_points_t1:.2f} points", 
                                       color=color_t1, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t1.draw()
     win.flip()
@@ -3948,22 +3906,20 @@ def run_experiment():
     # Show red circle
     show_fixation(0.5)
     red_circle = load_image_stimulus(red_circle_path)  # Reload to ensure it renders
-    red_circle.pos = (0, 0)
-    red_circle.size = (0.6, 0.6)
+    # Don't set position/size - use defaults (0, 0) and (0.3, 0.3) to match regular task
     if hasattr(red_circle, 'draw'):
         red_circle.draw()
     else:
-        red_circle = visual.Circle(win, radius=0.3, fillColor='red', lineColor='black', pos=(0, 0))
+        red_circle = visual.Circle(win, radius=0.15, fillColor='red', lineColor='black', pos=(0, 0))
         red_circle.draw()
     win.flip()
     core.wait(1.0)
     
     # Trial 2: Show message first, then AI rates (all the way OLD), then participant rates
-    # Show message that partner is confident
-    partner_message = visual.TextStim(win, text="your partner is confident they've seen this before", 
+    # Show message that partner is confident (Amy in practice)
+    partner_message = visual.TextStim(win, text="Amy is confident they've seen this before!", 
                                       color='blue', height=0.05*0.75, pos=(0, 0.4))
-    # Temporarily move red circle up to avoid overlap with message
-    red_circle.pos = (0, -0.1)
+    # Show message with red circle (use default positioning - no manual pos/size)
     partner_message.draw()
     red_circle.draw()
     win.flip()
@@ -3978,8 +3934,15 @@ def run_experiment():
     ai_correct_t2 = True  # It's OLD (we're showing it)
     ground_truth_t2 = 0.0
     
-    # Show AI rating
-    ai_slider_display_time_t2 = show_animated_partner_slider(ai_confidence_t2, ai_rt_t2, image_stim=red_circle)
+    # Show AI rating (Amy in practice)
+    try:
+        ai_slider_display_time_t2 = show_animated_partner_slider(ai_confidence_t2, ai_rt_t2, image_stim=red_circle, partner_name="Amy")
+    except Exception as e:
+        print(f"Warning: Error in show_animated_partner_slider: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        # Continue anyway - just skip the animation
+        ai_slider_display_time_t2 = time.time()
     
     # Participant rates
     participant_value_t2, participant_rt_t2, participant_commit_time_t2, participant_slider_timeout_t2, participant_slider_stop_time_t2 = get_slider_response(
@@ -3998,8 +3961,8 @@ def run_experiment():
     color_t2 = 'green' if participant_accuracy_t2 else 'red'
     # Add explanation of score
     percent_incorrect = int((1.0 - correctness_points_t2) * 100)
-    explanation_t2 = f"\n\nYou were {percent_incorrect}% away from the correct answer."
-    outcome_stim_t2 = visual.TextStim(win, text=f"{outcome_text_t2}\n\nPoints earned this trial: {correctness_points_t2:.2f}{explanation_t2}", 
+    # {percent_incorrect}% away from the correct answer."
+    outcome_stim_t2 = visual.TextStim(win, text=f"{outcome_text_t2}\n\nThe in-house curator scored this image: {correctness_points_t2:.2f} points", 
                                       color=color_t2, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t2.draw()
     win.flip()
@@ -4029,17 +3992,18 @@ def run_experiment():
     }
     practice_trials.append(trial_data_t2)
     
-    # Show message: "now, work with your partner."
-    work_with_partner_text = visual.TextStim(win, text="now, work with your partner.", 
+    # Show message: "now, work with your partner." (Amy in practice)
+    work_with_partner_text = visual.TextStim(win, text="Now, work with Amy.", 
                                             color='black', height=0.06*0.75, pos=(0, 0.2))
     work_with_partner_text.draw()
     win.flip()
     core.wait(2.0)
     
-    # Show blue square (it's NEW - not seen before)
+    # Show blue square (it's NEW - not seen before, different from blue circle in encoding)
     show_fixation(0.5)
     blue_square = load_image_stimulus(blue_square_path)  # Reload to ensure it renders
     # Use default position and size (same as regular task) - no manual positioning
+    # Default from load_image_stimulus is (0, 0) position and (0.3, 0.3) size
     if hasattr(blue_square, 'draw'):
         blue_square.draw()
     else:
@@ -4054,20 +4018,27 @@ def run_experiment():
         "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=3, max_trials=3, timeout=7.0
     )
     
-    # AI rates (all the way OLD) - but it's actually NEW (square), so AI is wrong
+    # AI rates (all the way OLD) - but it's actually NEW (square), so AI is wrong (Amy in practice)
     ai_confidence_t3 = 0.0  # All the way OLD (AI says old, but it's actually new)
     ai_rt_t3 = 2.0
     ai_correct_t3 = False  # It's actually NEW (square), so AI is incorrect
     ground_truth_t3 = 1.0  # NEW
-    ai_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square)
+    try:
+        ai_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Amy")
+    except Exception as e:
+        print(f"Warning: Error in show_animated_partner_slider: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        # Continue anyway - just skip the animation
+        ai_slider_display_time_t3 = time.time()
     
     # Show both responses
     show_both_responses(participant_value_t3, ai_confidence_t3, participant_first=True)
     core.wait(2.0)
     
-    # Switch/Stay decision
+    # Switch/Stay decision (Amy in practice)
     switch_decision_t3, switch_rt_t3, switch_commit_time_t3, switch_timeout_t3, decision_onset_time_t3 = get_switch_stay_decision(
-        image_stim=blue_square, participant_value=participant_value_t3, partner_value=ai_confidence_t3, timeout=7.0
+        image_stim=blue_square, participant_value=participant_value_t3, partner_value=ai_confidence_t3, timeout=7.0, partner_name="Amy"
     )
     
     # Determine final answer
@@ -4090,8 +4061,8 @@ def run_experiment():
     color_t3 = 'green' if participant_accuracy_t3 else 'red'
     # Add explanation of score
     percent_incorrect = int((1.0 - correctness_points_t3) * 100)
-    explanation_t3 = f"\n\nYou were {percent_incorrect}% away from the correct answer."
-    outcome_stim_t3 = visual.TextStim(win, text=f"{outcome_text_t3}\n\nPoints earned this trial: {correctness_points_t3:.2f}{explanation_t3}", 
+    #explanation_t3 = f"\n\nYou were {percent_incorrect}% away from the correct answer."
+    outcome_stim_t3 = visual.TextStim(win, text=f"{outcome_text_t3}\n\nThe in-house curator scored this image: {correctness_points_t3:.2f} points", 
                                       color=color_t3, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t3.draw()
     win.flip()
@@ -4103,7 +4074,7 @@ def run_experiment():
         'block': 0,
         'trial': 3,
         'trial_type': 'studied',
-        'image_path': blue_circle_path,
+        'image_path': blue_square_path,
         'participant_slider_value': participant_value_t3,
         'participant_rt': participant_rt_t3,
         'participant_commit_time': participant_commit_time_t3,
@@ -4130,10 +4101,10 @@ def run_experiment():
         )
     
     show_instructions(
-        "Practice complete!\n\n"
-        "Now we'll begin the experimental blocks.\n\n"
-        "Remember: You'll now see complex images (objects, animals, and scenes)\n"
-        "instead of simple shapes.",
+        "Training complete!\n\n"
+        "Now we'll begin the actual work.\n\n"
+        "Remember: You'll now see complex photos (objects, animals, and scenes)\n"
+        "instead of the simple shapes you trained on.",
         header_color='darkgreen',
         body_color='black'
     )
@@ -4142,7 +4113,7 @@ def run_experiment():
     show_instructions(
         "QUICK REMINDER - KEY RULES (Part 1):\n\n"
         "1. STUDY PHASE:\n"
-        "   Remember each complex image carefully.\n"
+        "   Remember each complex photo carefully.\n"
         "   You'll see images of various objects,\n"
         "   animals, and scenes.",
         header_color='darkred',
@@ -4164,34 +4135,12 @@ def run_experiment():
     show_instructions(
         "QUICK REMINDER - KEY RULES (Part 3):\n\n"
         "3. COLLABORATION:\n"
-        "   - Your partner will also rate each image\n"
+        "   - Your partner will also rate each image\n"  # Note: partner_name is used dynamically in actual trial text
         "   - You can STAY with your answer\n"
         "   - Or SWITCH to theirs\n"
         "   - Even if you both agree (OLD or NEW),\n"
         "     you can switch to match their confidence level",
         header_color='darkred',
-        body_color='black'
-    )
-    
-    show_instructions(
-        "QUICK REMINDER - KEY RULES (Part 4):\n\n"
-        "4. SCORING:\n"
-        "   - Points based on how close your final answer\n"
-        "     is to the correct answer\n"
-        "   - More confident + correct = more points\n"
-        "   - More confident + wrong = fewer points\n\n"
-        "5. QUESTIONS:\n"
-        "   - At the end of each block, you'll answer\n"
-        "     a quick question",
-        header_color='darkred',
-        body_color='black'
-    )
-    
-    show_instructions(
-        "EXPERIMENTAL BLOCKS:\n\n"
-        "You will complete 5 blocks, each with 20 trials.\n\n"
-        "You will always respond first, then your partner will respond.",
-        header_color='darkblue',
         body_color='black'
     )
     
@@ -4219,6 +4168,9 @@ def run_experiment():
         # Assign stimuli to blocks: each block has 2 items from each category (20 stimuli), no repeats
         stimulus_assignments = assign_stimuli_to_blocks()
         
+        # Track previous block's partner to determine when to show switch messages
+        previous_partner_reliable = None  # None for first block
+        
         for block_num in range(1, 6):
             # Use pre-assigned stimuli for this block (ensures 2 per category, no repeats)
             selected_indices = stimulus_assignments[block_num - 1]
@@ -4227,6 +4179,94 @@ def run_experiment():
             
             # Get conditions for this block
             participant_first, block_accuracy = block_conditions[block_num - 1]
+            current_partner_reliable = (block_accuracy == 0.75)
+            
+            # Show partner switch message if partner changed
+            if previous_partner_reliable is not None:
+                if previous_partner_reliable and not current_partner_reliable:
+                    # Switched from Amy (reliable) to Ben (unreliable)
+                    switch_text = visual.TextStim(
+                        win,
+                        text="A quick update.\n\n"
+                             "Amy has stepped away to prepare for her exhibition.\n\n"
+                             "While she's gone, you'll be working with Ben—another assistant in the studio.\n\n"
+                             "Ben is helping sort the same set of images, but may rely on different cues when remembering them.\n\n"
+                             "As always, focus on making the best judgment you can.",
+                        color='black',
+                        height=0.04*0.75,
+                        pos=(0, 0.0),
+                        wrapWidth=1.2
+                    )
+                    
+                    # Load and display Ben's picture (maintain aspect ratio)
+                    ben_path = os.path.join(STIMULI_DIR, "Ben.png")
+                    if os.path.exists(ben_path):
+                        ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
+                        if hasattr(ben_image, 'setPos'):
+                            ben_image.setPos((0, 0.3))
+                        elif hasattr(ben_image, 'pos'):
+                            ben_image.pos = (0, 0.3)
+                    else:
+                        ben_image = None
+                        print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
+                    
+                    def redraw_ben():
+                        if ben_image:
+                            ben_image.draw()
+                        switch_text.draw()
+                    
+                    wait_for_button(redraw_func=redraw_ben)
+                    
+                elif not previous_partner_reliable and current_partner_reliable:
+                    # Switched from Ben (unreliable) to Amy (reliable)
+                    switch_text = visual.TextStim(
+                        win,
+                        text="Amy is back for a day!\n\n"
+                             "She's returning to help sort the exhibition images with you.\n\n"
+s                             "You'll once again see her judgments as you work through this block.",
+                        color='black',
+                        height=0.04*0.75,
+                        pos=(0, 0.0),
+                        wrapWidth=1.2
+                    )
+                    
+                    # Load and display Amy's picture (maintain aspect ratio)
+                    amy_path = os.path.join(STIMULI_DIR, "Amy.png")
+                    if os.path.exists(amy_path):
+                        amy_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
+                        if hasattr(amy_image, 'setPos'):
+                            amy_image.setPos((0, 0.3))
+                        elif hasattr(amy_image, 'pos'):
+                            amy_image.pos = (0, 0.3)
+                    else:
+                        amy_image = None
+                        print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
+                    
+                    def redraw_amy():
+                        if amy_image:
+                            amy_image.draw()
+                        switch_text.draw()
+                    
+                    wait_for_button(redraw_func=redraw_amy)
+                    
+                elif not previous_partner_reliable and not current_partner_reliable:
+                    # Still Ben, but switching blocks
+                    switch_text = visual.TextStim(
+                        win,
+                        text="Amy is gone again! Continue working with Ben",
+                        color='black',
+                        height=0.04*0.75,
+                        pos=(0, 0),
+                        wrapWidth=1.2
+                    )
+                    
+                    def redraw_ben_continue():
+                        switch_text.draw()
+                    
+                    wait_for_button(redraw_func=redraw_ben_continue)
+            
+            # Update previous partner for next iteration
+            previous_partner_reliable = current_partner_reliable
             
             # Create AI collaborator with block-specific accuracy
             block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy)
@@ -4274,6 +4314,26 @@ def run_experiment():
     # Record experiment end time and calculate total time
     experiment_end_time = time.time()
     total_task_time = experiment_end_time - experiment_start_time
+    
+    # Calculate total points out of 10 (5 blocks * 20 trials = 100 max, scale to 10)
+    max_possible_total = 5 * 20.0  # 100 max points across all blocks
+    scaled_total_points = (total_experiment_points / max_possible_total) * 10.0 if max_possible_total > 0 else 0.0
+    scaled_total_points_rounded = round(scaled_total_points, 2)
+    
+    # Show cumulative points message
+    cumulative_text = visual.TextStim(
+        win,
+        text=f"The in-house curator scored this collection {scaled_total_points_rounded:.2f} points out of a total of 10 points!",
+        color='black',
+        height=0.05,
+        pos=(0, 0),
+        wrapWidth=1.2
+    )
+    
+    def redraw_cumulative():
+        cumulative_text.draw()
+    
+    wait_for_button(redraw_func=redraw_cumulative)
     
     # Show leaderboard before final message
     show_leaderboard(participant_id, total_experiment_points)
