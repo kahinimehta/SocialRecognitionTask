@@ -1698,20 +1698,15 @@ def get_participant_id():
         
         continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75, fillColor='lightgreen', lineColor='black', lineWidth=2*0.75, pos=(0.25*0.6, special_y))
         continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75, pos=(0.25*0.6, special_y))
-    else:
-        # Create continue and backspace buttons for click/mouse mode too
-        special_y = 0.0  # Position below input display
-        backspace_button = visual.Rect(win, width=0.2*0.75, height=0.1*0.75, fillColor='lightcoral', lineColor='black', lineWidth=2*0.75, pos=(-0.25*0.6, special_y))
-        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025*0.75, pos=(-0.25*0.6, special_y))
-        
-        continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75, fillColor='lightgreen', lineColor='black', lineWidth=2*0.75, pos=(0.25*0.6, special_y))
-        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75, pos=(0.25*0.6, special_y))
     
     # Key list for keyboard input (non-touch)
     key_list = ['return', 'backspace', 'space'] + [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(48, 58)]
     
     def redraw():
-        id_prompt.text = "Enter your first name and last initial with no spaces/capitals:"
+        if USE_TOUCH_SCREEN:
+            id_prompt.text = "Enter your first name and last initial with no spaces/capitals:"
+        else:
+            id_prompt.text = "Enter your first name and last initial with no spaces/capitals:\n\nHit Enter when done."
         input_display.text = f"{input_id}_"
         
         id_prompt.draw()
@@ -1725,21 +1720,12 @@ def get_participant_id():
             backspace_text.draw()
             continue_button.draw()
             continue_text.draw()
-        else:
-            # Show buttons in click/mouse mode too
-            backspace_button.draw()
-            backspace_text.draw()
-            continue_button.draw()
-            continue_text.draw()
         
         win.flip()
     
     # Initial redraw to ensure buttons are visible
     redraw()
     event.clearEvents()
-    
-    # Track previous mouse button state for click/mouse mode
-    prev_mouse_buttons_click = [False, False, False]
     
     # POSITION-CHANGE DETECTION: Store initial mouse position
     mouserec = mouse.getPos()
@@ -1963,61 +1949,7 @@ def get_participant_id():
             event.clearEvents()
             safe_wait(0.001)  # Very fast polling
         else:
-            # Click/mouse mode: check for button clicks and keyboard input
-            mouse_buttons = mouse.getPressed()
-            mouse_pos = mouse.getPos()
-            
-            try:
-                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
-                else:
-                    mouse_x, mouse_y = 0.0, 0.0
-            except (TypeError, ValueError):
-                mouse_x, mouse_y = 0.0, 0.0
-            
-            # Check backspace button
-            backspace_x, backspace_y = backspace_button.pos
-            backspace_width, backspace_height = backspace_button.width, backspace_button.height
-            on_backspace = (backspace_x - backspace_width/2 <= mouse_x <= backspace_x + backspace_width/2 and
-                           backspace_y - backspace_height/2 <= mouse_y <= backspace_y + backspace_height/2)
-            
-            # Check continue button
-            continue_x, continue_y = continue_button.pos
-            continue_width, continue_height = continue_button.width, continue_button.height
-            on_continue = (continue_x - continue_width/2 <= mouse_x <= continue_x + continue_width/2 and
-                          continue_y - continue_height/2 <= mouse_y <= continue_y + continue_height/2)
-            
-            # Handle button clicks (check for button release)
-            if not hasattr(get_participant_id, 'prev_mouse_buttons'):
-                get_participant_id.prev_mouse_buttons = [False, False, False]
-            
-            if get_participant_id.prev_mouse_buttons[0] and not mouse_buttons[0]:
-                # Button was released
-                if on_backspace:
-                    input_id = input_id[:-1] if input_id else ""
-                    backspace_button.fillColor = 'red'
-                    redraw()
-                    core.wait(0.1)
-                    backspace_button.fillColor = 'lightcoral'
-                    redraw()
-                elif on_continue:
-                    if input_id.strip():
-                        continue_button.fillColor = 'green'
-                        redraw()
-                        core.wait(0.1)
-                        mouse.setVisible(False)
-                        event.clearEvents()
-                        break
-                    else:
-                        continue_button.fillColor = 'red'
-                        redraw()
-                        core.wait(0.1)
-                        continue_button.fillColor = 'lightgreen'
-                        redraw()
-            
-            prev_mouse_buttons_click = list(mouse_buttons) if hasattr(mouse_buttons, '__iter__') else [False, False, False]
-            
-            # Also handle keyboard input
+            # Click/mouse mode: keyboard input only
             keys = event.getKeys(keyList=key_list, timeStamped=False)
             if keys:
                 key = keys[0]
@@ -2032,19 +1964,6 @@ def get_participant_id():
                     input_id += key
                 
                 redraw()
-            
-            # Hover effects for buttons
-            if on_backspace:
-                backspace_button.fillColor = 'coral'
-            else:
-                backspace_button.fillColor = 'lightcoral'
-            
-            if on_continue:
-                continue_button.fillColor = 'green' if input_id.strip() else 'lightgreen'
-            else:
-                continue_button.fillColor = 'lightgreen'
-            
-            redraw()
         
         safe_wait(0.01)
     
@@ -4294,16 +4213,18 @@ def run_experiment():
     correctness_points_t3 = max(0.0, 1.0 - euclidean_distance_t3)
     participant_accuracy_t3 = euclidean_distance_t3 < 0.5
     
-    # Show outcome with explanation (practice-specific)
-    
-    outcome_text_t3 = "Correct!" if participant_accuracy_t3 else "Incorrect"
+    # Show outcome with points for practice trial 3
+    correctness_points_rounded_t3 = round(correctness_points_t3, 2)
+    if participant_accuracy_t3:
+        outcome_text_t3 = f"Correct! Based off your answer and confidence, your points are {correctness_points_rounded_t3:.2f}"
+    else:
+        outcome_text_t3 = f"Incorrect! Based off your answer and confidence, your points are {correctness_points_rounded_t3:.2f}"
     color_t3 = 'green' if participant_accuracy_t3 else 'red'
-    # Skip in-house curator message in practice - just show correctness
     outcome_stim_t3 = visual.TextStim(win, text=outcome_text_t3, 
                                       color=color_t3, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t3.draw()
     win.flip()
-    core.wait(1.5)  # Brief display for practice
+    core.wait(2.0)  # Show for 2.0 seconds (same as regular trials)
     practice_points += correctness_points_t3
     
     # Record trial 3 data - include all fields to match regular trial structure
@@ -4368,60 +4289,58 @@ def run_experiment():
     
     # Rules reminder before starting the actual game - split into 3 pages for better readability
     show_instructions(
-        "   Now, you must remember each photo Amy wants in the collection carefully.\n"
-        "   You'll see images of various objects, animals, and scenes.",
+        "Amy's Collections:\n"
+        "You must remember each photo Amy wants in the collection carefully.\n\n"
+        "You'll see images of various objects, animals, and scenes.",
         header_color='darkred',
         body_color='black'
     )
     
     show_instructions(
-
-        "   Following that, you'll be shown more images. These are all the photos Amy took recently.\n"
-        "  - Rate your confidence on each photo if it belongs in the collection on the slider.\n"
-        "  - LEFT = OLD (should be part of the collection)\n"
-        "  - RIGHT = NEW (I haven't seen these before, they are not part of the collection)\n"
-        "  - Click anywhere on the slider line to set your rating, then click SUBMIT",
+        "Amy's Photos:\n"
+        "Following that, you'll be shown more images. These are all the photos Amy took recently.\n\n"
+        "• Rate your confidence on each photo if it belongs in the collection on the slider\n"
+        "• LEFT = OLD (should be part of the collection)\n"
+        "• RIGHT = NEW (I haven't seen these before, they are not part of the collection)\n"
+        "• Click anywhere on the slider line to set your rating, then click SUBMIT",
         header_color='darkred',
         body_color='black'
     )
     
     show_instructions(
-        "   Amy will also rate each image, but may not always be correct. She's super busy! \n"  # Note: partner_name is used dynamically in actual trial text
-        "   - You can STAY with your answer\n"
-        "   - Or SWITCH to your partner Amy's answer\n"
-        "   - Even if you both agree (OLD or NEW) you can switch to match your partner Amy's confidence level",
+        "Working with Amy:\n"
+        "Amy will also rate each image, but may not always be correct. She's super busy!\n\n"
+        "• You can STAY with your answer\n"
+        "• Or SWITCH to your partner Amy's answer\n"
+        "• Even if you both agree (OLD or NEW) you can switch to match your partner Amy's confidence level",
         header_color='darkred',
         body_color='black'
     )
 
     show_instructions(
-        "   Remember, confidence matters!\n"
-        " An in-house curator will score your collection before the exhibition.\n"
-        "   - If you are confident and wrong (eg: you click ALL the way to the left/OLD on an image that shouldn't be part of the collection), ",
-        "the curator will penalize you more heavily.\n"
-        "   - If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit.\n",
+        "Exhibition Scoring:\n"
+        "Remember, confidence matters! An in-house curator will score your collection before the exhibition.\n\n"
+        "• If you are confident and wrong (e.g., you click ALL the way to the left/OLD on an image that shouldn't be part of the collection), "
+        "the curator will penalize you more heavily\n"
+        "• If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit",
         header_color='darkred',
         body_color='black'
     )
 
     show_instructions(
+        "Important Information for New Employees!\n"
         "We have 5 collections with 20 images each to get through.\n\n"
-        "Because the exhibition is so soon, you will have a time limit on each image decision!",
+        "Because the exhibition is so soon, you will have a time limit on each image decision!\n\n"
+        "You will receive 0-1 points for each image.",
         header_color='black',
         body_color='black'
     )
 
-    show_instructions(
-        "Let's get started!",
-        body_color='black'
-    )
-    
-    
     # Show Amy's introduction before the first collection
     amy_intro_text = visual.TextStim(
         win,
-        text="You'll be working with Amy to sort through this collection.\n\n"
-             "She'll provide her judgments as you work through each collection, but is slighlty distracted with other tasks.",
+        text="Remember: you'll be working with Amy to sort through this collection.\n\n"
+             "She'll provide her judgments as you work through each collection, but is distracted with other tasks.",
         color='black',
         height=0.04*0.75,
         pos=(0, 0.2),  # Move text up
@@ -4531,6 +4450,12 @@ def run_experiment():
     
     mouse_amy_intro.setVisible(False)
     event.clearEvents()
+    
+    show_instructions(
+        "Let's get started on collection 1!",
+        header_color='darkgreen',
+        body_color='black'
+    )
     
     # Experimental blocks (5 blocks, 20 trials each)
     all_study_data = []
