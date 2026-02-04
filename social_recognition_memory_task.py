@@ -1309,9 +1309,19 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                 except (TypeError, ValueError):
                     button_width, button_height = 0.3*0.75, 0.1*0.75
                 
-                # Check if mouse/touch is over button
-                on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
-                            button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                # For touch screens, use larger hit area (at least button size, or larger)
+                # Ensure hit area fully covers button and extends beyond for easier tapping
+                if USE_TOUCH_SCREEN:
+                    # Margin should be at least half button size to ensure hit area is at least 2x button size (fully overlapping + extra)
+                    hit_margin_x = max(button_width * 0.5, 0.08)  # At least half button width, minimum 0.08
+                    hit_margin_y = max(button_height * 0.5, 0.04)  # At least half button height, minimum 0.04
+                else:
+                    hit_margin_x = 0.0
+                    hit_margin_y = 0.0
+                
+                # Hit area extends button_width/2 + hit_margin_x on each side, ensuring full button coverage
+                on_button = (button_x - button_width/2 - hit_margin_x <= mouse_x <= button_x + button_width/2 + hit_margin_x and
+                            button_y - button_height/2 - hit_margin_y <= mouse_y <= button_y + button_height/2 + hit_margin_y)
                 
                 # Check for button release (mouse/touch was pressed on button and now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
@@ -3139,24 +3149,12 @@ def show_block_summary(block_num, total_points, max_points):
             on_button = (button_x - button_width/2 - hit_margin_x <= mouse_x <= button_x + button_width/2 + hit_margin_x and
                         button_y - button_height/2 - hit_margin_y <= mouse_y <= button_y + button_height/2 + hit_margin_y)
             
-            # Check for button release
+            # Check for button release (mouse/touch was pressed on button and now released)
             if prev_mouse_buttons[0] and not mouse_buttons[0]:
                 if on_button:
                     # Visual feedback (only for click mode, not touch screen)
                     if not USE_TOUCH_SCREEN:
                         continue_button.fillColor = 'lightgreen'
-                    summary_text.draw()
-                    continue_button.draw()
-                    continue_text.draw()
-                    win.flip()
-                    core.wait(0.2)
-                    clicked = True
-                    break
-            
-            # Also check for button press (for touch screens)
-            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
-                if USE_TOUCH_SCREEN:
-                    # No color change in touch screen mode
                     summary_text.draw()
                     continue_button.draw()
                     continue_text.draw()
