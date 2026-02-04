@@ -3574,6 +3574,8 @@ def run_experiment():
         pos=(0, -0.3*0.6)
     )
     
+    # Create mouse instance for this function (since we assign to mouse later, Python treats it as local)
+    mouse = event.Mouse(win=win)
     mouse.setVisible(True)
     if not USE_TOUCH_SCREEN:
         try:
