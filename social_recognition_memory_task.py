@@ -1326,6 +1326,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                     
                     if on_button:
                         if t > minRT:
+                            # Button was clicked - change color for visual feedback
                             continue_button.fillColor = 'lightgreen'
                             draw_screen()
                             core.wait(0.2)
@@ -1333,12 +1334,15 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                             break
                         else:
                             # Touch detected but minRT not met - update recorded position and continue
+                            # Keep default color - no hover effect in touch screen mode
                             mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                     else:
                         # Touch moved but not on button - update recorded position
+                        # Keep default color - no hover effect in touch screen mode
                         mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                 
-                # Redraw every frame
+                # Redraw every frame - button keeps default color until clicked
+                # No hover effects in touch screen mode
                 draw_screen()
                 event.clearEvents()
                 core.wait(0.001)  # Very fast polling
@@ -2918,11 +2922,15 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         # Check for mouse button release on buttons
         if prev_mouse_buttons[0] and not mouse_buttons[0]:
             if stay_clicked:
+                # Button was clicked - change color for visual feedback
+                stay_button.fillColor = 'lightgreen'
                 decision = "stay"
                 decision_rt = time.time() - start_time
                 decision_commit_time = time.time()
                 break
             elif switch_clicked:
+                # Button was clicked - change color for visual feedback
+                switch_button.fillColor = 'lightgreen'
                 decision = "switch"
                 decision_rt = time.time() - start_time
                 decision_commit_time = time.time()
@@ -2930,6 +2938,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         
         # Highlight buttons on hover (only for click mode, not touch screen)
         if not USE_TOUCH_SCREEN:
+            # In click mode, show hover effect based on mouse position
             if stay_clicked:
                 stay_button.fillColor = 'lightgreen'
             else:
@@ -2939,10 +2948,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 switch_button.fillColor = 'lightgreen'
             else:
                 switch_button.fillColor = 'lightcoral'
-        else:
-            # Touch screen mode: no hover, just default colors
-            stay_button.fillColor = 'lightblue'
-            switch_button.fillColor = 'lightcoral'
+        # Touch screen mode: no hover effects - buttons keep default colors
+        # Colors only change when actually clicked (handled in click detection above)
         
         prev_mouse_buttons = mouse_buttons.copy()
         
@@ -3832,6 +3839,15 @@ def run_experiment():
                     clicked = True
                     break
             
+            # Also check for button press (for touch screens, press and release happen quickly)
+            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
+                if USE_TOUCH_SCREEN:
+                    continue_button_welcome.fillColor = 'lightgreen'
+                    draw_screen()
+                    core.wait(0.2)
+                    clicked = True
+                    break
+            
             # Hover effect only for click mode (not touch screen)
             if not USE_TOUCH_SCREEN:
                 if on_button:
@@ -3839,6 +3855,7 @@ def run_experiment():
                 else:
                     continue_button_welcome.fillColor = 'lightblue'
                 draw_screen()
+            # Touch screen mode: no hover effects - button keeps default color until clicked
             
             prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
         except (AttributeError, Exception):
