@@ -2060,19 +2060,31 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                         has_moved = True
                         slider_stop_time = time.time()  # Record when value was set immediately
                 
-                # Check if submit button is touched
-                submit_x, submit_y = submit_button.pos
-                submit_width, submit_height = submit_button.width, submit_button.height
-                hit_margin = 0.02  # Extra margin for touch screens
-                submit_clicked = (submit_x - submit_width/2 - hit_margin <= mouseloc_x <= submit_x + submit_width/2 + hit_margin and
-                               submit_y - submit_height/2 - hit_margin <= mouseloc_y <= submit_y + submit_height/2 + hit_margin)
-                
-                if submit_clicked and has_moved:
-                    slider_commit_time = time.time()  # Record immediately, no delay
-                    break
-                
                 # Update recorded position
                 mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+            
+            # Check if submit button is clicked/touched (on mouse/touch release) - same as begin button
+            submit_x, submit_y = submit_button.pos
+            try:
+                submit_width = float(submit_button.width)
+                submit_height = float(submit_button.height)
+            except (TypeError, ValueError):
+                submit_width, submit_height = 0.3*0.75, 0.1*0.75
+            
+            # For touch screens, use larger hit area (at least button size, or larger)
+            if USE_TOUCH_SCREEN:
+                submit_hit_margin_x = max(submit_width * 0.5, 0.08)
+                submit_hit_margin_y = max(submit_height * 0.5, 0.04)
+            else:
+                submit_hit_margin_x = 0.0
+                submit_hit_margin_y = 0.0
+            
+            submit_clicked = (submit_x - submit_width/2 - submit_hit_margin_x <= mouseloc_x <= submit_x + submit_width/2 + submit_hit_margin_x and
+                           submit_y - submit_height/2 - submit_hit_margin_y <= mouseloc_y <= submit_y + submit_height/2 + submit_hit_margin_y)
+            
+            if prev_mouse_buttons[0] and not mouse_buttons[0] and submit_clicked and has_moved:
+                slider_commit_time = time.time()
+                break
         else:
             # Standard button release detection for mouse/click mode
             # Click/tap detection: button was just released (click-only, no dragging)
@@ -3633,8 +3645,8 @@ def run_experiment():
                 # Ensure hit area fully covers button and extends beyond for easier tapping
                 if USE_TOUCH_SCREEN:
                     # Margin should be at least half button size to ensure hit area is at least 2x button size
-                    hit_margin_x = max(button_width * 0.5, button_width * 0.3, 0.08)  # At least 30% of button width, minimum 0.08
-                    hit_margin_y = max(button_height * 0.5, button_height * 0.3, 0.04)  # At least 30% of button height, minimum 0.04
+                    hit_margin_x = max(button_width * 0.5, 0.08)  # At least half button width, minimum 0.08
+                    hit_margin_y = max(button_height * 0.5, 0.04)  # At least half button height, minimum 0.04
                 else:
                     hit_margin_x = 0.0
                     hit_margin_y = 0.0
