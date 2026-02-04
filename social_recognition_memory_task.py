@@ -4087,7 +4087,6 @@ def run_experiment():
         welcome_text_1.draw()  # Draw text first
         if amy_image:
             amy_image.draw()
-        amy_label_1.draw()
         continue_button_welcome.draw()
         continue_text_welcome.draw()
     
@@ -4749,7 +4748,6 @@ def run_experiment():
         amy_intro_text.draw()  # Draw text first
         if amy_intro_image:
             amy_intro_image.draw()
-        amy_intro_label.draw()
         continue_button_amy_intro.draw()
         continue_text_amy_intro.draw()
     
@@ -4961,7 +4959,6 @@ def run_experiment():
                             switch_text.draw()  # Draw text first
                             if ben_image:
                                 ben_image.draw()
-                            ben_label.draw()
                             continue_button_ben.draw()
                             continue_text_ben.draw()
                         
