@@ -3310,7 +3310,7 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
         color = 'red'
     
     # Show outcome with curator scoring
-    outcome_text_full = f"{outcome_text}\n\nThe in-house curator scored this image: {correctness_points_rounded:.2f} points based on its quality and how confident you were it fit into the collection"
+    outcome_text_full = f"{outcome_text}\n\nThe in-house curator scored this image: {correctness_points_rounded:.2f} points based on image & your confidence"
     outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06, pos=(0, 0), wrapWidth=1.4)
     outcome_stim.draw()
     win.flip()
@@ -3359,7 +3359,7 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
     
     # Transition screen: switching to recognition phase
     show_instructions(
-        "STUDYING OG IMAGES COMPLETE!\n\n"
+        "STUDYING COLLECTION IMAGES COMPLETE!\n\n"
         "Now switching to the sorting phase.\n\n"
         f"You will see MORE images again and rate them with {partner_name}.",
         header_color='darkblue',
@@ -3750,7 +3750,7 @@ def run_experiment():
     # Show first welcome screen with Amy's picture
     welcome_text_1 = visual.TextStim(
         win,
-        text="Welcome.\n\n"
+        text="Greetings!\n\n"
              "You've just joined a small photography studio.\n\n"
              "Amy, a professional photographer, is preparing images for an upcoming exhibition.\n\n"
              "She needs help sorting through large sets of images and deciding which ones truly belong.",
@@ -4516,20 +4516,21 @@ def run_experiment():
                     if os.path.exists(ben_path):
                         ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                         if hasattr(ben_image, 'setPos'):
-                            ben_image.setPos((0, -0.05))  # Moved up from -0.1
+                            ben_image.setPos((0, -0.15))  # Shifted down to account for white space at bottom
                         elif hasattr(ben_image, 'pos'):
-                            ben_image.pos = (0, -0.05)  # Moved up from -0.1
+                            ben_image.pos = (0, -0.15)  # Shifted down to account for white space at bottom
                     else:
                         ben_image = None
                         print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
                     
-                    # Label for Ben's image (first time shown) - below image (moved up slightly)
+                    # Label for Ben's image (first time shown) - overlaid on top of icon
                     ben_label = visual.TextStim(
                         win,
                         text="Ben",
-                        color='black',
+                        color='white',  # White for visibility on brown icon background
                         height=0.05*0.75,
-                        pos=(0, -0.2)  # Moved up from -0.25
+                        pos=(0, -0.15),  # Same y-position as icon center to overlay
+                        bold=True  # Make it bold for better visibility
                     )
                     
                     # Create custom button for this screen (positioned bottom right to avoid icon overlap)
@@ -4583,7 +4584,7 @@ def run_experiment():
                             except (TypeError, ValueError):
                                 mouse_x, mouse_y = 0.0, 0.0
                             
-                            button_x, button_y = 0.4, -0.4  # Bottom right position
+                            button_x, button_y = 0.4, -0.3  # Match actual button position
                             button_width, button_height = 0.3*0.75, 0.1*0.75
                             hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
                             
@@ -4592,6 +4593,15 @@ def run_experiment():
                             
                             if prev_mouse_buttons[0] and not mouse_buttons[0]:
                                 if on_button:
+                                    continue_button_ben.fillColor = 'lightgreen'
+                                    draw_screen()
+                                    core.wait(0.2)
+                                    clicked = True
+                                    break
+                            
+                            # Also check for button press (for touch screens)
+                            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
+                                if USE_TOUCH_SCREEN:
                                     continue_button_ben.fillColor = 'lightgreen'
                                     draw_screen()
                                     core.wait(0.2)
@@ -4747,9 +4757,9 @@ def run_experiment():
                     if os.path.exists(ben_path):
                         ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                         if hasattr(ben_image, 'setPos'):
-                            ben_image.setPos((0, -0.1))  # Below text
+                            ben_image.setPos((0, -0.2))  # Shifted down to account for white space at bottom
                         elif hasattr(ben_image, 'pos'):
-                            ben_image.pos = (0, -0.1)  # Below text
+                            ben_image.pos = (0, -0.2)  # Shifted down to account for white space at bottom
                     else:
                         ben_image = None
                         print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
@@ -4804,7 +4814,7 @@ def run_experiment():
                             except (TypeError, ValueError):
                                 mouse_x_ben_continue, mouse_y_ben_continue = 0.0, 0.0
                             
-                            button_x_ben_continue, button_y_ben_continue = 0.4, -0.3
+                            button_x_ben_continue, button_y_ben_continue = 0.4, -0.4  # Match actual button position
                             button_width_ben_continue, button_height_ben_continue = 0.3*0.75, 0.1*0.75
                             hit_margin_ben_continue = 0.02 if USE_TOUCH_SCREEN else 0.0
                             
@@ -4819,6 +4829,7 @@ def run_experiment():
                                     clicked_ben_continue = True
                                     break
                             
+                            # Also check for button press (for touch screens)
                             if mouse_buttons_ben_continue[0] and on_button_ben_continue and not prev_mouse_buttons_ben_continue[0]:
                                 if USE_TOUCH_SCREEN:
                                     continue_button_ben_continue.fillColor = 'lightgreen'
