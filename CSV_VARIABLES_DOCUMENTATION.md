@@ -52,23 +52,23 @@ The localizer task generates one CSV file:
 - **Example**: `1.0`
 
 ### `fixation_onset`
-- **Type**: Float (Unix timestamp) or None
-- **Description**: Time when the fixation cross appeared before this image (None for first image)
-- **Note**: Fixation appears between images, not before the first image
-- **Example**: `1764818170.5`, `None`
+- **Type**: Float (Unix timestamp)
+- **Description**: Time when the fixation cross appeared before this image
+- **Note**: Fixation appears before EVERY image, including the first image
+- **Example**: `1764818170.5`
 
 ### `fixation_offset`
-- **Type**: Float (Unix timestamp) or None
-- **Description**: Time when the fixation cross was removed (None for first image)
-- **Example**: `1764818171.0`, `None`
+- **Type**: Float (Unix timestamp)
+- **Description**: Time when the fixation cross was removed
+- **Example**: `1764818171.0`
 
 ### `fixation_duration`
-- **Type**: Float (seconds) or None
+- **Type**: Float (seconds)
 - **Description**: Duration of the fixation cross before this image
 - **Distribution**: Uniform random between 0.25-0.75 seconds (`random.uniform(0.25, 0.75)`)
 - **Jitter**: Each fixation duration is independently drawn from uniform distribution
-- **None for first image**: No fixation appears before the first image
-- **Example**: `0.523456789`, `0.312345`, `0.678901`, `None`
+- **Note**: Fixation appears before EVERY image, including the first image
+- **Example**: `0.523456789`, `0.312345`, `0.678901`
 
 ---
 
@@ -295,18 +295,8 @@ The localizer task generates one CSV file:
 - **Description**: Points earned this trial (based on Euclidean distance from correct answer)
   - Formula: `1.0 - euclidean_distance(final_answer, ground_truth)`
   - Range: 0.0 to 1.0
-  - Includes correctness points + social feedback bonus (randomly 0.5-0.75 if social feedback shown)
+  - Based on correctness only (Euclidean distance from correct answer)
 - **Example**: `0.6857638888888889`, `0.0`, `1.0`
-
-### `social_feedback`
-- **Type**: Boolean
-- **Description**: True if social feedback was shown (50% chance if participant switched)
-- **Example**: `True`, `False`
-
-### `social_feedback_time`
-- **Type**: Float (Unix timestamp) or None
-- **Description**: Time when social feedback screen appeared (if shown), None otherwise
-- **Example**: `1764818220.497657`, `None`
 
 ---
 
@@ -350,7 +340,7 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 - The experiment saves data incrementally after each trial, not just at the end
 - Block 0 is the practice block (3 trials), blocks 1-5 are experimental blocks (20 trials each)
 - **Narrative context**: The experiment is framed as a photography studio collaboration where participants work with Amy (reliable partner) or Ben (unreliable partner) to help sort images for an exhibition. Scoring is framed as "in-house curator" evaluations.
-- **Scoring display**: Trial outcomes show "The in-house curator scored this image: X points" instead of "Points earned this trial". Block summaries show "The in-house curator scored this collection X points out of a total of 10 points!" (scaled from block max).
+- **Scoring display**: Trial outcomes show "The in-house curator scored this image: X points" instead of "Points earned this trial". Block summaries show "The in-house curator scored this collection X points out of a total of 20 points!" (actual points, not scaled).
 - Points are calculated based on Euclidean distance: `points = 1.0 - distance(final_answer, ground_truth)`
 - **Block structure**:
   - Block 1: Reliable (0.75 accuracy), Participant first
@@ -361,11 +351,11 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 - **Turn-taking**: Participant always goes first in all blocks
 - **Study phase timing**:
   - Images are shown for **1.0 second each** (fixed duration, no jitter)
-  - **Jittered fixations** appear between images: **0.25-0.75 seconds** (uniform random distribution)
+  - **Jittered fixations** appear before EVERY image: **0.25-0.75 seconds** (uniform random distribution)
   - Fixation jitter: `random.uniform(0.25, 0.75)` - each fixation independently drawn
-  - No fixation before the first image
-  - 19 fixations per block (between 20 images)
-  - Total study phase duration: ~29 seconds (varies due to fixation jitter)
+  - Fixation appears before the first image and between all subsequent images
+  - 20 fixations per block (before each of the 20 images)
+  - Total study phase duration: ~30-35 seconds (varies due to fixation jitter)
 - **Recognition phase timing**:
   - **Pre-trial fixation**: 0.5 seconds (fixed duration, shown before each image)
   - Images are shown for **1.0 second each** (fixed duration, no jitter)

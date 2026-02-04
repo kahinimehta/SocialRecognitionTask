@@ -20,7 +20,6 @@ Main PsychoPy script for the entire experiment.
   - Study phase → Recognition phase → Switch/Stay decision → Outcome feedback  
   - AI turn-taking (participant-first vs. AI-first)  
   - AI accuracy manipulation (reliable ~75% vs. unreliable ~25%)  
-  - Social bonus feedback  
   - Leaderboard screen
 - Saves trial-level and block-level data as CSV files.
 
@@ -71,7 +70,6 @@ Defines all logged fields, including:
 - AI responses, RTs, correctness  
 - Switch/Stay choices and timings  
 - Distances from ground truth  
-- Social feedback  
 
 Use this file when analyzing data.
 

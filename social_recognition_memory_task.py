@@ -2008,9 +2008,9 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.5*0.6, slider_y_pos - 0.08))
     
-    # Trial number display
+    # Image number display
     if trial_num is not None:
-        trial_text = visual.TextStim(win, text=f"Trial {trial_num} of {max_trials}", color='gray', height=0.03*0.75, pos=(0, 0.4*0.6))
+        trial_text = visual.TextStim(win, text=f"Image {trial_num} of {max_trials}", color='gray', height=0.03*0.75, pos=(0, 0.4*0.6))
     
     prompt = visual.TextStim(win, text=prompt_text, color='black', height=0.05*0.75, pos=(0, 0.3*0.6))
     
@@ -2284,17 +2284,24 @@ def run_study_phase(studied_images, block_num):
     study_data = []
     image_duration = 1.0  # Show each image for 1 second
     
+    # ALWAYS start study phase with a fixation cross
+    fixation_duration_first = random.uniform(0.25, 0.75)
+    fixation_onset_first = time.time()
+    show_fixation(fixation_duration_first)
+    fixation_offset_first = time.time()
+    
     for i, img_path in enumerate(studied_images, 1):
         # Jittered fixation between images (0.25-0.75 seconds)
-        if i > 1:  # No fixation before first image
+        if i > 1:  # Additional fixations between images
             fixation_duration = random.uniform(0.25, 0.75)
             fixation_onset = time.time()
             show_fixation(fixation_duration)
             fixation_offset = time.time()
         else:
-            fixation_duration = None
-            fixation_onset = None
-            fixation_offset = None
+            # First image uses the initial fixation
+            fixation_duration = fixation_duration_first
+            fixation_onset = fixation_onset_first
+            fixation_offset = fixation_offset_first
         
         # Load and display image
         img_stim = load_image_stimulus(img_path)
@@ -3044,14 +3051,13 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
 
 def show_block_summary(block_num, total_points, max_points):
     """Show block summary with curator scoring"""
-    # Calculate points out of 10 (assuming max_points is typically 20, so scale to 10)
-    scaled_points = (total_points / max_points) * 10.0 if max_points > 0 else 0.0
-    scaled_points_rounded = round(scaled_points, 2)
+    # Show actual points out of max_points (typically 20 for a block)
+    total_points_rounded = round(total_points, 2)
     
     summary_text = visual.TextStim(
         win,
-        text=f"Block {block_num} Complete!\n\n"
-             f"The in-house curator scored this collection {scaled_points_rounded:.2f} points out of a total of 10 points!",
+        text=f"Collection {block_num} Complete!\n\n"
+             f"The in-house curator scored this collection {total_points_rounded:.2f} points out of a total of {int(max_points)} points!",
         color='black',
         height=0.05,
         pos=(0, 0.1),
@@ -3218,7 +3224,7 @@ def show_leaderboard(participant_id, total_points):
         leaderboard_entries.append((i, name, score))
     
     # Display leaderboard
-    leaderboard_text = "LEADERBOARD\n\n"
+    leaderboard_text = "AMY'S EMPLOYEE RANKING & LEADERSHIP BOARD\n\n"
     leaderboard_text += f"{'Rank':<6} {'Participant':<20} {'Score':<10}\n"
     leaderboard_text += "-" * 40 + "\n"
     
@@ -3282,11 +3288,11 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
         color = 'red'
     
     # Show outcome with curator scoring
-    outcome_text_full = f"{outcome_text}\n\nThe in-house curator scored this image: {correctness_points_rounded:.2f} points"
+    outcome_text_full = f"{outcome_text}\n\nThe in-house curator scored this image: {correctness_points_rounded:.2f} points based on its quality and how confident you were it fit into the collection"
     outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06, pos=(0, 0), wrapWidth=1.4)
     outcome_stim.draw()
     win.flip()
-    core.wait(1.5)
+    core.wait(2.0)  # Show for 2.0 seconds (increased from 1.5)
     
     # Return points earned this trial
     return correctness_points
@@ -3330,9 +3336,9 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
     
     # Transition screen: switching to recognition phase
     show_instructions(
-        "STUDY PHASE COMPLETE!\n\n"
-        "Now switching to the recognition phase.\n\n"
-        f"You will see images again and rate them with {partner_name}.",
+        "STUDYING OG IMAGES COMPLETE!\n\n"
+        "Now switching to the sorting phase.\n\n"
+        f"You will see MORE images again and rate them with {partner_name}.",
         header_color='darkblue',
         body_color='black'
     )
@@ -3743,9 +3749,19 @@ def run_experiment():
         wrapWidth=1.2
     )
     
+    # Label for Amy's image (first time shown)
+    amy_label_1 = visual.TextStim(
+        win,
+        text="Amy",
+        color='black',
+        height=0.05*0.75,
+        pos=(0, 0.15)  # Below the image
+    )
+    
     def redraw_welcome_1():
         if amy_image:
             amy_image.draw()
+        amy_label_1.draw()
         welcome_text_1.draw()
     
     wait_for_button(redraw_func=redraw_welcome_1)
@@ -3875,11 +3891,11 @@ def run_experiment():
     
     outcome_text_t1 = "Correct!" if participant_accuracy_t1 else "Incorrect"
     color_t1 = 'green' if participant_accuracy_t1 else 'red'
-    outcome_stim_t1 = visual.TextStim(win, text=f"{outcome_text_t1}\n\nThe in-house curator scored this image: {correctness_points_t1:.2f} points", 
+    outcome_stim_t1 = visual.TextStim(win, text=f"{outcome_text_t1}\n\nThe in-house curator scored this image: {correctness_points_t1:.2f} points based on its quality and how confident you were it fit into the collection", 
                                       color=color_t1, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t1.draw()
     win.flip()
-    core.wait(1.5)
+    core.wait(2.0)  # Show for 2.0 seconds (increased from 1.5)
     practice_points += correctness_points_t1
     
     # Record trial 1 data
@@ -3917,7 +3933,7 @@ def run_experiment():
     
     # Trial 2: Show message first, then AI rates (all the way OLD), then participant rates
     # Show message that partner is confident (Amy in practice)
-    partner_message = visual.TextStim(win, text="Amy is confident they've seen this before!", 
+    partner_message = visual.TextStim(win, text="Amy is confident she's seen this before!", 
                                       color='blue', height=0.05*0.75, pos=(0, 0.4))
     # Show message with red circle (use default positioning - no manual pos/size)
     partner_message.draw()
@@ -3962,11 +3978,11 @@ def run_experiment():
     # Add explanation of score
     percent_incorrect = int((1.0 - correctness_points_t2) * 100)
     # {percent_incorrect}% away from the correct answer."
-    outcome_stim_t2 = visual.TextStim(win, text=f"{outcome_text_t2}\n\nThe in-house curator scored this image: {correctness_points_t2:.2f} points", 
+    outcome_stim_t2 = visual.TextStim(win, text=f"{outcome_text_t2}\n\nThe in-house curator scored this image: {correctness_points_t2:.2f} points based on its quality and how confident you were it fit into the collection", 
                                       color=color_t2, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t2.draw()
     win.flip()
-    core.wait(2.5)  # Longer to read explanation
+    core.wait(3.0)  # Show for 3.0 seconds (increased from 2.5)
     practice_points += correctness_points_t2
     
     # Record trial 2 data
@@ -4062,11 +4078,11 @@ def run_experiment():
     # Add explanation of score
     percent_incorrect = int((1.0 - correctness_points_t3) * 100)
     #explanation_t3 = f"\n\nYou were {percent_incorrect}% away from the correct answer."
-    outcome_stim_t3 = visual.TextStim(win, text=f"{outcome_text_t3}\n\nThe in-house curator scored this image: {correctness_points_t3:.2f} points", 
+    outcome_stim_t3 = visual.TextStim(win, text=f"{outcome_text_t3}\n\nThe in-house curator scored this image: {correctness_points_t3:.2f} points based on its quality and how confident you were it fit into the collection", 
                                       color=color_t3, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t3.draw()
     win.flip()
-    core.wait(2.5)  # Longer to read explanation
+    core.wait(3.0)  # Show for 3.0 seconds (increased from 2.5)
     practice_points += correctness_points_t3
     
     # Record trial 3 data
@@ -4103,17 +4119,13 @@ def run_experiment():
     show_instructions(
         "Training complete!\n\n"
         "Now we'll begin the actual work.\n\n"
-        "Remember: You'll now see complex photos (objects, animals, and scenes)\n"
-        "instead of the simple shapes you trained on.",
         header_color='darkgreen',
         body_color='black'
     )
     
     # Rules reminder before starting the actual game - split into 3 pages for better readability
     show_instructions(
-        "QUICK REMINDER - KEY RULES (Part 1):\n\n"
-        "1. STUDY PHASE:\n"
-        "   Remember each complex photo carefully.\n"
+        "   Now, you must emember each photo Amy wants in the collection carefully.\n"
         "   You'll see images of various objects,\n"
         "   animals, and scenes.",
         header_color='darkred',
@@ -4121,28 +4133,83 @@ def run_experiment():
     )
     
     show_instructions(
-        "QUICK REMINDER - KEY RULES (Part 2):\n\n"
-        "2. RECOGNITION PHASE:\n"
-        "   - You'll see complex images again\n"
-        "   - Rate your confidence on the slider\n"
-        "   - LEFT = OLD (studied)\n"
-        "   - RIGHT = NEW (not studied)\n"
+
+        "   - After that, you'll see more images. These are all the photos Amy took recently.\n"
+        "   - Rate your confidence on each photo if it belongs in the collection on the slider.\n"
+        "   - LEFT = OLD (should be part of the collection)\n"
+        "   - RIGHT = NEW (I haven't seen these before, they are not part of the collection)\n"
         "   - Click anywhere on the slider line to set your rating, then click SUBMIT",
         header_color='darkred',
         body_color='black'
     )
     
     show_instructions(
-        "QUICK REMINDER - KEY RULES (Part 3):\n\n"
-        "3. COLLABORATION:\n"
-        "   - Your partner will also rate each image\n"  # Note: partner_name is used dynamically in actual trial text
+        "   - Amy will also rate each image, may not always be correct. She's super busy! \n"  # Note: partner_name is used dynamically in actual trial text
         "   - You can STAY with your answer\n"
-        "   - Or SWITCH to theirs\n"
+        "   - Or SWITCH to your partner Amy's answer\n"
         "   - Even if you both agree (OLD or NEW),\n"
-        "     you can switch to match their confidence level",
+        "     you can switch to match your partner Amy's confidence level",
         header_color='darkred',
         body_color='black'
     )
+
+    show_instructions(
+        "   - Remember, confidence matters!\n"
+        "   - If you are confident and wrong (eg: you click ALL the way to the left/OLD on an image that shouldn't be part of the collection),"
+        "the curator will penalize you more heavily.\n"
+        "   - If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit.\n"
+        "   - Even if you agree with your partner largely (OLD or NEW),\n"
+        "     you can switch to match your partner's confidence level",
+        header_color='darkred',
+        body_color='black'
+    )
+
+
+    show_instructions(
+        "Let's get started! We have 5 collections with 20 images each to get through.",
+        header_color='darkred',
+        body_color='black'
+    )
+    
+    # Show Amy's introduction before the first collection
+    amy_intro_text = visual.TextStim(
+        win,
+        text="You'll be working with Amy to sort through this collection.\n\n"
+             "She'll provide her judgments as you work through each collection, but is slighlty distracted with other tasks.",
+        color='black',
+        height=0.04*0.75,
+        pos=(0, 0.0),
+        wrapWidth=1.2
+    )
+    
+    # Load and display Amy's picture (maintain aspect ratio)
+    amy_path = os.path.join(STIMULI_DIR, "Amy.png")
+    if os.path.exists(amy_path):
+        amy_intro_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
+        if hasattr(amy_intro_image, 'setPos'):
+            amy_intro_image.setPos((0, 0.3))
+        elif hasattr(amy_intro_image, 'pos'):
+            amy_intro_image.pos = (0, 0.3)
+    else:
+        amy_intro_image = None
+        print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
+    
+    # Label for Amy's image (first time shown before experimental blocks)
+    amy_intro_label = visual.TextStim(
+        win,
+        text="Amy",
+        color='black',
+        height=0.05*0.75,
+        pos=(0, 0.15)  # Below the image
+    )
+    
+    def redraw_amy_intro():
+        if amy_intro_image:
+            amy_intro_image.draw()
+        amy_intro_label.draw()
+        amy_intro_text.draw()
+    
+    wait_for_button(redraw_func=redraw_amy_intro)
     
     # Experimental blocks (5 blocks, 20 trials each)
     all_study_data = []
@@ -4190,7 +4257,7 @@ def run_experiment():
                         text="A quick update.\n\n"
                              "Amy has stepped away to prepare for her exhibition.\n\n"
                              "While she's gone, you'll be working with Ben—another assistant in the studio.\n\n"
-                             "Ben is helping sort the same set of images, but may rely on different cues when remembering them.\n\n"
+                             "Ben is helping sort the same set of images, but he has trained differently than you.\n\n"
                              "As always, focus on making the best judgment you can.",
                         color='black',
                         height=0.04*0.75,
@@ -4198,21 +4265,31 @@ def run_experiment():
                         wrapWidth=1.2
                     )
                     
-                    # Load and display Ben's picture (maintain aspect ratio)
+                    # Load and display Ben's picture (maintain aspect ratio, shift down for white space)
                     ben_path = os.path.join(STIMULI_DIR, "Ben.png")
                     if os.path.exists(ben_path):
                         ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                         if hasattr(ben_image, 'setPos'):
-                            ben_image.setPos((0, 0.3))
+                            ben_image.setPos((0, 0.15))  # Shift down for Ben's white space
                         elif hasattr(ben_image, 'pos'):
-                            ben_image.pos = (0, 0.3)
+                            ben_image.pos = (0, 0.15)  # Shift down for Ben's white space
                     else:
                         ben_image = None
                         print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
                     
+                    # Label for Ben's image (first time shown)
+                    ben_label = visual.TextStim(
+                        win,
+                        text="Ben",
+                        color='black',
+                        height=0.05*0.75,
+                        pos=(0, -0.05)  # Below Ben's image (which is already shifted down)
+                    )
+                    
                     def redraw_ben():
                         if ben_image:
                             ben_image.draw()
+                        ben_label.draw()
                         switch_text.draw()
                     
                     wait_for_button(redraw_func=redraw_ben)
@@ -4222,8 +4299,8 @@ def run_experiment():
                     switch_text = visual.TextStim(
                         win,
                         text="Amy is back for a day!\n\n"
-                             "She's returning to help sort the exhibition images with you.\n\n"
-                             "You'll once again see her judgments as you work through this block.",
+                             "She's returning to help with exhibiition preparation.\n\n"
+                             "You'll once again see her judgments as you work through this collection.",
                         color='black',
                         height=0.04*0.75,
                         pos=(0, 0.0),
@@ -4253,14 +4330,28 @@ def run_experiment():
                     # Still Ben, but switching blocks
                     switch_text = visual.TextStim(
                         win,
-                        text="Amy is gone again! Continue working with Ben",
+                        text="Amy is gone again! Continue working with Ben.",
                         color='black',
                         height=0.04*0.75,
-                        pos=(0, 0),
+                        pos=(0, 0.0),
                         wrapWidth=1.2
                     )
                     
+                    # Load and display Ben's picture (maintain aspect ratio, shift down for white space)
+                    ben_path = os.path.join(STIMULI_DIR, "Ben.png")
+                    if os.path.exists(ben_path):
+                        ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
+                        if hasattr(ben_image, 'setPos'):
+                            ben_image.setPos((0, 0.15))  # Shift down for Ben's white space
+                        elif hasattr(ben_image, 'pos'):
+                            ben_image.pos = (0, 0.15)  # Shift down for Ben's white space
+                    else:
+                        ben_image = None
+                        print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
+                    
                     def redraw_ben_continue():
+                        if ben_image:
+                            ben_image.draw()
                         switch_text.draw()
                     
                     wait_for_button(redraw_func=redraw_ben_continue)
@@ -4315,15 +4406,14 @@ def run_experiment():
     experiment_end_time = time.time()
     total_task_time = experiment_end_time - experiment_start_time
     
-    # Calculate total points out of 10 (5 blocks * 20 trials = 100 max, scale to 10)
+    # Calculate total points (5 blocks * 20 trials = 100 max)
     max_possible_total = 5 * 20.0  # 100 max points across all blocks
-    scaled_total_points = (total_experiment_points / max_possible_total) * 10.0 if max_possible_total > 0 else 0.0
-    scaled_total_points_rounded = round(scaled_total_points, 2)
+    total_experiment_points_rounded = round(total_experiment_points, 2)
     
     # Show cumulative points message
     cumulative_text = visual.TextStim(
         win,
-        text=f"The in-house curator scored this collection {scaled_total_points_rounded:.2f} points out of a total of 10 points!",
+        text=f"The in-house curator scored this collection {total_experiment_points_rounded:.2f} points out of a total of {int(max_possible_total)} points!",
         color='black',
         height=0.05,
         pos=(0, 0),
@@ -4340,7 +4430,7 @@ def run_experiment():
     
     # Final message with total time
     show_instructions(
-        f"COLLECTION SORTINGCOMPLETE!\n\n"
+        f"COLLECTION SORTING COMPLETE!\n\n"
         f"Total time: {total_task_time/60:.1f} minutes ({total_task_time:.1f} seconds)\n\n"
         "Amy thanks you for helping sort the collection!",
         header_color='darkgreen',

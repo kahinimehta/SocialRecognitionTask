@@ -73,7 +73,7 @@ This task examines how participants collaborate with an AI partner during a reco
 - Participants view **20 images** sequentially
 - **No responses required**
 - Each image is shown for **1 second**
-- **Jittered fixations** (0.25-0.75 seconds) appear between images
+- **Jittered fixations** (0.25-0.75 seconds) appear before EVERY image, including the first image
 - Image presentation timings are recorded (onset, offset, duration, fixation duration)
 - Participants are instructed to remember each image carefully
 
@@ -183,13 +183,13 @@ All scoring is framed as "in-house curator" evaluations:
   - Points are based on Euclidean distance from correct answer (1.0 - distance)
   - Range: 0.0 to 1.0 points per trial
 
-- **End of each block**: "The in-house curator scored this collection X points out of a total of 10 points!"
-  - Block points are scaled from the block's maximum (20 trials × 1.0 max = 20) to a 10-point scale
-  - Formula: `(block_points / 20) × 10`
+- **End of each block**: "The in-house curator scored this collection X points out of a total of 20 points!"
+  - Block points are the sum of all trial points (20 trials × 1.0 max = 20 points maximum)
+  - Each trial can earn up to 1.0 point based on Euclidean distance from correct answer
 
-- **End of experiment**: "The in-house curator scored this collection X points out of a total of 10 points!"
-  - Total experiment points are scaled from maximum (100 trials × 1.0 max = 100) to a 10-point scale
-  - Formula: `(total_points / 100) × 10`
+- **End of experiment**: "The in-house curator scored this collection X points out of a total of 100 points!"
+  - Total experiment points are the sum across all 5 blocks (5 blocks × 20 trials = 100 points maximum)
+  - Each trial can earn up to 1.0 point based on Euclidean distance from correct answer
 
 ---
 
@@ -197,15 +197,9 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Trial Outcome
 
-1. **Correctness Feedback**: 
-   - "Correct!" (green) or "Incorrect" (red)
-   - Points earned this trial displayed
-
-2. **Social Reinforcement** (50% chance if switched):
-   - Separate screen: "Thanks for working with [partner name]! You receive a [X] bonus point!"
-   - The partner name (Amy or Ben) is dynamically displayed based on the current block
-   - The bonus amount (0.50-0.75) is randomly determined each time
-   - Shown regardless of whether switching made the answer correct or incorrect
+**Correctness Feedback**: 
+- "Correct!" (green) or "Incorrect" (red)
+- Points earned this trial displayed
 
 ---
 
@@ -293,7 +287,6 @@ All scoring is framed as "in-house curator" evaluations:
   - Slider usage
   - Collaboration mechanics
   - Scoring system (2 pages)
-  - Bonus points and rewards
 - **Rules reminder** before experimental blocks (2 pages)
 - **Color-coded headers** for easy navigation
 - **Formatted text** with emphasis on key concepts
@@ -363,12 +356,11 @@ All scoring is framed as "in-house curator" evaluations:
 - **Fixation jitter**: 
   - Duration: 0.25-0.75 seconds (uniform random distribution)
   - Distribution: `random.uniform(0.25, 0.75)`
-  - Appears between images (after image N, before image N+1)
-  - No fixation before first image
-  - 9 fixations per block (between 10 images)
-- **Total study phase duration**: Approximately 10-14.5 seconds per block
-  - 10 images × 1.0 second = 10 seconds
-  - 9 fixations × (0.25-0.75 seconds average 0.5) = ~4.5 seconds
+  - Appears before EVERY image, including the first image
+  - 20 fixations per block (before each of the 20 images)
+- **Total study phase duration**: Approximately 30-35 seconds per block
+  - 20 images × 1.0 second = 20 seconds
+  - 20 fixations × (0.25-0.75 seconds average 0.5) = ~10 seconds
 
 #### Recognition Phase Timing
 - **Pre-trial fixation**: 0.5 seconds (fixed duration, shown before each image)
@@ -458,8 +450,7 @@ All scoring is framed as "in-house curator" evaluations:
 1. **Confidence matters**: Slider position indicates confidence level
 2. **Points = accuracy + confidence**: More confident + correct = more points
 3. **Collaboration**: Can switch even if both agree (to match confidence levels)
-4. **Bonus points**: Randomly awarded 50% of the time when switching
-5. **Leaderboard**: See how you compare to others at the end
+4. **Leaderboard**: See how you compare to others at the end
 
 ### Practice Instructions
 
