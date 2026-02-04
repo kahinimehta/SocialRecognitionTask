@@ -4340,9 +4340,9 @@ def run_experiment():
     
     # Final message with total time
     show_instructions(
-        f"EXPERIMENT COMPLETE!\n\n"
-        f"Total task time: {total_task_time/60:.1f} minutes ({total_task_time:.1f} seconds)\n\n"
-        "Thank you for participating!",
+        f"COLLECTION SORTINGCOMPLETE!\n\n"
+        f"Total time: {total_task_time/60:.1f} minutes ({total_task_time:.1f} seconds)\n\n"
+        "Amy thanks you for helping sort the collection!",
         header_color='darkgreen',
         body_color='black'
     )
