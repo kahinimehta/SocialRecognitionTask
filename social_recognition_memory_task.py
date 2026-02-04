@@ -1219,15 +1219,12 @@ except:
     exit(1)
 
 def get_log_directory():
-    """Get the directory for log files based on input method"""
-    if USE_TOUCH_SCREEN:
-        log_dir = "../LOG_FILES"
-        # Create directory if it doesn't exist
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-        return log_dir
-    else:
-        return "."  # Current directory for click/mouse
+    """Get the directory for log files - always saves to ../LOG_FILES"""
+    log_dir = "../LOG_FILES"
+    # Create directory if it doesn't exist
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    return log_dir
 
 def is_test_participant(participant_id):
     """Check if participant ID contains 'test' (case-insensitive)"""
@@ -3318,8 +3315,9 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
     # Initialize file names for incremental saving (if not provided)
     if participant_id and study_file is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        study_file = f"recognition_study_{participant_id}_{timestamp}.csv"
-        trial_file = f"recognition_trials_{participant_id}_{timestamp}.csv"
+        log_dir = get_log_directory()
+        study_file = os.path.join(log_dir, f"recognition_study_{participant_id}_{timestamp}.csv")
+        trial_file = os.path.join(log_dir, f"recognition_trials_{participant_id}_{timestamp}.csv")
     
     # Phase 1: Study
     study_data = run_study_phase(studied_images, block_num)
@@ -3700,8 +3698,9 @@ def run_experiment():
     
     # Initialize file names once for the entire experiment
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    study_file = f"recognition_study_{participant_id}_{timestamp}.csv"
-    trial_file = f"recognition_trials_{participant_id}_{timestamp}.csv"
+    log_dir = get_log_directory()
+    study_file = os.path.join(log_dir, f"recognition_study_{participant_id}_{timestamp}.csv")
+    trial_file = os.path.join(log_dir, f"recognition_trials_{participant_id}_{timestamp}.csv")
     
     # New interactive practice block
     practice_study = []

@@ -566,15 +566,12 @@ def category_to_question(category_name):
     return f"Was the last object {article} {category_text}?"
 
 def get_log_directory():
-    """Get the directory for log files based on input method"""
-    if USE_TOUCH_SCREEN:
-        log_dir = "../LOG_FILES"
-        # Create directory if it doesn't exist
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-        return log_dir
-    else:
-        return "."  # Current directory for click/mouse
+    """Get the directory for log files - always saves to ../LOG_FILES"""
+    log_dir = "../LOG_FILES"
+    # Create directory if it doesn't exist
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    return log_dir
 
 def is_test_participant(participant_id):
     """Check if participant ID contains 'test' (case-insensitive)"""

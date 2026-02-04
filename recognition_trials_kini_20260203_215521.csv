@@ -1,2 +1,0 @@
-block,trial,trial_type,image_path,participant_slider_value,participant_rt,participant_commit_time,participant_slider_timeout,participant_slider_stop_time,ai_slider_value,ai_rt,switch_stay_decision,final_answer,correct_answer,participant_accuracy,points_earned
-0,1,studied,PLACEHOLDERS/IMAGE_1.png,0.0,4.521570920944214,1770173746.041873,False,1770173744.341928,,,,0.0,0.0,True,1.0
