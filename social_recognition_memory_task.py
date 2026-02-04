@@ -1814,7 +1814,7 @@ def get_participant_id():
                                 mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                 
                 if not clicked:
-                    # Check continue button using position calculation
+                    # Check continue button using position calculation - larger margin for special buttons
                     try:
                         button_x, button_y = continue_button.pos
                         button_width, button_height = continue_button.width, continue_button.height
@@ -1822,8 +1822,8 @@ def get_participant_id():
                         button_x, button_y = 0.0, 0.0
                         button_width, button_height = 0.3, 0.1
                     
-                    on_continue = (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
-                                    button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin)
+                    on_continue = (button_x - button_width/2 - hit_margin_special <= mouseloc_x <= button_x + button_width/2 + hit_margin_special and
+                                    button_y - button_height/2 - hit_margin_special <= mouseloc_y <= button_y + button_height/2 + hit_margin_special)
                     
                     if on_continue:
                         if t > minRT:
