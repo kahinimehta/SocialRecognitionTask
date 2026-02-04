@@ -3759,21 +3759,21 @@ def run_experiment():
         pos=(0, -0.2)  # Moved up from -0.25
     )
     
-    # Create custom button for this screen (positioned lower)
+    # Create custom button for this screen (positioned bottom right to avoid icon overlap)
     continue_button_welcome = visual.Rect(
         win,
         width=0.3*0.75,
         height=0.1*0.75,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.4*0.6)  # Moved down from -0.35*0.6
+        pos=(0.4, -0.4)  # Bottom right
     )
     continue_text_welcome = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05*0.75,
-        pos=(0, -0.4*0.6)  # Moved down from -0.35*0.6
+        pos=(0.4, -0.4)  # Bottom right
     )
     
     def redraw_welcome_1():
@@ -3810,11 +3810,12 @@ def run_experiment():
             except (TypeError, ValueError):
                 mouse_x, mouse_y = 0.0, 0.0
             
-            button_x, button_y = 0.0, -0.4*0.6
+            button_x, button_y = 0.4, -0.4  # Bottom right position
             button_width, button_height = 0.3*0.75, 0.1*0.75
+            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
             
-            on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
-                        button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
             
             if prev_mouse_buttons[0] and not mouse_buttons[0]:
                 if on_button:
@@ -4351,13 +4352,88 @@ def run_experiment():
         pos=(0, -0.25)  # Below the image
     )
     
+    # Create custom button for this screen (positioned bottom right to avoid icon overlap)
+    continue_button_amy_intro = visual.Rect(
+        win,
+        width=0.3*0.75,
+        height=0.1*0.75,
+        fillColor='lightblue',
+        lineColor='black',
+        pos=(0.4, -0.4)  # Bottom right
+    )
+    continue_text_amy_intro = visual.TextStim(
+        win,
+        text="CONTINUE",
+        color='black',
+        height=0.05*0.75,
+        pos=(0.4, -0.4)  # Bottom right
+    )
+    
     def redraw_amy_intro():
         amy_intro_text.draw()  # Draw text first
         if amy_intro_image:
             amy_intro_image.draw()
         amy_intro_label.draw()
+        continue_button_amy_intro.draw()
+        continue_text_amy_intro.draw()
     
-    wait_for_button(redraw_func=redraw_amy_intro)
+    # Custom wait for button with custom button position
+    mouse_amy_intro = event.Mouse(win=win)
+    mouse_amy_intro.setVisible(True)
+    
+    def draw_screen_amy_intro():
+        redraw_amy_intro()
+        win.flip()
+    
+    draw_screen_amy_intro()
+    
+    clicked_amy_intro = False
+    prev_mouse_buttons_amy_intro = [False, False, False]
+    
+    while not clicked_amy_intro:
+        try:
+            mouse_buttons_amy_intro = mouse_amy_intro.getPressed()
+            mouse_pos_amy_intro = mouse_amy_intro.getPos()
+            
+            try:
+                if hasattr(mouse_pos_amy_intro, '__len__') and len(mouse_pos_amy_intro) >= 2:
+                    mouse_x_amy_intro, mouse_y_amy_intro = float(mouse_pos_amy_intro[0]), float(mouse_pos_amy_intro[1])
+                else:
+                    mouse_x_amy_intro, mouse_y_amy_intro = 0.0, 0.0
+            except (TypeError, ValueError):
+                mouse_x_amy_intro, mouse_y_amy_intro = 0.0, 0.0
+            
+            button_x_amy_intro, button_y_amy_intro = 0.4, -0.4
+            button_width_amy_intro, button_height_amy_intro = 0.3*0.75, 0.1*0.75
+            hit_margin_amy_intro = 0.02 if USE_TOUCH_SCREEN else 0.0
+            
+            on_button_amy_intro = (button_x_amy_intro - button_width_amy_intro/2 - hit_margin_amy_intro <= mouse_x_amy_intro <= button_x_amy_intro + button_width_amy_intro/2 + hit_margin_amy_intro and
+                                  button_y_amy_intro - button_height_amy_intro/2 - hit_margin_amy_intro <= mouse_y_amy_intro <= button_y_amy_intro + button_height_amy_intro/2 + hit_margin_amy_intro)
+            
+            if prev_mouse_buttons_amy_intro[0] and not mouse_buttons_amy_intro[0]:
+                if on_button_amy_intro:
+                    continue_button_amy_intro.fillColor = 'lightgreen'
+                    draw_screen_amy_intro()
+                    core.wait(0.2)
+                    clicked_amy_intro = True
+                    break
+            
+            if mouse_buttons_amy_intro[0] and on_button_amy_intro and not prev_mouse_buttons_amy_intro[0]:
+                if USE_TOUCH_SCREEN:
+                    continue_button_amy_intro.fillColor = 'lightgreen'
+                    draw_screen_amy_intro()
+                    core.wait(0.2)
+                    clicked_amy_intro = True
+                    break
+            
+            prev_mouse_buttons_amy_intro = list(mouse_buttons_amy_intro)
+            core.wait(0.01)
+        except Exception as e:
+            print(f"Error in button wait: {e}", file=sys.stderr)
+            core.wait(0.01)
+    
+    mouse_amy_intro.setVisible(False)
+    event.clearEvents()
     
     # Experimental blocks (5 blocks, 20 trials each)
     all_study_data = []
@@ -4434,21 +4510,21 @@ def run_experiment():
                         pos=(0, -0.2)  # Moved up from -0.25
                     )
                     
-                    # Create custom button for this screen (positioned lower)
+                    # Create custom button for this screen (positioned bottom right to avoid icon overlap)
                     continue_button_ben = visual.Rect(
                         win,
                         width=0.3*0.75,
                         height=0.1*0.75,
                         fillColor='lightblue',
                         lineColor='black',
-                        pos=(0, -0.4*0.6)  # Moved down from -0.35*0.6
+                        pos=(0.4, -0.4)  # Bottom right
                     )
                     continue_text_ben = visual.TextStim(
                         win,
                         text="CONTINUE",
                         color='black',
                         height=0.05*0.75,
-                        pos=(0, -0.4*0.6)  # Moved down from -0.35*0.6
+                        pos=(0.4, -0.4)  # Bottom right
                     )
                     
                     def redraw_ben():
@@ -4485,11 +4561,12 @@ def run_experiment():
                             except (TypeError, ValueError):
                                 mouse_x, mouse_y = 0.0, 0.0
                             
-                            button_x, button_y = 0.0, -0.4*0.6
+                            button_x, button_y = 0.4, -0.4  # Bottom right position
                             button_width, button_height = 0.3*0.75, 0.1*0.75
+                            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
                             
-                            on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
-                                        button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
                             
                             if prev_mouse_buttons[0] and not mouse_buttons[0]:
                                 if on_button:
@@ -4550,12 +4627,87 @@ def run_experiment():
                         amy_image = None
                         print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
                     
+                    # Create custom button for this screen (positioned bottom right to avoid icon overlap)
+                    continue_button_amy_return = visual.Rect(
+                        win,
+                        width=0.3*0.75,
+                        height=0.1*0.75,
+                        fillColor='lightblue',
+                        lineColor='black',
+                        pos=(0.4, -0.4)  # Bottom right
+                    )
+                    continue_text_amy_return = visual.TextStim(
+                        win,
+                        text="CONTINUE",
+                        color='black',
+                        height=0.05*0.75,
+                        pos=(0.4, -0.4)  # Bottom right
+                    )
+                    
                     def redraw_amy():
                         switch_text.draw()  # Draw text first
                         if amy_image:
                             amy_image.draw()
+                        continue_button_amy_return.draw()
+                        continue_text_amy_return.draw()
                     
-                    wait_for_button(redraw_func=redraw_amy)
+                    # Custom wait for button with custom button position
+                    mouse_amy_return = event.Mouse(win=win)
+                    mouse_amy_return.setVisible(True)
+                    
+                    def draw_screen_amy_return():
+                        redraw_amy()
+                        win.flip()
+                    
+                    draw_screen_amy_return()
+                    
+                    clicked_amy_return = False
+                    prev_mouse_buttons_amy_return = [False, False, False]
+                    
+                    while not clicked_amy_return:
+                        try:
+                            mouse_buttons_amy_return = mouse_amy_return.getPressed()
+                            mouse_pos_amy_return = mouse_amy_return.getPos()
+                            
+                            try:
+                                if hasattr(mouse_pos_amy_return, '__len__') and len(mouse_pos_amy_return) >= 2:
+                                    mouse_x_amy_return, mouse_y_amy_return = float(mouse_pos_amy_return[0]), float(mouse_pos_amy_return[1])
+                                else:
+                                    mouse_x_amy_return, mouse_y_amy_return = 0.0, 0.0
+                            except (TypeError, ValueError):
+                                mouse_x_amy_return, mouse_y_amy_return = 0.0, 0.0
+                            
+                            button_x_amy_return, button_y_amy_return = 0.4, -0.4
+                            button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
+                            hit_margin_amy_return = 0.02 if USE_TOUCH_SCREEN else 0.0
+                            
+                            on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 - hit_margin_amy_return <= mouse_x_amy_return <= button_x_amy_return + button_width_amy_return/2 + hit_margin_amy_return and
+                                                    button_y_amy_return - button_height_amy_return/2 - hit_margin_amy_return <= mouse_y_amy_return <= button_y_amy_return + button_height_amy_return/2 + hit_margin_amy_return)
+                            
+                            if prev_mouse_buttons_amy_return[0] and not mouse_buttons_amy_return[0]:
+                                if on_button_amy_return:
+                                    continue_button_amy_return.fillColor = 'lightgreen'
+                                    draw_screen_amy_return()
+                                    core.wait(0.2)
+                                    clicked_amy_return = True
+                                    break
+                            
+                            if mouse_buttons_amy_return[0] and on_button_amy_return and not prev_mouse_buttons_amy_return[0]:
+                                if USE_TOUCH_SCREEN:
+                                    continue_button_amy_return.fillColor = 'lightgreen'
+                                    draw_screen_amy_return()
+                                    core.wait(0.2)
+                                    clicked_amy_return = True
+                                    break
+                            
+                            prev_mouse_buttons_amy_return = list(mouse_buttons_amy_return)
+                            core.wait(0.01)
+                        except Exception as e:
+                            print(f"Error in button wait: {e}", file=sys.stderr)
+                            core.wait(0.01)
+                    
+                    mouse_amy_return.setVisible(False)
+                    event.clearEvents()
                     
                 elif not previous_partner_reliable and not current_partner_reliable:
                     # Still Ben, but switching blocks
@@ -4580,12 +4732,87 @@ def run_experiment():
                         ben_image = None
                         print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
                     
+                    # Create custom button for this screen (positioned bottom right to avoid icon overlap)
+                    continue_button_ben_continue = visual.Rect(
+                        win,
+                        width=0.3*0.75,
+                        height=0.1*0.75,
+                        fillColor='lightblue',
+                        lineColor='black',
+                        pos=(0.4, -0.4)  # Bottom right
+                    )
+                    continue_text_ben_continue = visual.TextStim(
+                        win,
+                        text="CONTINUE",
+                        color='black',
+                        height=0.05*0.75,
+                        pos=(0.4, -0.4)  # Bottom right
+                    )
+                    
                     def redraw_ben_continue():
                         switch_text.draw()  # Draw text first
                         if ben_image:
                             ben_image.draw()
+                        continue_button_ben_continue.draw()
+                        continue_text_ben_continue.draw()
                     
-                    wait_for_button(redraw_func=redraw_ben_continue)
+                    # Custom wait for button with custom button position
+                    mouse_ben_continue = event.Mouse(win=win)
+                    mouse_ben_continue.setVisible(True)
+                    
+                    def draw_screen_ben_continue():
+                        redraw_ben_continue()
+                        win.flip()
+                    
+                    draw_screen_ben_continue()
+                    
+                    clicked_ben_continue = False
+                    prev_mouse_buttons_ben_continue = [False, False, False]
+                    
+                    while not clicked_ben_continue:
+                        try:
+                            mouse_buttons_ben_continue = mouse_ben_continue.getPressed()
+                            mouse_pos_ben_continue = mouse_ben_continue.getPos()
+                            
+                            try:
+                                if hasattr(mouse_pos_ben_continue, '__len__') and len(mouse_pos_ben_continue) >= 2:
+                                    mouse_x_ben_continue, mouse_y_ben_continue = float(mouse_pos_ben_continue[0]), float(mouse_pos_ben_continue[1])
+                                else:
+                                    mouse_x_ben_continue, mouse_y_ben_continue = 0.0, 0.0
+                            except (TypeError, ValueError):
+                                mouse_x_ben_continue, mouse_y_ben_continue = 0.0, 0.0
+                            
+                            button_x_ben_continue, button_y_ben_continue = 0.4, -0.4
+                            button_width_ben_continue, button_height_ben_continue = 0.3*0.75, 0.1*0.75
+                            hit_margin_ben_continue = 0.02 if USE_TOUCH_SCREEN else 0.0
+                            
+                            on_button_ben_continue = (button_x_ben_continue - button_width_ben_continue/2 - hit_margin_ben_continue <= mouse_x_ben_continue <= button_x_ben_continue + button_width_ben_continue/2 + hit_margin_ben_continue and
+                                                      button_y_ben_continue - button_height_ben_continue/2 - hit_margin_ben_continue <= mouse_y_ben_continue <= button_y_ben_continue + button_height_ben_continue/2 + hit_margin_ben_continue)
+                            
+                            if prev_mouse_buttons_ben_continue[0] and not mouse_buttons_ben_continue[0]:
+                                if on_button_ben_continue:
+                                    continue_button_ben_continue.fillColor = 'lightgreen'
+                                    draw_screen_ben_continue()
+                                    core.wait(0.2)
+                                    clicked_ben_continue = True
+                                    break
+                            
+                            if mouse_buttons_ben_continue[0] and on_button_ben_continue and not prev_mouse_buttons_ben_continue[0]:
+                                if USE_TOUCH_SCREEN:
+                                    continue_button_ben_continue.fillColor = 'lightgreen'
+                                    draw_screen_ben_continue()
+                                    core.wait(0.2)
+                                    clicked_ben_continue = True
+                                    break
+                            
+                            prev_mouse_buttons_ben_continue = list(mouse_buttons_ben_continue)
+                            core.wait(0.01)
+                        except Exception as e:
+                            print(f"Error in button wait: {e}", file=sys.stderr)
+                            core.wait(0.01)
+                    
+                    mouse_ben_continue.setVisible(False)
+                    event.clearEvents()
             
             # Update previous partner for next iteration
             previous_partner_reliable = current_partner_reliable
