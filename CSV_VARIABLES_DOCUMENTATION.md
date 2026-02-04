@@ -198,9 +198,10 @@ The localizer task generates one CSV file:
 ### `ai_reliability`
 - **Type**: Float (0.0 to 1.0)
 - **Description**: AI's accuracy rate/reliability for this trial
-  - `0.75` = Reliable partner (Amy in blocks 1 and 4)
-  - `0.25` = Unreliable partner (Ben in blocks 2, 3, and 5)
+  - `0.75` = Reliable partner (Amy in blocks 1 and 4) - exactly 75% accurate using deterministic threshold
+  - `0.25` = Unreliable partner (Ben in blocks 2, 3, and 5) - exactly 25% accurate using deterministic threshold
   - `0.5` = Practice block (50% reliability)
+- **Note**: Accuracy rates are deterministic, not probabilistic. Reliable blocks use a hard threshold ensuring exactly 3 out of every 4 trials are correct. Unreliable blocks ensure exactly 1 out of every 4 trials is correct.
 - **Example**: `0.75`, `0.25`, `0.5`
 
 ---
@@ -375,11 +376,16 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
     - Trial 3: Full trial with participant, AI, and switch/stay decision. `ai_reliability` is `0.5` (50% for practice block)
   - All practice trials have `block_start_time`, `block_end_time`, `block_duration_seconds`, and `block_duration_minutes` set to `None` (practice block timing not tracked)
 - **Block structure**:
-  - Block 1: Reliable (0.75 accuracy), Participant first
-  - Block 2: Unreliable (0.25 accuracy), Participant first
-  - Block 3: Unreliable (0.25 accuracy), Participant first
-  - Block 4: Reliable (0.75 accuracy), Participant first
-  - Block 5: Unreliable (0.25 accuracy), Participant first
+  - Block 1: Reliable (exactly 0.75 accuracy, deterministic), Participant first
+  - Block 2: Unreliable (exactly 0.25 accuracy, deterministic), Participant first
+  - Block 3: Unreliable (exactly 0.25 accuracy, deterministic), Participant first
+  - Block 4: Reliable (exactly 0.75 accuracy, deterministic), Participant first
+  - Block 5: Unreliable (exactly 0.25 accuracy, deterministic), Participant first
+  
+  **AI Accuracy Implementation**: The AI collaborator uses deterministic thresholds to ensure exact accuracy rates:
+  - **75% accuracy (Reliable blocks)**: Exactly 3 out of every 4 trials are correct (positions 1, 2, 3 in each group of 4)
+  - **25% accuracy (Unreliable blocks)**: Exactly 1 out of every 4 trials is correct (position 1 in each group of 4)
+  - In a 20-trial block, reliable blocks will have exactly 15 correct trials, unreliable blocks will have exactly 5 correct trials
 - **Turn-taking**: Participant always goes first in all blocks
 - **Study phase timing**:
   - Images are shown for **1.0 second each** (fixed duration, no jitter)

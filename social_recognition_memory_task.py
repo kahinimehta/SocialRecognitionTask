@@ -2215,12 +2215,26 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
 #  AI COLLABORATOR
 # =========================
 class AICollaborator:
-    def __init__(self, accuracy_rate=0.5):
+    def __init__(self, accuracy_rate=0.5, num_trials=20):
         """
         AI collaborator for recognition memory task
-        accuracy_rate: Overall accuracy (0.5 = 50%)
+        accuracy_rate: Overall accuracy (0.5 = 50%, 0.75 = 75%, 0.25 = 25%)
+        num_trials: Number of trials in the block (default 20)
         """
         self.accuracy_rate = accuracy_rate
+        self.num_trials = num_trials
+        
+        # Pre-generate randomized sequence of correct/incorrect trials
+        # This ensures deterministic accuracy while randomizing the order
+        num_correct = int(round(accuracy_rate * num_trials))
+        num_incorrect = num_trials - num_correct
+        
+        # Create list: True for correct, False for incorrect
+        self.correctness_sequence = [True] * num_correct + [False] * num_incorrect
+        random.shuffle(self.correctness_sequence)  # Randomize the order
+        
+        # Track current trial index
+        self.trial_index = 0
     
     def generate_rt(self):
         """Generate AI RT from log-normal distribution"""
@@ -2262,11 +2276,14 @@ class AICollaborator:
     
     def make_decision(self, is_studied, trial_type):
         """
-        Make AI decision
+        Make AI decision with deterministic accuracy and randomized order
         is_studied: True if this is a studied item, False if lure
         trial_type: "studied" or "lure"
         
-        AI accuracy: roughly 50% correct on items
+        Uses pre-generated randomized sequence to ensure exactly the target accuracy rate
+        while randomizing which trials are correct/incorrect:
+        - 75% accuracy: exactly 15 out of 20 trials correct (randomized order)
+        - 25% accuracy: exactly 5 out of 20 trials correct (randomized order)
         """
         # Ground truth: studied items should be rated OLD, lures should be rated NEW
         if is_studied:
@@ -2274,9 +2291,14 @@ class AICollaborator:
         else:
             ground_truth = 1.0  # NEW
         
-        # Determine if AI should be correct (50% chance for each type)
-        # This ensures 50% correct on studied items AND 50% correct on lures
-        should_be_correct = random.random() < self.accuracy_rate
+        # Get correctness from pre-generated randomized sequence
+        if self.trial_index < len(self.correctness_sequence):
+            should_be_correct = self.correctness_sequence[self.trial_index]
+            self.trial_index += 1
+        else:
+            # Fallback if we exceed the sequence (shouldn't happen, but safety check)
+            should_be_correct = random.random() < self.accuracy_rate
+        
         ai_correct = should_be_correct
         
         # Generate confidence
@@ -4423,7 +4445,7 @@ def run_experiment():
     # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3) to match regular task
     
     # AI rates first (all the way OLD)
-    ai_collaborator = AICollaborator(accuracy_rate=0.5)
+    ai_collaborator = AICollaborator(accuracy_rate=0.5, num_trials=3)  # Practice block has 3 trials
     ai_confidence_t2 = 0.0  # All the way OLD
     ai_rt_t2 = 2.0  # Fixed RT for practice
     ai_correct_t2 = True  # It's OLD (we're showing it)
@@ -5320,7 +5342,7 @@ def run_experiment():
             previous_partner_reliable = current_partner_reliable
             
             # Create AI collaborator with block-specific accuracy
-            block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy)
+            block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy, num_trials=20)  # Experimental blocks have 20 trials
             turn_order = "Participant first" if participant_first else "AI first"
             reliability = "Reliable" if block_accuracy == 0.75 else "Unreliable"
             print(f"Block {block_num}: {turn_order}, AI {reliability} (accuracy = {block_accuracy*100:.0f}%)")

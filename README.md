@@ -19,7 +19,7 @@ Main PsychoPy script for the entire experiment.
   - 5 experimental blocks (20 trials each)  
   - Study phase → Recognition phase → Switch/Stay decision → Outcome feedback  
   - AI turn-taking (participant-first vs. AI-first)  
-  - AI accuracy manipulation (reliable ~75% vs. unreliable ~25%)  
+  - AI accuracy manipulation (reliable exactly 75% vs. unreliable exactly 25% using deterministic thresholds)  
   - Leaderboard screen
 - Saves trial-level and block-level data as CSV files.
 

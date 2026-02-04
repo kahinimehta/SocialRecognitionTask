@@ -134,14 +134,20 @@ Each of the 20 trials follows this structure:
 
 ### AI Accuracy Manipulation
 
-- **Reliable blocks**: ~75% correct (Blocks 1 and 4)
-- **Unreliable blocks**: ~25% correct (Blocks 2, 3, and 5)
+- **Reliable blocks**: Exactly 75% correct (Blocks 1 and 4)
+  - Uses deterministic threshold: exactly 3 out of every 4 trials are correct
+  - In a 20-trial block, exactly 15 trials will be correct
+- **Unreliable blocks**: Exactly 25% correct (Blocks 2, 3, and 5)
+  - Uses deterministic threshold: exactly 1 out of every 4 trials is correct
+  - In a 20-trial block, exactly 5 trials will be correct
 - **Block structure**:
   - Block 1: Reliable (0.75), Participant first
   - Block 2: Unreliable (0.25), Participant first
   - Block 3: Unreliable (0.25), Participant first
   - Block 4: Reliable (0.75), Participant first
   - Block 5: Unreliable (0.25), Participant first
+
+**Implementation details**: The AI collaborator uses a hard threshold system to ensure deterministic accuracy rates. For reliable blocks (75% accuracy), trials are correct in positions 1, 2, and 3 of each group of 4 trials. For unreliable blocks (25% accuracy), only position 1 of each group of 4 trials is correct. This ensures consistent, predictable accuracy across all blocks.
 
 ### Collaboration Decision (STAY/SWITCH)
 
