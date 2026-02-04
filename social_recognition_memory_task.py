@@ -3963,7 +3963,7 @@ def run_experiment():
     win.flip()
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1 = get_slider_response(
-        "CLICK once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\").",
+        "CLICK once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). All the way to either side indicates COMPLETE CONFIDENCE.",
         image_stim=green_circle, trial_num=1, max_trials=3, timeout=999999.0  # No timeout in practice
     )
     
@@ -4311,6 +4311,7 @@ def run_experiment():
     show_instructions(
         "We have 5 collections with 20 images each to get through.\n",
         "Because the exhibition is so soon, you will have a time limit on each image decision!",
+        header_color='black',
         body_color='black'
     )
 
