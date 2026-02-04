@@ -211,67 +211,62 @@ def get_input_method():
                 mouse_buttons = mouse_temp.getPressed()
                 mouseloc = mouse_temp.getPos()
                 
+                # Convert mouse position to floats
+                try:
+                    if hasattr(mouseloc, '__len__') and len(mouseloc) >= 2:
+                        mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
+                    else:
+                        mouseloc_x, mouseloc_y = 0.0, 0.0
+                except (TypeError, ValueError):
+                    mouseloc_x, mouseloc_y = 0.0, 0.0
+                
+                # Get button positions and sizes
+                hit_margin = 150/720*0.75
+                button1_x, button1_y = -320/720*0.6, -80/720*0.6
+                button1_width, button1_height = 520/720*0.75, 180/720*0.75
+                button2_x, button2_y = 320/720*0.6, -80/720*0.6
+                button2_width, button2_height = 520/720*0.75, 180/720*0.75
+                
+                # Check if mouse is over buttons
+                on_button1 = (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
+                              button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin)
+                on_button2 = (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
+                              button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin)
+                
                 # Check for button release (was pressed, now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
                     # Button was released - check if it was over a button
-                    # Check button 1 (TOUCH SCREEN)
-                    try:
-                        if button1.contains(mouseloc):
-                            USE_TOUCH_SCREEN = True
-                            selected = 'touch'
-                            button1.fillColor = 'green'
-                            draw_selection_screen()
-                            core.wait(0.05)
-                            break
-                    except Exception as e:
-                        # Fallback to manual calculation
-                        print(f"ERROR in button1.contains() fallback: {repr(e)}", file=sys.stderr)
-                        traceback.print_exc()
-                        try:
-                            mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
-                        except:
-                            mouseloc_x, mouseloc_y = 0.0, 0.0
-                        hit_margin = 150/720*0.75
-                        button1_x, button1_y = -320/720*0.6, -80/720*0.6
-                        button1_width, button1_height = 520/720*0.75, 180/720*0.75
-                        if (button1_x - button1_width/2 - hit_margin <= mouseloc_x <= button1_x + button1_width/2 + hit_margin and
-                            button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin):
-                            USE_TOUCH_SCREEN = True
-                            selected = 'touch'
-                            button1.fillColor = 'green'
-                            draw_selection_screen()
-                            core.wait(0.05)
-                            break
-                    
-                    # Check button 2
-                    if selected is None:
-                        try:
-                            if button2.contains(mouseloc):
-                                USE_TOUCH_SCREEN = False
-                                selected = 'click'
-                                button2.fillColor = 'blue'
-                                draw_selection_screen()
-                                core.wait(0.05)
-                                break
-                        except Exception as e:
-                            # Fallback to manual calculation
-                            print(f"ERROR in button2.contains() fallback: {repr(e)}", file=sys.stderr)
-                            traceback.print_exc()
-                            try:
-                                mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
-                            except:
-                                mouseloc_x, mouseloc_y = 0.0, 0.0
-                            hit_margin = 150/720*0.75
-                            button2_x, button2_y = 320/720*0.6, -80/720*0.6
-                            button2_width, button2_height = 520/720*0.75, 180/720*0.75
-                            if (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
-                                button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin):
-                                USE_TOUCH_SCREEN = False
-                                selected = 'click'
-                                button2.fillColor = 'blue'
-                                draw_selection_screen()
-                                core.wait(0.05)
-                                break
+                    if on_button1:
+                        USE_TOUCH_SCREEN = True
+                        selected = 'touch'
+                        button1.fillColor = 'green'
+                        draw_selection_screen()
+                        core.wait(0.05)
+                        break
+                    elif on_button2:
+                        USE_TOUCH_SCREEN = False
+                        selected = 'click'
+                        button2.fillColor = 'blue'
+                        draw_selection_screen()
+                        core.wait(0.05)
+                        break
+                
+                # Also check for button press (for touch screens, press and release happen quickly)
+                if mouse_buttons[0] and not prev_mouse_buttons[0]:
+                    if on_button1:
+                        USE_TOUCH_SCREEN = True
+                        selected = 'touch'
+                        button1.fillColor = 'green'
+                        draw_selection_screen()
+                        core.wait(0.05)
+                        break
+                    elif on_button2:
+                        USE_TOUCH_SCREEN = False
+                        selected = 'click'
+                        button2.fillColor = 'blue'
+                        draw_selection_screen()
+                        core.wait(0.05)
+                        break
                 
                 # Update previous button state
                 prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
@@ -348,39 +343,25 @@ def get_input_method():
                         # Position hasn't changed, continue loop
                         pass
                     else:
-                        # Position has changed - check if touch is within button
-                        try:
-                            if continue_button.contains(mouseloc_cont):
-                                if t_cont > minRT_cont:
-                                    continue_click_time = time.time()  # Record exact time of click
-                                    clicked = True
-                                    break
-                                else:
-                                    mouserec_cont = mouse_temp.getPos()
-                                    try:
-                                        mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-                                    except (ValueError, TypeError, IndexError) as e:
-                                        print(f"Warning: Could not parse mouse position after continue button check: {e}", file=sys.stderr)
-                                        mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
-                        except (AttributeError, RuntimeError) as e:
-                            # Fallback to manual calculation if .contains() fails
-                            print(f"Warning: continue_button.contains() failed, using fallback: {e}", file=sys.stderr)
-                            hit_margin = 50/720*0.75
-                            button_x, button_y = 0.0, -150.0/720*0.6
-                            button_width, button_height = 300/720*0.75, 80/720*0.75
-                            if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
-                                button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
-                                if t_cont > minRT_cont:
-                                    continue_click_time = time.time()  # Record exact time of click
-                                    clicked = True
-                                    break
-                                else:
-                                    mouserec_cont = mouse_temp.getPos()
-                                    try:
-                                        mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-                                    except (ValueError, TypeError, IndexError) as e:
-                                        print(f"Warning: Could not parse mouse position in continue button fallback: {e}", file=sys.stderr)
-                                        mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+                    # Position has changed - check if touch is within button using position calculation
+                    hit_margin = 50/720*0.75
+                    button_x, button_y = 0.0, -150.0/720*0.6
+                    button_width, button_height = 300/720*0.75, 80/720*0.75
+                    on_button = (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
+                                 button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin)
+                    
+                    if on_button:
+                        if t_cont > minRT_cont:
+                            continue_click_time = time.time()  # Record exact time of click
+                            clicked = True
+                            break
+                        else:
+                            mouserec_cont = mouse_temp.getPos()
+                            try:
+                                mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+                            except (ValueError, TypeError, IndexError) as e:
+                                print(f"Warning: Could not parse mouse position after continue button check: {e}", file=sys.stderr)
+                                mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
                 except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                     # Log specific errors instead of silently ignoring
                     print(f"Warning: Error in continue button loop: {e}", file=sys.stderr)
@@ -422,30 +403,36 @@ def get_input_method():
                     mouse_buttons_cont = mouse_temp.getPressed()
                     mouseloc_cont = mouse_temp.getPos()
                     
+                    # Convert mouse position to floats
+                    try:
+                        if hasattr(mouseloc_cont, '__len__') and len(mouseloc_cont) >= 2:
+                            mouseloc_cont_x, mouseloc_cont_y = float(mouseloc_cont[0]), float(mouseloc_cont[1])
+                        else:
+                            mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
+                    except (TypeError, ValueError):
+                        mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
+                    
+                    # Get button bounds
+                    hit_margin = 50/720*0.75
+                    button_x, button_y = 0.0, -150.0/720*0.6
+                    button_width, button_height = 300/720*0.75, 80/720*0.75
+                    
+                    # Check if mouse is over button
+                    on_button = (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
+                                 button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin)
+                    
                     # Check for button release (was pressed, now released)
                     if prev_mouse_buttons_cont[0] and not mouse_buttons_cont[0]:
-                        # Button was released - check if it was over the continue button
-                        try:
-                            if continue_button.contains(mouseloc_cont):
-                                continue_click_time = time.time()  # Record exact time of click
-                                clicked = True
-                                break
-                        except Exception as e:
-                            # Fallback to manual calculation
-                            print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
-                            traceback.print_exc()
-                            try:
-                                mouseloc_cont_x, mouseloc_cont_y = float(mouseloc_cont[0]), float(mouseloc_cont[1])
-                            except:
-                                mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
-                            hit_margin = 50/720*0.75
-                            button_x, button_y = 0.0, -150.0/720*0.6
-                            button_width, button_height = 300/720*0.75, 80/720*0.75
-                            if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
-                                button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
-                                continue_click_time = time.time()  # Record exact time of click
-                                clicked = True
-                                break
+                        if on_button:
+                            continue_click_time = time.time()  # Record exact time of click
+                            clicked = True
+                            break
+                    
+                    # Also check for button press (for touch screens, press and release happen quickly)
+                    if mouse_buttons_cont[0] and on_button and not prev_mouse_buttons_cont[0]:
+                        continue_click_time = time.time()  # Record exact time of click
+                        clicked = True
+                        break
                     
                     # Update previous button state
                     prev_mouse_buttons_cont = mouse_buttons_cont.copy() if hasattr(mouse_buttons_cont, 'copy') else list(mouse_buttons_cont)
@@ -1754,182 +1741,116 @@ def get_participant_id():
                 # Position hasn't changed, just redraw
                 redraw()
             else:
-                # Position has changed - check if touch is within any button
+                # Position has changed - check if touch is within any button using position calculation
                 # Check keyboard buttons first
+                hit_margin = 0.08
                 for button, button_text, char in keyboard_buttons:
                     try:
-                        if button.contains(mouseloc):
-                            if t > minRT:  # Minimum time has passed
-                                input_id += char
-                                button.fillColor = 'lightgreen'
-                                redraw()
-                                core.wait(0.05)
-                                button.fillColor = 'lightgray'
-                                redraw()
-                                clicked = True
-                                mouserec = mouse.getPos()  # Update reference position
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                                clock.reset()  # Reset timer
-                                break
-                            else:
-                                mouserec = mouse.getPos()  # Update reference position
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except Exception as e:
-                        # Fallback to manual calculation
-                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
-                        traceback.print_exc()
-                        hit_margin = 0.08
                         button_x, button_y = button.pos
                         button_width, button_height = button.width, button.height
-                        if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
-                            if t > minRT:
-                                input_id += char
-                                button.fillColor = 'lightgreen'
-                                redraw()
-                                core.wait(0.05)
-                                button.fillColor = 'lightgray'
-                                redraw()
-                                clicked = True
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                                clock.reset()
-                                break
-                            else:
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                    except:
+                        continue
+                    
+                    on_button = (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
+                                 button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin)
+                    
+                    if on_button:
+                        if t > minRT:  # Minimum time has passed
+                            input_id += char
+                            button.fillColor = 'lightgreen'
+                            redraw()
+                            core.wait(0.05)
+                            button.fillColor = 'lightgray'
+                            redraw()
+                            clicked = True
+                            mouserec = mouse.getPos()  # Update reference position
+                            try:
+                                mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                            except:
+                                mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                            clock.reset()  # Reset timer
+                            break
+                        else:
+                            mouserec = mouse.getPos()  # Update reference position
+                            try:
+                                mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                            except:
+                                mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                 
                 if not clicked:
-                    # Check backspace button
+                    # Check backspace button using position calculation
+                    hit_margin = 0.08
                     try:
-                        if backspace_button.contains(mouseloc):
-                            if t > minRT:
-                                input_id = input_id[:-1] if input_id else ""
-                                backspace_button.fillColor = 'red'
-                                redraw()
-                                core.wait(0.05)
-                                backspace_button.fillColor = 'lightcoral'
-                                redraw()
-                                clicked = True
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                                clock.reset()
-                            else:
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except Exception as e:
-                        # Fallback to manual calculation
-                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
-                        traceback.print_exc()
-                        hit_margin = 0.08
                         button_x, button_y = backspace_button.pos
                         button_width, button_height = backspace_button.width, backspace_button.height
-                        if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
-                            if t > minRT:
-                                input_id = input_id[:-1] if input_id else ""
-                                backspace_button.fillColor = 'red'
+                    except:
+                        button_x, button_y = 0.0, 0.0
+                        button_width, button_height = 0.2, 0.1
+                    
+                    on_backspace = (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
+                                    button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin)
+                    
+                    if on_backspace:
+                        if t > minRT:
+                            input_id = input_id[:-1] if input_id else ""
+                            backspace_button.fillColor = 'red'
+                            redraw()
+                            core.wait(0.05)
+                            backspace_button.fillColor = 'lightcoral'
+                            redraw()
+                            clicked = True
+                            mouserec = mouse.getPos()
+                            try:
+                                mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                            except:
+                                mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                            clock.reset()
+                        else:
+                            mouserec = mouse.getPos()
+                            try:
+                                mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                            except:
+                                mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                
+                if not clicked:
+                    # Check continue button using position calculation
+                    try:
+                        button_x, button_y = continue_button.pos
+                        button_width, button_height = continue_button.width, continue_button.height
+                    except:
+                        button_x, button_y = 0.0, 0.0
+                        button_width, button_height = 0.3, 0.1
+                    
+                    on_continue = (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
+                                    button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin)
+                    
+                    if on_continue:
+                        if t > minRT:
+                            if input_id.strip():
+                                continue_button.fillColor = 'green'
                                 redraw()
                                 core.wait(0.05)
-                                backspace_button.fillColor = 'lightcoral'
+                                mouse.setVisible(False)
+                                event.clearEvents()
+                                break  # Break from loop, will return below
+                            else:
+                                continue_button.fillColor = 'red'
                                 redraw()
-                                clicked = True
+                                core.wait(0.1)
+                                continue_button.fillColor = 'lightgreen'
+                                redraw()
                                 mouserec = mouse.getPos()
                                 try:
                                     mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
                                 except:
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                                 clock.reset()
-                            else:
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                
-                if not clicked:
-                    # Check continue button
-                    try:
-                        if continue_button.contains(mouseloc):
-                            if t > minRT:
-                                if input_id.strip():
-                                    continue_button.fillColor = 'green'
-                                    redraw()
-                                    core.wait(0.05)
-                                    mouse.setVisible(False)
-                                    event.clearEvents()
-                                    break  # Break from loop, will return below
-                                else:
-                                    continue_button.fillColor = 'red'
-                                    redraw()
-                                    core.wait(0.1)
-                                    continue_button.fillColor = 'lightgreen'
-                                    redraw()
-                                    mouserec = mouse.getPos()
-                                    try:
-                                        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                    except:
-                                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                                    clock.reset()
-                            else:
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                    except Exception as e:
-                        # Fallback to manual calculation
-                        print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
-                        traceback.print_exc()
-                        hit_margin = 0.08
-                        button_x, button_y = continue_button.pos
-                        button_width, button_height = continue_button.width, continue_button.height
-                        if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
-                            button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
-                            if t > minRT:
-                                if input_id.strip():
-                                    continue_button.fillColor = 'green'
-                                    redraw()
-                                    core.wait(0.05)
-                                    mouse.setVisible(False)
-                                    event.clearEvents()
-                                    break
-                                else:
-                                    continue_button.fillColor = 'red'
-                                    redraw()
-                                    core.wait(0.1)
-                                    continue_button.fillColor = 'lightgreen'
-                                    redraw()
-                                    mouserec = mouse.getPos()
-                                    try:
-                                        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                    except:
-                                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                                    clock.reset()
-                            else:
-                                mouserec = mouse.getPos()
-                                try:
-                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                                except:
-                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                        else:
+                            mouserec = mouse.getPos()
+                            try:
+                                mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                            except:
+                                mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
             
             # Redraw every frame
             redraw()
@@ -3006,15 +2927,20 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 decision_commit_time = time.time()
                 break
         
-        # Highlight buttons on hover
-        if stay_clicked:
-            stay_button.fillColor = 'lightgreen'
+        # Highlight buttons on hover (only for click mode, not touch screen)
+        if not USE_TOUCH_SCREEN:
+            if stay_clicked:
+                stay_button.fillColor = 'lightgreen'
+            else:
+                stay_button.fillColor = 'lightblue'
+            
+            if switch_clicked:
+                switch_button.fillColor = 'lightgreen'
+            else:
+                switch_button.fillColor = 'lightcoral'
         else:
+            # Touch screen mode: no hover, just default colors
             stay_button.fillColor = 'lightblue'
-        
-        if switch_clicked:
-            switch_button.fillColor = 'lightgreen'
-        else:
             switch_button.fillColor = 'lightcoral'
         
         prev_mouse_buttons = mouse_buttons.copy()
@@ -3835,11 +3761,13 @@ def run_experiment():
                     clicked = True
                     break
             
-            if on_button:
-                continue_button_welcome.fillColor = 'lightcyan'
-            else:
-                continue_button_welcome.fillColor = 'lightblue'
-            draw_screen()
+            # Hover effect only for click mode (not touch screen)
+            if not USE_TOUCH_SCREEN:
+                if on_button:
+                    continue_button_welcome.fillColor = 'lightcyan'
+                else:
+                    continue_button_welcome.fillColor = 'lightblue'
+                draw_screen()
             
             prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
         except (AttributeError, Exception):
@@ -4504,7 +4432,7 @@ def run_experiment():
                              "Amy has stepped away to prepare for her exhibition.\n\n"
                              "While she's gone, you'll be working with Ben—another assistant in the studio.\n\n"
                              "Ben is helping sort the same set of images, but he has trained differently than you.\n\n"
-                             "As always, focus on making the best judgment you can.",
+                             "As always, focus on making the best judgment you can. Click to start sorting!",
                         color='black',
                         height=0.04*0.75,
                         pos=(0, 0.2),  # Move text up
@@ -4608,11 +4536,13 @@ def run_experiment():
                                     clicked = True
                                     break
                             
-                            if on_button:
-                                continue_button_ben.fillColor = 'lightcyan'
-                            else:
-                                continue_button_ben.fillColor = 'lightblue'
-                            draw_screen()
+                            # Hover effect only for click mode (not touch screen)
+                            if not USE_TOUCH_SCREEN:
+                                if on_button:
+                                    continue_button_ben.fillColor = 'lightcyan'
+                                else:
+                                    continue_button_ben.fillColor = 'lightblue'
+                                draw_screen()
                             
                             prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
                         except (AttributeError, Exception):
