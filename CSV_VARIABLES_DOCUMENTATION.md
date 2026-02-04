@@ -178,15 +178,30 @@ The localizer task generates one CSV file:
 - **Example**: `1764818198.338135`, `None`
 
 ### `ai_slider_display_time`
-- **Type**: Float (Unix timestamp)
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when AI's slider handle appears at the final position (when the slider value is visually set)
+- **Note**: `None` for practice trial 1 (no AI response)
+- **Example**: `1764818200.155891`, `None`
+
+### `ai_final_slider_display_time`
+- **Type**: Float (Unix timestamp) or None
 - **Description**: Time when AI's submit button was clicked in the animation (visual commit time)
-- **Example**: `1764818200.155891`
+- **Note**: `None` for practice trial 1 (no AI response)
+- **Example**: `1764818201.255891`, `None`
 
 ### `ai_correct`
 - **Type**: Boolean or None
 - **Description**: True if AI's decision was correct (matches ground truth), False otherwise
 - **Note**: `None` for practice trial 1 (no AI response)
 - **Example**: `True`, `False`, `None`
+
+### `ai_reliability`
+- **Type**: Float (0.0 to 1.0)
+- **Description**: AI's accuracy rate/reliability for this trial
+  - `0.75` = Reliable partner (Amy in blocks 1 and 4)
+  - `0.25` = Unreliable partner (Ben in blocks 2, 3, and 5)
+  - `0.5` = Practice block (50% reliability)
+- **Example**: `0.75`, `0.25`, `0.5`
 
 ---
 
@@ -355,9 +370,9 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
   - Contains 3 practice trials with simplified stimuli (colored shapes)
   - All practice trials include the same fields as regular trials
   - Fields that don't apply to specific practice trials are set to `None` or `False`:
-    - Trial 1: No AI response (`ai_slider_value`, `ai_rt`, `ai_decision_time`, `ai_slider_display_time`, `ai_correct` all `None`), no switch/stay decision (all switch fields `None`), `euclidean_ai_to_truth` and `euclidean_participant_to_ai` are `None`
-    - Trial 2: Has AI response, but no switch/stay decision (switch fields `None`)
-    - Trial 3: Full trial with participant, AI, and switch/stay decision
+    - Trial 1: No AI response (`ai_slider_value`, `ai_rt`, `ai_decision_time`, `ai_slider_display_time`, `ai_final_slider_display_time`, `ai_correct` all `None`), no switch/stay decision (all switch fields `None`), `euclidean_ai_to_truth` and `euclidean_participant_to_ai` are `None`. `ai_reliability` is `0.5` (50% for practice block)
+    - Trial 2: Has AI response, but no switch/stay decision (switch fields `None`). `ai_reliability` is `0.5` (50% for practice block)
+    - Trial 3: Full trial with participant, AI, and switch/stay decision. `ai_reliability` is `0.5` (50% for practice block)
   - All practice trials have `block_start_time`, `block_end_time`, `block_duration_seconds`, and `block_duration_minutes` set to `None` (practice block timing not tracked)
 - **Block structure**:
   - Block 1: Reliable (0.75 accuracy), Participant first

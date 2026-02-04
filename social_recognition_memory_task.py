@@ -2009,7 +2009,9 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     if trial_num is not None:
         trial_text = visual.TextStim(win, text=f"Image {trial_num} of {max_trials}", color='gray', height=0.03*0.75, pos=(0, 0.4*0.6))
     
-    prompt = visual.TextStim(win, text=prompt_text, color='black', height=0.05*0.75, pos=(0, 0.3*0.6))
+    # Use smaller text height for longer instructions (practice trials)
+    text_height = 0.04*0.75 if len(prompt_text) > 100 else 0.05*0.75
+    prompt = visual.TextStim(win, text=prompt_text, color='black', height=text_height, pos=(0, 0.3*0.6), wrapWidth=1.4)
     
     # Submit button (positioned below slider)
     submit_button = visual.Rect(
@@ -2401,7 +2403,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         
         # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
-        ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name)
+        ai_slider_display_time, ai_final_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name)
         
         # Show both responses
         show_both_responses(participant_value, ai_confidence, participant_first=True, partner_name=partner_name)
@@ -2470,7 +2472,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         
         # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
-        ai_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name)
+        ai_slider_display_time, ai_final_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name)
         
         # P1: Participant responds (image stays on screen)
         participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time = get_slider_response(
@@ -2521,7 +2523,9 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "ai_rt": ai_rt,
             "ai_decision_time": ai_decision_time,
             "ai_slider_display_time": ai_slider_display_time,
+            "ai_final_slider_display_time": ai_final_slider_display_time,
             "ai_correct": ai_correct,
+            "ai_reliability": ai_collaborator.accuracy_rate,
             "switch_stay_decision": switch_decision,
             "switch_rt": switch_rt,
             "switch_commit_time": switch_commit_time,
@@ -2606,7 +2610,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
             core.wait(0.05)
     
     # Show tap animation: create a tap indicator (ripple/highlight) at tap position
-    slider_display_time = time.time()
+    tap_time = time.time()
     tap_indicator = visual.Circle(
         win,
         radius=0.03,
@@ -2638,6 +2642,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     
     # Handle appears at target position (tap completed)
     partner_handle.pos = (target_x, slider_y_pos)
+    slider_display_time = time.time()  # Time when handle appears at final position
     
     # Brief visual feedback: handle appears with slight highlight
     for i in range(2):
@@ -2664,6 +2669,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
         core.wait(remaining_rt)
     
     # Animate clicking submit button (highlight button)
+    final_slider_display_time = time.time()  # Time when submit button is clicked
     for i in range(3):
         submit_button.fillColor = 'darkgray'
         if image_stim:
@@ -2709,7 +2715,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     win.flip()
     core.wait(0.5)
     
-    return slider_display_time
+    return slider_display_time, final_slider_display_time
 
 def show_both_responses(participant_value, partner_value, participant_first, partner_name="Amy"):
     """Show both participant and partner responses with sliders"""
@@ -3709,21 +3715,6 @@ def run_experiment():
     practice_trials = []
     practice_points = 0.0
     
-    # Welcome message with Amy's story and picture
-    welcome_text = visual.TextStim(
-        win,
-        text="Welcome.\n\n"
-             "You've just joined a small photography studio.\n\n"
-             "Amy, a professional photographer, is preparing images for an upcoming exhibition.\n\n"
-             "She needs help sorting through large sets of images and deciding which ones truly belong.\n\n"
-             "Before you begin the real work, you'll complete a short training round to get familiar with the process.\n\n"
-             "For now, focus on the items you're about to see.",
-        color='black',
-        height=0.04*0.75,
-        pos=(0, 0.0),
-        wrapWidth=1.2
-    )
-    
     # Load and display Amy's picture (maintain aspect ratio to prevent stretching)
     amy_path = os.path.join(STIMULI_DIR, "Amy.png")
     if os.path.exists(amy_path):
@@ -3766,14 +3757,14 @@ def run_experiment():
         height=0.1*0.75,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0.4, -0.4)  # Bottom right
+        pos=(0.4, -0.3)  # Bottom right, moved up slightly
     )
     continue_text_welcome = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05*0.75,
-        pos=(0.4, -0.4)  # Bottom right
+        pos=(0.4, -0.3)  # Bottom right, moved up slightly
     )
     
     def redraw_welcome_1():
@@ -3810,7 +3801,7 @@ def run_experiment():
             except (TypeError, ValueError):
                 mouse_x, mouse_y = 0.0, 0.0
             
-            button_x, button_y = 0.4, -0.4  # Bottom right position
+            button_x, button_y = 0.4, -0.3  # Bottom right position, moved up slightly
             button_width, button_height = 0.3*0.75, 0.1*0.75
             hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
             
@@ -3855,7 +3846,7 @@ def run_experiment():
     welcome_text_2 = visual.TextStim(
         win,
         text="Before you begin the real work, you'll complete a short training round to get familiar with the process.\n\n"
-             "For now, focus on the items you're about to see.",
+             "For now, simply memorize the shapes you're about to see. Click continue when you're ready to get started!",
         color='black',
         height=0.04*0.75,
         pos=(0, 0.0),
@@ -3940,7 +3931,7 @@ def run_experiment():
     # Transition screen before recognition phase starts
     transition_text = visual.TextStim(
         win,
-        text="Now let's see how well you recall the objects you've seen!",
+        text="Now let's see how well you recall the shapes you've seen!",
         color='black',
         height=0.06*0.75,
         pos=(0, 0),
@@ -3963,8 +3954,9 @@ def run_experiment():
     win.flip()
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1 = get_slider_response(
-        "CLICK once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). All the way to either side indicates COMPLETE CONFIDENCE.",
-        image_stim=green_circle, trial_num=1, max_trials=3, timeout=999999.0  # No timeout in practice
+        "CLICK once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
+        "How close you are to either side indicates how CONFIDENT you are in your answer, but whichever side you are closer to indicates your ultimate answer.",
+        image_stim=green_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
     # Show outcome for trial 1
@@ -4004,7 +3996,9 @@ def run_experiment():
         'ai_rt': None,
         'ai_decision_time': None,
         'ai_slider_display_time': None,
+        'ai_final_slider_display_time': None,
         'ai_correct': None,
+        'ai_reliability': 0.5,  # Practice block uses 50% reliability
         'switch_stay_decision': None,
         'switch_rt': None,
         'switch_commit_time': None,
@@ -4059,18 +4053,19 @@ def run_experiment():
     
     # Show AI rating (Amy in practice)
     try:
-        ai_slider_display_time_t2 = show_animated_partner_slider(ai_confidence_t2, ai_rt_t2, image_stim=red_circle, partner_name="Amy")
+        ai_slider_display_time_t2, ai_final_slider_display_time_t2 = show_animated_partner_slider(ai_confidence_t2, ai_rt_t2, image_stim=red_circle, partner_name="Amy")
     except Exception as e:
         print(f"Warning: Error in show_animated_partner_slider: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc(file=sys.stderr)
         # Continue anyway - just skip the animation
         ai_slider_display_time_t2 = time.time()
+        ai_final_slider_display_time_t2 = time.time()
     
     # Participant rates
     participant_value_t2, participant_rt_t2, participant_commit_time_t2, participant_slider_timeout_t2, participant_slider_stop_time_t2 = get_slider_response(
         "Rate your memory: OLD or NEW?",
-        image_stim=red_circle, trial_num=2, max_trials=3, timeout=999999.0  # No timeout in practice
+        image_stim=red_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
     # Show outcome for trial 2
@@ -4111,7 +4106,9 @@ def run_experiment():
         'ai_rt': ai_rt_t2,
         'ai_decision_time': ai_decision_time_t2,
         'ai_slider_display_time': ai_slider_display_time_t2,
+        'ai_final_slider_display_time': ai_final_slider_display_time_t2,
         'ai_correct': ai_correct_t2,
+        'ai_reliability': 0.5,  # Practice block uses 50% reliability
         'switch_stay_decision': None,
         'switch_rt': None,
         'switch_commit_time': None,
@@ -4156,7 +4153,7 @@ def run_experiment():
     # Trial 3: Full trial with participant, AI, switch/stay
     # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3)
     participant_value_t3, participant_rt_t3, participant_commit_time_t3, participant_slider_timeout_t3, participant_slider_stop_time_t3 = get_slider_response(
-        "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=3, max_trials=3, timeout=999999.0  # No timeout in practice
+        "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
     # AI rates (all the way OLD) - but it's actually NEW (square), so AI is wrong (Amy in practice)
@@ -4165,13 +4162,14 @@ def run_experiment():
     ai_correct_t3 = False  # It's actually NEW (square), so AI is incorrect
     ground_truth_t3 = 1.0  # NEW
     try:
-        ai_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Amy")
+        ai_slider_display_time_t3, ai_final_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Amy")
     except Exception as e:
         print(f"Warning: Error in show_animated_partner_slider: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc(file=sys.stderr)
         # Continue anyway - just skip the animation
         ai_slider_display_time_t3 = time.time()
+        ai_final_slider_display_time_t3 = time.time()
     
     # Show both responses
     show_both_responses(participant_value_t3, ai_confidence_t3, participant_first=True)
@@ -4230,7 +4228,9 @@ def run_experiment():
         'ai_rt': ai_rt_t3,
         'ai_decision_time': ai_decision_time_t3,
         'ai_slider_display_time': ai_slider_display_time_t3,
+        'ai_final_slider_display_time': ai_final_slider_display_time_t3,
         'ai_correct': ai_correct_t3,
+        'ai_reliability': 0.5,  # Practice block uses 50% reliability
         'switch_stay_decision': switch_decision_t3,
         'switch_rt': switch_rt_t3,
         'switch_commit_time': switch_commit_time_t3,
@@ -4360,14 +4360,14 @@ def run_experiment():
         height=0.1*0.75,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0.4, -0.4)  # Bottom right
+        pos=(0.4, -0.3)  # Bottom right, moved up slightly
     )
     continue_text_amy_intro = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05*0.75,
-        pos=(0.4, -0.4)  # Bottom right
+        pos=(0.4, -0.3)  # Bottom right, moved up slightly
     )
     
     def redraw_amy_intro():
@@ -4404,7 +4404,7 @@ def run_experiment():
             except (TypeError, ValueError):
                 mouse_x_amy_intro, mouse_y_amy_intro = 0.0, 0.0
             
-            button_x_amy_intro, button_y_amy_intro = 0.4, -0.4
+            button_x_amy_intro, button_y_amy_intro = 0.4, -0.3
             button_width_amy_intro, button_height_amy_intro = 0.3*0.75, 0.1*0.75
             hit_margin_amy_intro = 0.02 if USE_TOUCH_SCREEN else 0.0
             
@@ -4518,14 +4518,14 @@ def run_experiment():
                         height=0.1*0.75,
                         fillColor='lightblue',
                         lineColor='black',
-                        pos=(0.4, -0.4)  # Bottom right
+                        pos=(0.4, -0.3)  # Bottom right, moved up slightly
                     )
                     continue_text_ben = visual.TextStim(
                         win,
                         text="CONTINUE",
                         color='black',
                         height=0.05*0.75,
-                        pos=(0.4, -0.4)  # Bottom right
+                        pos=(0.4, -0.3)  # Bottom right, moved up slightly
                     )
                     
                     def redraw_ben():
@@ -4635,14 +4635,14 @@ def run_experiment():
                         height=0.1*0.75,
                         fillColor='lightblue',
                         lineColor='black',
-                        pos=(0.4, -0.4)  # Bottom right
+                        pos=(0.4, -0.3)  # Bottom right, moved up slightly
                     )
                     continue_text_amy_return = visual.TextStim(
                         win,
                         text="CONTINUE",
                         color='black',
                         height=0.05*0.75,
-                        pos=(0.4, -0.4)  # Bottom right
+                        pos=(0.4, -0.3)  # Bottom right, moved up slightly
                     )
                     
                     def redraw_amy():
@@ -4678,7 +4678,7 @@ def run_experiment():
                             except (TypeError, ValueError):
                                 mouse_x_amy_return, mouse_y_amy_return = 0.0, 0.0
                             
-                            button_x_amy_return, button_y_amy_return = 0.4, -0.4
+                            button_x_amy_return, button_y_amy_return = 0.4, -0.3
                             button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
                             hit_margin_amy_return = 0.02 if USE_TOUCH_SCREEN else 0.0
                             
@@ -4783,7 +4783,7 @@ def run_experiment():
                             except (TypeError, ValueError):
                                 mouse_x_ben_continue, mouse_y_ben_continue = 0.0, 0.0
                             
-                            button_x_ben_continue, button_y_ben_continue = 0.4, -0.4
+                            button_x_ben_continue, button_y_ben_continue = 0.4, -0.3
                             button_width_ben_continue, button_height_ben_continue = 0.3*0.75, 0.1*0.75
                             hit_margin_ben_continue = 0.02 if USE_TOUCH_SCREEN else 0.0
                             
