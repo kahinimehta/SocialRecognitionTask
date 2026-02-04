@@ -4223,7 +4223,7 @@ def run_experiment():
                         win,
                         text="Amy is back for a day!\n\n"
                              "She's returning to help sort the exhibition images with you.\n\n"
-s                             "You'll once again see her judgments as you work through this block.",
+                             "You'll once again see her judgments as you work through this block.",
                         color='black',
                         height=0.04*0.75,
                         pos=(0, 0.0),
