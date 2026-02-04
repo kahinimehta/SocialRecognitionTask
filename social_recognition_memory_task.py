@@ -4573,145 +4573,216 @@ def run_experiment():
             if previous_partner_reliable is not None:
                 if previous_partner_reliable and not current_partner_reliable:
                     # Switched from Amy (reliable) to Ben (unreliable)
-                    switch_text = visual.TextStim(
-                        win,
-                        text="A quick update.\n\n"
-                             "Amy has stepped away to prepare for her exhibition.\n\n"
-                             "While she's gone, you'll be working with Ben—another assistant in the studio.\n\n"
-                             "Ben is helping sort the same set of images, but he has trained differently than you.\n\n"
-                             "As always, focus on making the best judgment you can. Click to start sorting!",
-                        color='black',
-                        height=0.04*0.75,
-                        pos=(0, 0.2),  # Move text up
-                        wrapWidth=1.2
-                    )
-                    
-                    # Load and display Ben's picture (maintain aspect ratio, shift down for white space)
-                    ben_path = os.path.join(STIMULI_DIR, "Ben.png")
-                    if os.path.exists(ben_path):
-                        ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
-                        if hasattr(ben_image, 'setPos'):
-                            ben_image.setPos((0, -0.15))  # Shifted down to account for white space at bottom
-                        elif hasattr(ben_image, 'pos'):
-                            ben_image.pos = (0, -0.15)  # Shifted down to account for white space at bottom
+                    # Check if this is the first switch (Block 2) or second switch (Block 5)
+                    if block_num == 2:
+                        # First switch to Ben - show long message
+                        switch_text = visual.TextStim(
+                            win,
+                            text="A quick update.\n\n"
+                                 "Amy has stepped away to prepare for her exhibition.\n\n"
+                                 "While she's gone, you'll be working with Ben—another assistant in the studio.\n\n"
+                                 "Ben is helping sort the same set of images, but he has trained differently than you.\n\n"
+                                 "As always, focus on making the best judgment you can. Click to start sorting!",
+                            color='black',
+                            height=0.04*0.75,
+                            pos=(0, 0.2),  # Move text up
+                            wrapWidth=1.2
+                        )
+                        
+                        # Load and display Ben's picture (maintain aspect ratio, shift down for white space)
+                        ben_path = os.path.join(STIMULI_DIR, "Ben.png")
+                        if os.path.exists(ben_path):
+                            ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
+                            if hasattr(ben_image, 'setPos'):
+                                ben_image.setPos((0, -0.15))  # Shifted down to account for white space at bottom
+                            elif hasattr(ben_image, 'pos'):
+                                ben_image.pos = (0, -0.15)  # Shifted down to account for white space at bottom
+                        else:
+                            ben_image = None
+                            print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
+                        
+                        # Label for Ben's image (first time shown) - overlaid on top of icon
+                        ben_label = visual.TextStim(
+                            win,
+                            text="Ben",
+                            color='white',  # White for visibility on brown icon background
+                            height=0.05*0.75,
+                            pos=(0, -0.15),  # Same y-position as icon center to overlay
+                            bold=True  # Make it bold for better visibility
+                        )
+                        
+                        # Create custom button for this screen (positioned bottom right to avoid icon overlap)
+                        continue_button_ben = visual.Rect(
+                            win,
+                            width=0.3*0.75,
+                            height=0.1*0.75,
+                            fillColor='lightblue',
+                            lineColor='black',
+                            pos=(0.4, -0.3)  # Bottom right, moved up slightly
+                        )
+                        continue_text_ben = visual.TextStim(
+                            win,
+                            text="CONTINUE",
+                            color='black',
+                            height=0.05*0.75,
+                            pos=(0.4, -0.3)  # Bottom right, moved up slightly
+                        )
+                        
+                        def redraw_ben():
+                            switch_text.draw()  # Draw text first
+                            if ben_image:
+                                ben_image.draw()
+                            ben_label.draw()
+                            continue_button_ben.draw()
+                            continue_text_ben.draw()
+                        
+                        button_x, button_y = 0.4, -0.3
+                        continue_button = continue_button_ben
+                        continue_text = continue_text_ben
+                        
+                    elif block_num == 5:
+                        # Second switch to Ben - show short message
+                        switch_text = visual.TextStim(
+                            win,
+                            text="Amy has to step away again! You will work with Ben again for the last collection",
+                            color='black',
+                            height=0.04*0.75,
+                            pos=(0, 0.2),  # Move text up
+                            wrapWidth=1.2
+                        )
+                        
+                        # Load and display Ben's picture (maintain aspect ratio, shift down for white space)
+                        ben_path = os.path.join(STIMULI_DIR, "Ben.png")
+                        if os.path.exists(ben_path):
+                            ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
+                            if hasattr(ben_image, 'setPos'):
+                                ben_image.setPos((0, -0.2))  # Shifted down to account for white space at bottom
+                            elif hasattr(ben_image, 'pos'):
+                                ben_image.pos = (0, -0.2)  # Shifted down to account for white space at bottom
+                        else:
+                            ben_image = None
+                            print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
+                        
+                        # No label needed for second time showing Ben
+                        ben_label = None
+                        
+                        # Create custom button for this screen (positioned bottom right to avoid icon overlap)
+                        continue_button_ben_continue = visual.Rect(
+                            win,
+                            width=0.3*0.75,
+                            height=0.1*0.75,
+                            fillColor='lightblue',
+                            lineColor='black',
+                            pos=(0.4, -0.4)  # Bottom right
+                        )
+                        continue_text_ben_continue = visual.TextStim(
+                            win,
+                            text="CONTINUE",
+                            color='black',
+                            height=0.05*0.75,
+                            pos=(0.4, -0.4)  # Bottom right
+                        )
+                        
+                        def redraw_ben():
+                            switch_text.draw()  # Draw text first
+                            if ben_image:
+                                ben_image.draw()
+                            continue_button_ben_continue.draw()
+                            continue_text_ben_continue.draw()
+                        
+                        button_x, button_y = 0.4, -0.4
+                        continue_button = continue_button_ben_continue
+                        continue_text = continue_text_ben_continue
                     else:
+                        # Should not happen, but skip if it does
+                        switch_text = None
                         ben_image = None
-                        print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
+                        ben_label = None
+                        continue_button = None
+                        continue_text = None
+                        button_x, button_y = 0, 0
                     
-                    # Label for Ben's image (first time shown) - overlaid on top of icon
-                    ben_label = visual.TextStim(
-                        win,
-                        text="Ben",
-                        color='white',  # White for visibility on brown icon background
-                        height=0.05*0.75,
-                        pos=(0, -0.15),  # Same y-position as icon center to overlay
-                        bold=True  # Make it bold for better visibility
-                    )
+                    # Only show Ben screen if we have valid text (Block 2 or Block 5)
+                    if switch_text is not None:
                     
-                    # Create custom button for this screen (positioned bottom right to avoid icon overlap)
-                    continue_button_ben = visual.Rect(
-                        win,
-                        width=0.3*0.75,
-                        height=0.1*0.75,
-                        fillColor='lightblue',
-                        lineColor='black',
-                        pos=(0.4, -0.3)  # Bottom right, moved up slightly
-                    )
-                    continue_text_ben = visual.TextStim(
-                        win,
-                        text="CONTINUE",
-                        color='black',
-                        height=0.05*0.75,
-                        pos=(0.4, -0.3)  # Bottom right, moved up slightly
-                    )
-                    
-                    def redraw_ben():
-                        switch_text.draw()  # Draw text first
-                        if ben_image:
-                            ben_image.draw()
-                        ben_label.draw()
-                        continue_button_ben.draw()
-                        continue_text_ben.draw()
-                    
-                    # Custom wait for button with custom button position
-                    mouse = event.Mouse(win=win)
-                    mouse.setVisible(True)
-                    
-                    def draw_screen():
-                        redraw_ben()
-                        win.flip()
-                    
-                    draw_screen()
-                    
-                    clicked = False
-                    prev_mouse_buttons = [False, False, False]
-                    
-                    while not clicked:
-                        try:
-                            mouse_buttons = mouse.getPressed()
-                            mouse_pos = mouse.getPos()
+                        # Custom wait for button with custom button position
+                        mouse = event.Mouse(win=win)
+                        mouse.setVisible(True)
+                        
+                        def draw_screen():
+                            redraw_ben()
+                            win.flip()
+                        
+                        draw_screen()
+                        
+                        clicked = False
+                        prev_mouse_buttons = [False, False, False]
+                        
+                        while not clicked:
+                            try:
+                                mouse_buttons = mouse.getPressed()
+                                mouse_pos = mouse.getPos()
+                                
+                                try:
+                                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                                        mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                                    else:
+                                        mouse_x, mouse_y = 0.0, 0.0
+                                except (TypeError, ValueError):
+                                    mouse_x, mouse_y = 0.0, 0.0
+                                
+                                button_width, button_height = 0.3*0.75, 0.1*0.75
+                                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+                                
+                                on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
+                                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+                                
+                                if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                                    if on_button:
+                                        # Visual feedback (only for click mode, not touch screen)
+                                        if not USE_TOUCH_SCREEN:
+                                            continue_button.fillColor = 'lightgreen'
+                                        draw_screen()
+                                        core.wait(0.2)
+                                        clicked = True
+                                        break
+                                
+                                # Also check for button press (for touch screens)
+                                if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
+                                    if USE_TOUCH_SCREEN:
+                                        # No color change in touch screen mode
+                                        draw_screen()
+                                        core.wait(0.2)
+                                        clicked = True
+                                        break
+                                
+                                # Hover effect only for click mode (not touch screen)
+                                if not USE_TOUCH_SCREEN:
+                                    if on_button:
+                                        continue_button.fillColor = 'lightcyan'
+                                    else:
+                                        continue_button.fillColor = 'lightblue'
+                                    draw_screen()
+                                
+                                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+                            except (AttributeError, Exception):
+                                pass
                             
                             try:
-                                if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                                    mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
-                                else:
-                                    mouse_x, mouse_y = 0.0, 0.0
-                            except (TypeError, ValueError):
-                                mouse_x, mouse_y = 0.0, 0.0
+                                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                                if keys:
+                                    if 'space' in keys:
+                                        clicked = True
+                                        break
+                                    elif 'escape' in keys:
+                                        core.quit()
+                            except (AttributeError, Exception):
+                                pass
                             
-                            button_x, button_y = 0.4, -0.3  # Match actual button position
-                            button_width, button_height = 0.3*0.75, 0.1*0.75
-                            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
-                            
-                            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
-                            
-                            if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                                if on_button:
-                                    # Visual feedback (only for click mode, not touch screen)
-                                    if not USE_TOUCH_SCREEN:
-                                        continue_button_ben.fillColor = 'lightgreen'
-                                    draw_screen()
-                                    core.wait(0.2)
-                                    clicked = True
-                                    break
-                            
-                            # Also check for button press (for touch screens)
-                            if mouse_buttons[0] and on_button and not prev_mouse_buttons[0]:
-                                if USE_TOUCH_SCREEN:
-                                    # No color change in touch screen mode
-                                    draw_screen()
-                                    core.wait(0.2)
-                                    clicked = True
-                                    break
-                            
-                            # Hover effect only for click mode (not touch screen)
-                            if not USE_TOUCH_SCREEN:
-                                if on_button:
-                                    continue_button_ben.fillColor = 'lightcyan'
-                                else:
-                                    continue_button_ben.fillColor = 'lightblue'
-                                draw_screen()
-                            
-                            prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-                        except (AttributeError, Exception):
-                            pass
+                            core.wait(0.01)
                         
-                        try:
-                            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
-                            if keys:
-                                if 'space' in keys:
-                                    clicked = True
-                                    break
-                                elif 'escape' in keys:
-                                    core.quit()
-                        except (AttributeError, Exception):
-                            pass
-                        
-                        core.wait(0.01)
-                    
-                    mouse.setVisible(False)
-                    event.clearEvents()
+                        mouse.setVisible(False)
+                        event.clearEvents()
                     
                 elif not previous_partner_reliable and current_partner_reliable:
                     # Switched from Ben (unreliable) to Amy (reliable)
@@ -4823,112 +4894,9 @@ def run_experiment():
                     event.clearEvents()
                     
                 elif not previous_partner_reliable and not current_partner_reliable:
-                    # Still Ben, but switching blocks
-                    switch_text = visual.TextStim(
-                        win,
-                        text="Amy is gone again! Continue working with Ben.",
-                        color='black',
-                        height=0.04*0.75,
-                        pos=(0, 0.2),  # Move text up
-                        wrapWidth=1.2
-                    )
-                    
-                    # Load and display Ben's picture (maintain aspect ratio, shift down for white space)
-                    ben_path = os.path.join(STIMULI_DIR, "Ben.png")
-                    if os.path.exists(ben_path):
-                        ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
-                        if hasattr(ben_image, 'setPos'):
-                            ben_image.setPos((0, -0.2))  # Shifted down to account for white space at bottom
-                        elif hasattr(ben_image, 'pos'):
-                            ben_image.pos = (0, -0.2)  # Shifted down to account for white space at bottom
-                    else:
-                        ben_image = None
-                        print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
-                    
-                    # Create custom button for this screen (positioned bottom right to avoid icon overlap)
-                    continue_button_ben_continue = visual.Rect(
-                        win,
-                        width=0.3*0.75,
-                        height=0.1*0.75,
-                        fillColor='lightblue',
-                        lineColor='black',
-                        pos=(0.4, -0.4)  # Bottom right
-                    )
-                    continue_text_ben_continue = visual.TextStim(
-                        win,
-                        text="CONTINUE",
-                        color='black',
-                        height=0.05*0.75,
-                        pos=(0.4, -0.4)  # Bottom right
-                    )
-                    
-                    def redraw_ben_continue():
-                        switch_text.draw()  # Draw text first
-                        if ben_image:
-                            ben_image.draw()
-                        continue_button_ben_continue.draw()
-                        continue_text_ben_continue.draw()
-                    
-                    # Custom wait for button with custom button position
-                    mouse_ben_continue = event.Mouse(win=win)
-                    mouse_ben_continue.setVisible(True)
-                    
-                    def draw_screen_ben_continue():
-                        redraw_ben_continue()
-                        win.flip()
-                    
-                    draw_screen_ben_continue()
-                    
-                    clicked_ben_continue = False
-                    prev_mouse_buttons_ben_continue = [False, False, False]
-                    
-                    while not clicked_ben_continue:
-                        try:
-                            mouse_buttons_ben_continue = mouse_ben_continue.getPressed()
-                            mouse_pos_ben_continue = mouse_ben_continue.getPos()
-                            
-                            try:
-                                if hasattr(mouse_pos_ben_continue, '__len__') and len(mouse_pos_ben_continue) >= 2:
-                                    mouse_x_ben_continue, mouse_y_ben_continue = float(mouse_pos_ben_continue[0]), float(mouse_pos_ben_continue[1])
-                                else:
-                                    mouse_x_ben_continue, mouse_y_ben_continue = 0.0, 0.0
-                            except (TypeError, ValueError):
-                                mouse_x_ben_continue, mouse_y_ben_continue = 0.0, 0.0
-                            
-                            button_x_ben_continue, button_y_ben_continue = 0.4, -0.4  # Match actual button position
-                            button_width_ben_continue, button_height_ben_continue = 0.3*0.75, 0.1*0.75
-                            hit_margin_ben_continue = 0.02 if USE_TOUCH_SCREEN else 0.0
-                            
-                            on_button_ben_continue = (button_x_ben_continue - button_width_ben_continue/2 - hit_margin_ben_continue <= mouse_x_ben_continue <= button_x_ben_continue + button_width_ben_continue/2 + hit_margin_ben_continue and
-                                                      button_y_ben_continue - button_height_ben_continue/2 - hit_margin_ben_continue <= mouse_y_ben_continue <= button_y_ben_continue + button_height_ben_continue/2 + hit_margin_ben_continue)
-                            
-                            if prev_mouse_buttons_ben_continue[0] and not mouse_buttons_ben_continue[0]:
-                                if on_button_ben_continue:
-                                    # Visual feedback (only for click mode, not touch screen)
-                                    if not USE_TOUCH_SCREEN:
-                                        continue_button_ben_continue.fillColor = 'lightgreen'
-                                    draw_screen_ben_continue()
-                                    core.wait(0.2)
-                                    clicked_ben_continue = True
-                                    break
-                            
-                            # Also check for button press (for touch screens)
-                            if mouse_buttons_ben_continue[0] and on_button_ben_continue and not prev_mouse_buttons_ben_continue[0]:
-                                if USE_TOUCH_SCREEN:
-                                    # No color change in touch screen mode
-                                    draw_screen_ben_continue()
-                                    core.wait(0.2)
-                                    clicked_ben_continue = True
-                                    break
-                            
-                            prev_mouse_buttons_ben_continue = list(mouse_buttons_ben_continue)
-                            core.wait(0.01)
-                        except Exception as e:
-                            print(f"Error in button wait: {e}", file=sys.stderr)
-                            core.wait(0.01)
-                    
-                    mouse_ben_continue.setVisible(False)
-                    event.clearEvents()
+                    # Still Ben, but switching blocks (Block 2 to Block 3)
+                    # No message needed - just continue to next block
+                    pass
             
             # Update previous partner for next iteration
             previous_partner_reliable = current_partner_reliable
