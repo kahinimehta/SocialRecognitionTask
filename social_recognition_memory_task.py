@@ -1548,11 +1548,19 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
             except (TypeError, ValueError):
                 button_width, button_height = 0.3, 0.1
             
-            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+            # For touch screens, use larger hit area (at least button size, or larger)
+            # Ensure hit area fully covers button and extends beyond for easier tapping
+            if USE_TOUCH_SCREEN:
+                # Margin should be at least half button size to ensure hit area is at least 2x button size (fully overlapping + extra)
+                hit_margin_x = max(button_width * 0.5, 0.08)  # At least half button width, minimum 0.08
+                hit_margin_y = max(button_height * 0.5, 0.04)  # At least half button height, minimum 0.04
+            else:
+                hit_margin_x = 0.0
+                hit_margin_y = 0.0
             
-            # Check if mouse is over button
-            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+            # Hit area extends button_width/2 + hit_margin_x on each side, ensuring full button coverage
+            on_button = (button_x - button_width/2 - hit_margin_x <= mouse_x <= button_x + button_width/2 + hit_margin_x and
+                        button_y - button_height/2 - hit_margin_y <= mouse_y <= button_y + button_height/2 + hit_margin_y)
             
             # Check for button release (mouse/touch was pressed on button and now released)
             if prev_mouse_buttons[0] and not mouse_buttons[0]:
@@ -2914,10 +2922,18 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         except (TypeError, ValueError, AttributeError):
             stay_width, stay_height = 0.2*0.75, 0.08*0.75
         
-        # For touch screen, use slightly larger hit area
-        hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
-        stay_clicked = (stay_x - stay_width/2 - hit_margin <= mouse_x <= stay_x + stay_width/2 + hit_margin and
-                       stay_y - stay_height/2 - hit_margin <= mouse_y <= stay_y + stay_height/2 + hit_margin)
+        # For touch screen, use larger hit area (at least button size, or larger)
+        # Ensure hit area fully covers button and extends beyond for easier tapping
+        if USE_TOUCH_SCREEN:
+            # Margin should be at least half button size to ensure hit area is at least 2x button size (fully overlapping + extra)
+            stay_hit_margin_x = max(stay_width * 0.5, 0.08)  # At least half button width, minimum 0.08
+            stay_hit_margin_y = max(stay_height * 0.5, 0.04)  # At least half button height, minimum 0.04
+        else:
+            stay_hit_margin_x = 0.0
+            stay_hit_margin_y = 0.0
+        
+        stay_clicked = (stay_x - stay_width/2 - stay_hit_margin_x <= mouse_x <= stay_x + stay_width/2 + stay_hit_margin_x and
+                       stay_y - stay_height/2 - stay_hit_margin_y <= mouse_y <= stay_y + stay_height/2 + stay_hit_margin_y)
         
         # Check switch button (convert positions to floats for accurate comparison)
         try:
@@ -2935,8 +2951,18 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         except (TypeError, ValueError, AttributeError):
             switch_width, switch_height = 0.2*0.75, 0.08*0.75
         
-        switch_clicked = (switch_x - switch_width/2 - hit_margin <= mouse_x <= switch_x + switch_width/2 + hit_margin and
-                         switch_y - switch_height/2 - hit_margin <= mouse_y <= switch_y + switch_height/2 + hit_margin)
+        # For touch screen, use larger hit area (at least button size, or larger)
+        # Ensure hit area fully covers button and extends beyond for easier tapping
+        if USE_TOUCH_SCREEN:
+            # Margin should be at least half button size to ensure hit area is at least 2x button size (fully overlapping + extra)
+            switch_hit_margin_x = max(switch_width * 0.5, 0.08)  # At least half button width, minimum 0.08
+            switch_hit_margin_y = max(switch_height * 0.5, 0.04)  # At least half button height, minimum 0.04
+        else:
+            switch_hit_margin_x = 0.0
+            switch_hit_margin_y = 0.0
+        
+        switch_clicked = (switch_x - switch_width/2 - switch_hit_margin_x <= mouse_x <= switch_x + switch_width/2 + switch_hit_margin_x and
+                         switch_y - switch_height/2 - switch_hit_margin_y <= mouse_y <= switch_y + switch_height/2 + switch_hit_margin_y)
         
         # Check for mouse button release on buttons
         if prev_mouse_buttons[0] and not mouse_buttons[0]:
@@ -3101,11 +3127,17 @@ def show_block_summary(block_num, total_points, max_points):
             except (TypeError, ValueError):
                 button_width, button_height = 0.3, 0.1
             
-            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+            # For touch screens, use larger hit area (at least button size, or larger)
+            if USE_TOUCH_SCREEN:
+                hit_margin_x = max(button_width * 0.5, 0.1)  # At least half button width or 0.1
+                hit_margin_y = max(button_height * 0.5, 0.05)  # At least half button height or 0.05
+            else:
+                hit_margin_x = 0.0
+                hit_margin_y = 0.0
             
-            # Check if mouse is over button
-            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+            # Check if mouse is over button (with expanded hit area for touch screens)
+            on_button = (button_x - button_width/2 - hit_margin_x <= mouse_x <= button_x + button_width/2 + hit_margin_x and
+                        button_y - button_height/2 - hit_margin_y <= mouse_y <= button_y + button_height/2 + hit_margin_y)
             
             # Check for button release
             if prev_mouse_buttons[0] and not mouse_buttons[0]:
@@ -3599,9 +3631,20 @@ def run_experiment():
                 except (TypeError, ValueError):
                     button_width, button_height = 0.3*0.75, 0.1*0.75
                 
-                # Check if mouse/touch is over button
-                on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
-                            button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                # For touch screens, use larger hit area (at least button size, or larger)
+                # Ensure hit area fully covers button and extends beyond for easier tapping
+                if USE_TOUCH_SCREEN:
+                    # Margin should be at least half button size to ensure hit area is at least 2x button size
+                    hit_margin_x = max(button_width * 0.5, button_width * 0.3, 0.08)  # At least 30% of button width, minimum 0.08
+                    hit_margin_y = max(button_height * 0.5, button_height * 0.3, 0.04)  # At least 30% of button height, minimum 0.04
+                else:
+                    hit_margin_x = 0.0
+                    hit_margin_y = 0.0
+                
+                # Check if mouse/touch is over button (with expanded hit area for touch screens)
+                # Hit area extends button_width/2 + hit_margin_x on each side, ensuring full button coverage
+                on_button = (button_x - button_width/2 - hit_margin_x <= mouse_x <= button_x + button_width/2 + hit_margin_x and
+                            button_y - button_height/2 - hit_margin_y <= mouse_y <= button_y + button_height/2 + hit_margin_y)
                 
                 # Check for button release (mouse/touch was pressed on button and now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
@@ -3826,10 +3869,19 @@ def run_experiment():
             
             button_x, button_y = 0.4, -0.3  # Bottom right position, moved up slightly
             button_width, button_height = 0.3*0.75, 0.1*0.75
-            hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+            # For touch screens, use larger hit area (at least button size, or larger)
+            # Ensure hit area fully covers button and extends beyond for easier tapping
+            if USE_TOUCH_SCREEN:
+                # Margin should be at least half button size to ensure hit area is at least 2x button size
+                hit_margin_x = max(button_width * 0.5, button_width * 0.3, 0.08)  # At least 30% of button width, minimum 0.08
+                hit_margin_y = max(button_height * 0.5, button_height * 0.3, 0.04)  # At least 30% of button height, minimum 0.04
+            else:
+                hit_margin_x = 0.0
+                hit_margin_y = 0.0
             
-            on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                        button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+            # Hit area extends button_width/2 + hit_margin_x on each side, ensuring full button coverage
+            on_button = (button_x - button_width/2 - hit_margin_x <= mouse_x <= button_x + button_width/2 + hit_margin_x and
+                        button_y - button_height/2 - hit_margin_y <= mouse_y <= button_y + button_height/2 + hit_margin_y)
             
             if prev_mouse_buttons[0] and not mouse_buttons[0]:
                 if on_button:
@@ -4430,10 +4482,19 @@ def run_experiment():
             
             button_x_amy_intro, button_y_amy_intro = 0.4, -0.3
             button_width_amy_intro, button_height_amy_intro = 0.3*0.75, 0.1*0.75
-            hit_margin_amy_intro = 0.02 if USE_TOUCH_SCREEN else 0.0
+            # For touch screens, use larger hit area (at least button size, or larger)
+            # Ensure hit area fully covers button and extends beyond for easier tapping
+            if USE_TOUCH_SCREEN:
+                # Margin should be at least half button size to ensure hit area is at least 2x button size (fully overlapping + extra)
+                hit_margin_amy_intro_x = max(button_width_amy_intro * 0.5, 0.08)  # At least half button width, minimum 0.08
+                hit_margin_amy_intro_y = max(button_height_amy_intro * 0.5, 0.04)  # At least half button height, minimum 0.04
+            else:
+                hit_margin_amy_intro_x = 0.0
+                hit_margin_amy_intro_y = 0.0
             
-            on_button_amy_intro = (button_x_amy_intro - button_width_amy_intro/2 - hit_margin_amy_intro <= mouse_x_amy_intro <= button_x_amy_intro + button_width_amy_intro/2 + hit_margin_amy_intro and
-                                  button_y_amy_intro - button_height_amy_intro/2 - hit_margin_amy_intro <= mouse_y_amy_intro <= button_y_amy_intro + button_height_amy_intro/2 + hit_margin_amy_intro)
+            # Hit area extends button_width/2 + hit_margin_x on each side, ensuring full button coverage
+            on_button_amy_intro = (button_x_amy_intro - button_width_amy_intro/2 - hit_margin_amy_intro_x <= mouse_x_amy_intro <= button_x_amy_intro + button_width_amy_intro/2 + hit_margin_amy_intro_x and
+                                  button_y_amy_intro - button_height_amy_intro/2 - hit_margin_amy_intro_y <= mouse_y_amy_intro <= button_y_amy_intro + button_height_amy_intro/2 + hit_margin_amy_intro_y)
             
             if prev_mouse_buttons_amy_intro[0] and not mouse_buttons_amy_intro[0]:
                 if on_button_amy_intro:
@@ -4660,10 +4721,16 @@ def run_experiment():
                                     mouse_x, mouse_y = 0.0, 0.0
                                 
                                 button_width, button_height = 0.3*0.75, 0.1*0.75
-                                hit_margin = 0.02 if USE_TOUCH_SCREEN else 0.0
+                                # For touch screens, use larger hit area (at least button size, or larger)
+                                if USE_TOUCH_SCREEN:
+                                    hit_margin_x = max(button_width * 0.5, 0.1)  # At least half button width or 0.1
+                                    hit_margin_y = max(button_height * 0.5, 0.05)  # At least half button height or 0.05
+                                else:
+                                    hit_margin_x = 0.0
+                                    hit_margin_y = 0.0
                                 
-                                on_button = (button_x - button_width/2 - hit_margin <= mouse_x <= button_x + button_width/2 + hit_margin and
-                                            button_y - button_height/2 - hit_margin <= mouse_y <= button_y + button_height/2 + hit_margin)
+                                on_button = (button_x - button_width/2 - hit_margin_x <= mouse_x <= button_x + button_width/2 + hit_margin_x and
+                                            button_y - button_height/2 - hit_margin_y <= mouse_y <= button_y + button_height/2 + hit_margin_y)
                                 
                                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
                                     if on_button:
@@ -4781,10 +4848,19 @@ def run_experiment():
                             
                             button_x_amy_return, button_y_amy_return = 0.4, -0.3
                             button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
-                            hit_margin_amy_return = 0.02 if USE_TOUCH_SCREEN else 0.0
+                            # For touch screens, use larger hit area (at least button size, or larger)
+                            # Ensure hit area fully covers button and extends beyond for easier tapping
+                            if USE_TOUCH_SCREEN:
+                                # Margin should be at least half button size to ensure hit area is at least 2x button size (fully overlapping + extra)
+                                hit_margin_amy_return_x = max(button_width_amy_return * 0.5, 0.08)  # At least half button width, minimum 0.08
+                                hit_margin_amy_return_y = max(button_height_amy_return * 0.5, 0.04)  # At least half button height, minimum 0.04
+                            else:
+                                hit_margin_amy_return_x = 0.0
+                                hit_margin_amy_return_y = 0.0
                             
-                            on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 - hit_margin_amy_return <= mouse_x_amy_return <= button_x_amy_return + button_width_amy_return/2 + hit_margin_amy_return and
-                                                    button_y_amy_return - button_height_amy_return/2 - hit_margin_amy_return <= mouse_y_amy_return <= button_y_amy_return + button_height_amy_return/2 + hit_margin_amy_return)
+                            # Hit area extends button_width/2 + hit_margin_x on each side, ensuring full button coverage
+                            on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 - hit_margin_amy_return_x <= mouse_x_amy_return <= button_x_amy_return + button_width_amy_return/2 + hit_margin_amy_return_x and
+                                                    button_y_amy_return - button_height_amy_return/2 - hit_margin_amy_return_y <= mouse_y_amy_return <= button_y_amy_return + button_height_amy_return/2 + hit_margin_amy_return_y)
                             
                             if prev_mouse_buttons_amy_return[0] and not mouse_buttons_amy_return[0]:
                                 if on_button_amy_return:
