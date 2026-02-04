@@ -1235,6 +1235,22 @@ def is_test_participant(participant_id):
 # =========================
 #  HELPER FUNCTIONS
 # =========================
+def safe_wait(duration):
+    """Wrapper for core.wait() that handles macOS event dispatch errors"""
+    try:
+        core.wait(duration)
+    except AttributeError as e:
+        # Handle macOS-specific pyglet event dispatch error
+        if "NSConcreteNotification" in str(e) and "type" in str(e):
+            # This is a known macOS/pyglet issue - just continue
+            pass
+        else:
+            # Re-raise if it's a different AttributeError
+            raise
+    except Exception:
+        # Ignore other non-critical wait errors
+        pass
+
 def wait_for_button(redraw_func=None, button_text="CONTINUE"):
     """Wait for button click/touch instead of space key - button should be included in redraw_func"""
     mouse = event.Mouse(win=win)
@@ -1421,7 +1437,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
             except (AttributeError, Exception):
                 pass
             
-            core.wait(0.01)
+            safe_wait(0.01)
     
     mouse.setVisible(False)
     event.clearEvents()
@@ -1609,7 +1625,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
         except (AttributeError, Exception):
             pass
         
-        core.wait(0.01)
+        safe_wait(0.01)
     
     mouse_btn.setVisible(False)
     event.clearEvents()
@@ -3186,7 +3202,7 @@ def show_block_summary(block_num, total_points, max_points):
         except (AttributeError, Exception):
             pass
         
-        core.wait(0.01)
+        safe_wait(0.01)
     
     mouse_btn.setVisible(False)
     event.clearEvents()
