@@ -4313,17 +4313,15 @@ def run_experiment():
     show_instructions(
         "   Remember, confidence matters!\n"
         " An in-house curator will score your collection before the exhibition.\n"
-        "   - If you are confident and wrong (eg: you click ALL the way to the left/OLD on an image that shouldn't be part of the collection),"
+        "   - If you are confident and wrong (eg: you click ALL the way to the left/OLD on an image that shouldn't be part of the collection), ",
         "the curator will penalize you more heavily.\n"
-        "   - If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit.\n"
-        "   - Even if you agree with your partner largely (OLD or NEW),\n"
-        "     you can switch to match your partner's confidence level",
+        "   - If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit.\n",
         header_color='darkred',
         body_color='black'
     )
 
     show_instructions(
-        "We have 5 collections with 20 images each to get through.\n",
+        "We have 5 collections with 20 images each to get through.\n\n"
         "Because the exhibition is so soon, you will have a time limit on each image decision!",
         header_color='black',
         body_color='black'
