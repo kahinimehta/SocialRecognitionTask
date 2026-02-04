@@ -4118,7 +4118,7 @@ def run_experiment():
     
     show_instructions(
         "Training complete!\n\n"
-        "Now we'll begin the actual work.\n\n"
+        "Now we'll begin the actual work.\n\n",
         header_color='darkgreen',
         body_color='black'
     )
