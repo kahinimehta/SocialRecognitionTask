@@ -343,25 +343,25 @@ def get_input_method():
                         # Position hasn't changed, continue loop
                         pass
                     else:
-                    # Position has changed - check if touch is within button using position calculation
-                    hit_margin = 50/720*0.75
-                    button_x, button_y = 0.0, -150.0/720*0.6
-                    button_width, button_height = 300/720*0.75, 80/720*0.75
-                    on_button = (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
-                                 button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin)
-                    
-                    if on_button:
-                        if t_cont > minRT_cont:
-                            continue_click_time = time.time()  # Record exact time of click
-                            clicked = True
-                            break
-                        else:
-                            mouserec_cont = mouse_temp.getPos()
-                            try:
-                                mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
-                            except (ValueError, TypeError, IndexError) as e:
-                                print(f"Warning: Could not parse mouse position after continue button check: {e}", file=sys.stderr)
-                                mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
+                        # Position has changed - check if touch is within button using position calculation
+                        hit_margin = 50/720*0.75
+                        button_x, button_y = 0.0, -150.0/720*0.6
+                        button_width, button_height = 300/720*0.75, 80/720*0.75
+                        on_button = (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
+                                     button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin)
+                        
+                        if on_button:
+                            if t_cont > minRT_cont:
+                                continue_click_time = time.time()  # Record exact time of click
+                                clicked = True
+                                break
+                            else:
+                                mouserec_cont = mouse_temp.getPos()
+                                try:
+                                    mouserec_cont_x, mouserec_cont_y = float(mouserec_cont[0]), float(mouserec_cont[1])
+                                except (ValueError, TypeError, IndexError) as e:
+                                    print(f"Warning: Could not parse mouse position after continue button check: {e}", file=sys.stderr)
+                                    mouserec_cont_x, mouserec_cont_y = mouseloc_cont_x, mouseloc_cont_y
                 except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                     # Log specific errors instead of silently ignoring
                     print(f"Warning: Error in continue button loop: {e}", file=sys.stderr)
