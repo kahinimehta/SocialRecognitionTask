@@ -1654,21 +1654,21 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
                     last_hover_state = on_button
                 
                 prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-        except (AttributeError, Exception):
-            pass
-        
-        # Check for space key as backup
-        try:
-            keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
-            if 'space' in keys:
-                clicked = True
-                break
-            elif 'escape' in keys:
-                core.quit()
-        except (AttributeError, Exception):
-            pass
-        
-        safe_wait(0.01)
+            except (AttributeError, Exception):
+                pass
+            
+            # Check for space key as backup
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if 'space' in keys:
+                    clicked = True
+                    break
+                elif 'escape' in keys:
+                    core.quit()
+            except (AttributeError, Exception):
+                pass
+            
+            safe_wait(0.01)
     
     mouse_btn.setVisible(False)
     event.clearEvents()
@@ -5090,6 +5090,7 @@ def run_experiment():
                                     pass
                                 
                                 core.wait(0.01)
+                        
                         
                         mouse.setVisible(False)
                         event.clearEvents()
