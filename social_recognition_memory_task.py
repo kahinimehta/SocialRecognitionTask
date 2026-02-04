@@ -4166,10 +4166,18 @@ def run_experiment():
 
 
     show_instructions(
-        "Let's get started! We have 5 collections with 20 images each to get through.",
+        "We have 5 collections with 20 images each to get through.\n",
+        "Because the exhibition is so soon, you will have a time limit on each image decision!",
         header_color='darkred',
         body_color='black'
     )
+
+    show_instructions(
+        "Let's get started!",
+        header_color='darkred',
+        body_color='black'
+    )
+    
     
     # Show Amy's introduction before the first collection
     amy_intro_text = visual.TextStim(
