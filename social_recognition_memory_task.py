@@ -5031,7 +5031,7 @@ def run_experiment():
     amy_intro_text = visual.TextStim(
         win,
         text="Remember: you'll be working with Amy to sort through this collection.\n\n"
-             "She'll provide her judgments as you work through each collection, but is distracted with other tasks.\n\n",
+             "She'll provide her judgments as you work through each collection, but is distracted with other tasks.\n\n"
              "Sometimes she will go first, other times you will go first.",
         color='black',
         height=0.04*0.75,
