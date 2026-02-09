@@ -13,8 +13,7 @@ The localizer task generates one CSV file:
 4. **localizer_[participant_id]_[timestamp].csv** - Localizer task data
 
 **File saving locations**:
-- For touch screen mode: files saved to `../LOG_FILES/` directory
-- For click/mouse mode: files saved to the current directory
+- All files are saved to `../LOG_FILES/` directory (created automatically if it doesn't exist)
 - File saving is skipped if "test" (case-insensitive) is in the participant name
 
 ---

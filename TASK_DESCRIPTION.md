@@ -280,7 +280,7 @@ All scoring is framed as "in-house curator" evaluations:
   3. Transition screen: "Now let's see how well you recall the objects you've seen!"
   4. Trial 1: Green circle - participant rates only
   5. Trial 2: Red circle - shows "Amy is confident they've seen this before", AI clicks "all the way on the old" side, then participant rates
-  6. Trial 3: Blue square - shows "now, work with Amy", participant rates, then AI rates extremely unconfidently (very close to OLD/0.0, at 0.05) but incorrectly (as it's a new square), then participant performs switch/stay decision, outcome shown
+  6. Trial 3: Blue square - shows "now, work with Amy", participant rates, then AI selects OLD but is not very confident (euclidean distance of 0.4 from left, at 0.4) but incorrectly (as it's a new square), then participant performs switch/stay decision, outcome shown
 - **Outcome explanations**: For practice trials, outcomes explicitly explain the score (e.g., "You were 67% incorrect!" for a score of 0.33)
 - **Slider instruction**: For mouse/trackpad mode, participants can click or drag the slider. For touch screen mode, participants tap to set the rating.
 
@@ -346,7 +346,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Block Counterbalancing
 
-- **Turn-taking**: Alternates within each block (participant first, then AI first, etc.), starting with participant first in block 1
+- **Turn-taking**: Randomized within each block - AI goes first on 5 random trials out of 10 per block
 - **AI Accuracy**: Fixed order - Blocks 1-3, 6-7 reliable (Amy, ~75%); Blocks 4-5, 8-10 unreliable (Ben, ~25%)
 - **Structure**: 
   - Blocks 1-3: Reliable (Amy), randomized turn order (AI first on 5 random trials)
