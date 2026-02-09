@@ -4866,10 +4866,10 @@ def run_experiment():
         "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
-    # AI rates (extremely unconfident that the object is OLD, very close to NEW) - it's actually NEW (square), so AI is correct (Amy in practice)
-    ai_confidence_t3 = 0.95  # Extremely unconfident that it's OLD - very close to NEW (1.0), meaning Amy is very confident it's NEW
+    # AI rates (selects OLD but not very confident - euclidean distance of 0.4 from left) - it's actually NEW (square), so AI is incorrect (Amy in practice)
+    ai_confidence_t3 = 0.4  # Selects OLD (closer to 0.0) but not very confident - euclidean distance of 0.4 from left (0.0)
     ai_rt_t3 = 2.0
-    ai_correct_t3 = True  # It's actually NEW (square), and Amy rates it as NEW, so AI is correct
+    ai_correct_t3 = False  # It's actually NEW (square), but Amy rates it as OLD (0.4), so AI is incorrect
     ground_truth_t3 = 1.0  # NEW
     try:
         ai_slider_display_time_t3, ai_final_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Amy")
