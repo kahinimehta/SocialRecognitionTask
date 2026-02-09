@@ -610,6 +610,12 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 - **Description**: Time taken to respond to the question, measured from question onset to button press
 - **Example**: `1.234`, `2.567`, `None`
 
+### `answer_click_time`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Absolute timestamp when the participant clicked their answer (in seconds since epoch, high precision)
+- **Note**: Only populated for question trials where participant answered (YES/NO button click or y/n key press). `None` for non-question trials or if participant timed out.
+- **Example**: `1764818181.1234567`, `None`
+
 ---
 
 ## Notes on Localizer Task

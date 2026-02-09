@@ -906,8 +906,10 @@ def generate_placeholder_stimuli(num_stimuli=100, output_dir="PLACEHOLDERS"):
 # =========================
 #  LOAD REAL STIMULI
 # =========================
-STIMULI_DIR = "STIMULI"
-PLACEHOLDER_DIR = "PLACEHOLDERS"
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+STIMULI_DIR = os.path.join(SCRIPT_DIR, "STIMULI")
+PLACEHOLDER_DIR = os.path.join(SCRIPT_DIR, "PLACEHOLDERS")
 
 # Category mapping: each category has 10 objects, numbered sequentially
 CATEGORY_MAPPING = {
@@ -4864,10 +4866,10 @@ def run_experiment():
         "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
-    # AI rates (extremely unconfident, very close to OLD but not exactly) - but it's actually NEW (square), so AI is wrong (Amy in practice)
-    ai_confidence_t3 = 0.05  # Extremely unconfident - very close to OLD (0.0) but slightly above (AI says old, but it's actually new)
+    # AI rates (extremely unconfident that the object is OLD, very close to NEW) - it's actually NEW (square), so AI is correct (Amy in practice)
+    ai_confidence_t3 = 0.95  # Extremely unconfident that it's OLD - very close to NEW (1.0), meaning Amy is very confident it's NEW
     ai_rt_t3 = 2.0
-    ai_correct_t3 = False  # It's actually NEW (square), so AI is incorrect
+    ai_correct_t3 = True  # It's actually NEW (square), and Amy rates it as NEW, so AI is correct
     ground_truth_t3 = 1.0  # NEW
     try:
         ai_slider_display_time_t3, ai_final_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Amy")

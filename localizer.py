@@ -1245,7 +1245,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     event.clearEvents()
 
 def ask_category_question(category_name, last_object_name, timeout=10.0):
-    """Ask category question and return (answer, timed_out, response_time) tuple
+    """Ask category question and return (answer, timed_out, response_time, answer_click_time) tuple
     
     Args:
         category_name: Category name for the question
@@ -1253,7 +1253,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
         timeout: Timeout in seconds (default 10.0)
     
     Returns:
-        tuple: (answer: bool or None, timed_out: bool, response_time: float)
+        tuple: (answer: bool or None, timed_out: bool, response_time: float, answer_click_time: float or None)
     """
     question_text = category_to_question(category_name)
     
@@ -1319,6 +1319,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
     clock = core.Clock()
     clock.reset()
     response_time = None
+    answer_click_time = None  # Absolute timestamp when answer was clicked
     
     if USE_TOUCH_SCREEN:
         # Position-change detection for touchscreens
@@ -1360,6 +1361,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                             if t > minRT:
                                 answer = True
                                 response_time = clock.getTime()
+                                answer_click_time = time.time()  # Record absolute timestamp
                                 yes_button.fillColor = 'green'
                                 draw_question()
                                 core.wait(0.3)
@@ -1376,6 +1378,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                             if t > minRT:
                                 answer = False
                                 response_time = clock.getTime()
+                                answer_click_time = time.time()  # Record absolute timestamp
                                 no_button.fillColor = 'red'
                                 draw_question()
                                 core.wait(0.3)
@@ -1403,6 +1406,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                         if on_yes and t > minRT:
                             answer = True
                             response_time = clock.getTime()
+                            answer_click_time = time.time()  # Record absolute timestamp
                             yes_button.fillColor = 'green'
                             draw_question()
                             core.wait(0.3)
@@ -1411,6 +1415,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                         elif on_no and t > minRT:
                             answer = False
                             response_time = clock.getTime()
+                            answer_click_time = time.time()  # Record absolute timestamp
                             no_button.fillColor = 'red'
                             draw_question()
                             core.wait(0.3)
@@ -1437,10 +1442,14 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                 if keys:
                     if 'y' in keys:
                         answer = True
+                        response_time = clock.getTime()
+                        answer_click_time = time.time()  # Record absolute timestamp
                         answered = True
                         break
                     elif 'n' in keys:
                         answer = False
+                        response_time = clock.getTime()
+                        answer_click_time = time.time()  # Record absolute timestamp
                         answered = True
                         break
             except (AttributeError, RuntimeError) as e:
@@ -1489,6 +1498,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                     if on_yes:
                         answer = True
                         response_time = clock.getTime()
+                        answer_click_time = time.time()  # Record absolute timestamp
                         yes_button.fillColor = 'green'
                         draw_question()
                         core.wait(0.3)
@@ -1497,6 +1507,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                     elif on_no:
                         answer = False
                         response_time = clock.getTime()
+                        answer_click_time = time.time()  # Record absolute timestamp
                         no_button.fillColor = 'red'
                         draw_question()
                         core.wait(0.3)
@@ -1514,10 +1525,14 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
                 if keys:
                     if 'y' in keys:
                         answer = True
+                        response_time = clock.getTime()
+                        answer_click_time = time.time()  # Record absolute timestamp
                         answered = True
                         break
                     elif 'n' in keys:
                         answer = False
+                        response_time = clock.getTime()
+                        answer_click_time = time.time()  # Record absolute timestamp
                         answered = True
                         break
                     elif 'escape' in keys:
@@ -1544,7 +1559,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
         win.flip()
         core.wait(2.0)  # Show message for 2 seconds
     
-    return (answer, timed_out, response_time)
+    return (answer, timed_out, response_time, answer_click_time)
 
 # Create main window with appropriate settings - use try/finally pattern
 print("DEBUG: About to start window creation block", file=sys.stderr)
@@ -1854,7 +1869,7 @@ try:
             'fixation_onset_time', 'fixation_offset_time', 'fixation_duration',
             'image_onset_time', 'image_offset_time', 'is_question_trial', 
             'question_category', 'question_text', 'question_onset_time', 
-            'answer', 'correct_answer', 'correct', 'timed_out', 'response_time'
+            'answer', 'correct_answer', 'correct', 'timed_out', 'response_time', 'answer_click_time'
         ]
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
@@ -1930,7 +1945,7 @@ try:
                 question_onset_time = time.time()
                 
                 # Ask the question
-                answer, timed_out, response_time = ask_category_question(question_category, current_stimulus['object_name'])
+                answer, timed_out, response_time, answer_click_time = ask_category_question(question_category, current_stimulus['object_name'])
                 
                 # Calculate correct only if not timed out
                 is_correct = (answer == correct_answer) if not timed_out else None
@@ -1959,7 +1974,8 @@ try:
                     'correct_answer': correct_answer,
                     'correct': is_correct,
                     'timed_out': timed_out,
-                    'response_time': response_time if response_time is not None else None
+                    'response_time': response_time if response_time is not None else None,
+                    'answer_click_time': answer_click_time
                 }
             else:
                 # Record data for non-question trials
@@ -1986,7 +2002,8 @@ try:
                     'correct_answer': None,
                     'correct': None,
                     'timed_out': None,
-                    'response_time': None
+                    'response_time': None,
+                    'answer_click_time': None
                 }
             
             localizer_data.append(trial_data)
