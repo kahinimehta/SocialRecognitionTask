@@ -401,16 +401,20 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
     - Trial 3: Full trial with participant, AI, and switch/stay decision. `ai_reliability` is `0.5` (50% for practice block)
   - All practice trials have `block_start_time`, `block_end_time`, `block_duration_seconds`, and `block_duration_minutes` set to `None` (practice block timing not tracked)
 - **Block structure**:
-  - Blocks 1-2: Reliable (exactly 0.75 accuracy, deterministic, Amy), alternating turn order
-  - Blocks 3-6: Unreliable (exactly 0.25 accuracy, deterministic, Ben), alternating turn order
-  - Blocks 7-8: Reliable (exactly 0.75 accuracy, deterministic, Amy), alternating turn order
-  - Blocks 9-10: Unreliable (exactly 0.25 accuracy, deterministic, Ben), alternating turn order
+  - Blocks 1-3: Reliable (exactly 0.75 accuracy, deterministic, Amy)
+  - Blocks 4-5: Unreliable (exactly 0.25 accuracy, deterministic, Ben)
+  - Blocks 6-7: Reliable (exactly 0.75 accuracy, deterministic, Amy)
+  - Blocks 8-10: Unreliable (exactly 0.25 accuracy, deterministic, Ben)
   
   **AI Accuracy Implementation**: The AI collaborator uses deterministic thresholds to ensure exact accuracy rates:
   - **75% accuracy (Reliable blocks)**: Exactly 3 out of every 4 trials are correct (positions 1, 2, 3 in each group of 4)
   - **25% accuracy (Unreliable blocks)**: Exactly 1 out of every 4 trials is correct (position 1 in each group of 4)
   - In a 10-trial block, reliable blocks will have approximately 7-8 correct trials, unreliable blocks will have approximately 2-3 correct trials
-- **Turn-taking**: Alternates within each block (participant first, then AI first, etc.), starting with participant first in block 1. The `participant_first` field logs who goes first for each trial.
+- **Turn-taking**: 
+  - **AI goes first** on blocks 2, 4, 6, 8, 10 (even-numbered blocks)
+  - **Participant goes first** on blocks 1, 3, 5, 7, 9 (odd-numbered blocks)
+  - Within each block, turn order alternates starting from the block's initial turn order
+  - The `participant_first` field logs who goes first for each trial (True = participant first, False = AI first)
 - **Study phase timing**:
   - Images are shown for **1.0 second each** (fixed duration, no jitter)
   - **Jittered fixations** appear before EVERY image: **0.25-0.75 seconds** (uniform random distribution)

@@ -130,23 +130,25 @@ Each of the 10 trials follows this structure:
 
 ### Turn-Taking Manipulation
 
-- **Turn order alternates within each block**: Starting with participant first in block 1, then alternating (participant first, AI first, participant first, AI first, etc.)
-- Within each block: Trial 1 = participant first, Trial 2 = AI first, Trial 3 = participant first, etc.
+- **Turn order alternates within each block**: Starting turn order varies by block
+- **AI goes first** on blocks 2, 4, 6, 8, 10 (even-numbered blocks)
+- **Participant goes first** on blocks 1, 3, 5, 7, 9 (odd-numbered blocks)
+- Within each block, turn order alternates starting from the block's initial turn order
 - The `participant_first` field in the CSV logs who goes first for each trial (True = participant first, False = AI first)
 
 ### AI Accuracy Manipulation
 
-- **Reliable blocks**: Exactly 75% correct (Blocks 1-2 and 7-8, Amy)
+- **Reliable blocks**: Exactly 75% correct (Blocks 1-3 and 6-7, Amy)
   - Uses deterministic threshold: exactly 3 out of every 4 trials are correct
   - In a 10-trial block, exactly 7-8 trials will be correct (rounded)
-- **Unreliable blocks**: Exactly 25% correct (Blocks 3-6 and 9-10, Ben)
+- **Unreliable blocks**: Exactly 25% correct (Blocks 4-5 and 8-10, Ben)
   - Uses deterministic threshold: exactly 1 out of every 4 trials is correct
   - In a 10-trial block, exactly 2-3 trials will be correct (rounded)
 - **Block structure**:
-  - Blocks 1-2: Reliable (0.75, Amy), alternating turn order (participant first in first trial)
-  - Blocks 3-6: Unreliable (0.25, Ben), alternating turn order (participant first in first trial)
-  - Blocks 7-8: Reliable (0.75, Amy), alternating turn order (participant first in first trial)
-  - Blocks 9-10: Unreliable (0.25, Ben), alternating turn order (participant first in first trial)
+  - Blocks 1-3: Reliable (0.75, Amy), turn order: participant first (block 1), AI first (block 2), participant first (block 3)
+  - Blocks 4-5: Unreliable (0.25, Ben), turn order: AI first (block 4), participant first (block 5)
+  - Blocks 6-7: Reliable (0.75, Amy), turn order: AI first (block 6), participant first (block 7)
+  - Blocks 8-10: Unreliable (0.25, Ben), turn order: AI first (block 8), participant first (block 9), AI first (block 10)
 
 **Implementation details**: The AI collaborator uses a hard threshold system to ensure deterministic accuracy rates. For reliable blocks (75% accuracy), trials are correct in positions 1, 2, and 3 of each group of 4 trials. For unreliable blocks (25% accuracy), only position 1 of each group of 4 trials is correct. This ensures consistent, predictable accuracy across all blocks.
 

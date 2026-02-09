@@ -5199,24 +5199,24 @@ def run_experiment():
     
     try:
         # Block structure:
-        # Blocks 1-2: Amy (Reliable 0.75), Participant first in block 1
-        # Blocks 3-6: Ben (Unreliable 0.25)
-        # Blocks 7-8: Amy (Reliable 0.75)
-        # Blocks 9-10: Ben (Unreliable 0.25)
-        # Turn order alternates within each block (participant first, then AI first, etc.)
-        # Starting with participant first in block 1
+        # Blocks 1-3: Amy (Reliable 0.75)
+        # Blocks 4-5: Ben (Unreliable 0.25)
+        # Blocks 6-7: Amy (Reliable 0.75)
+        # Blocks 8-10: Ben (Unreliable 0.25)
+        # Turn order: AI goes first on blocks 2, 4, 6, 8, 10 (even-numbered blocks)
+        # Turn order alternates within each block starting from the block's initial turn order
         
         block_conditions = [
             (True, 0.75),   # Block 1: Participant first in first trial, Reliable (Amy)
-            (True, 0.75),   # Block 2: Participant first in first trial, Reliable (Amy)
-            (True, 0.25),   # Block 3: Participant first in first trial, Unreliable (Ben)
-            (True, 0.25),   # Block 4: Participant first in first trial, Unreliable (Ben)
+            (False, 0.75),  # Block 2: AI first in first trial, Reliable (Amy)
+            (True, 0.75),   # Block 3: Participant first in first trial, Reliable (Amy)
+            (False, 0.25),  # Block 4: AI first in first trial, Unreliable (Ben)
             (True, 0.25),   # Block 5: Participant first in first trial, Unreliable (Ben)
-            (True, 0.25),   # Block 6: Participant first in first trial, Unreliable (Ben)
+            (False, 0.75),  # Block 6: AI first in first trial, Reliable (Amy)
             (True, 0.75),   # Block 7: Participant first in first trial, Reliable (Amy)
-            (True, 0.75),   # Block 8: Participant first in first trial, Reliable (Amy)
+            (False, 0.25),  # Block 8: AI first in first trial, Unreliable (Ben)
             (True, 0.25),   # Block 9: Participant first in first trial, Unreliable (Ben)
-            (True, 0.25),   # Block 10: Participant first in first trial, Unreliable (Ben)
+            (False, 0.25),  # Block 10: AI first in first trial, Unreliable (Ben)
         ]
         
         # Assign stimuli to blocks: each block has 1 item from each category (10 stimuli), no repeats
@@ -5239,8 +5239,8 @@ def run_experiment():
             if previous_partner_reliable is not None:
                 if previous_partner_reliable and not current_partner_reliable:
                     # Switched from Amy (reliable) to Ben (unreliable)
-                    # Check if this is the first switch (Block 3) or second switch (Block 9)
-                    if block_num == 3:
+                    # Check if this is the first switch (Block 4) or second switch (Block 8)
+                    if block_num == 4:
                         # First switch to Ben - show long message
                         switch_text = visual.TextStim(
                             win,
@@ -5305,7 +5305,7 @@ def run_experiment():
                         continue_button = continue_button_ben
                         continue_text = continue_text_ben
                         
-                    elif block_num == 5:
+                    elif block_num == 8:
                         # Second switch to Ben - show short message
                         switch_text = visual.TextStim(
                             win,
@@ -5367,7 +5367,7 @@ def run_experiment():
                         continue_text = None
                         button_x, button_y = 0, 0
                     
-                    # Only show Ben screen if we have valid text (Block 3 or Block 9)
+                    # Only show Ben screen if we have valid text (Block 4 or Block 8)
                     if switch_text is not None:
                     
                         # Custom wait for button with custom button position
@@ -5501,8 +5501,8 @@ def run_experiment():
                     
                 elif not previous_partner_reliable and current_partner_reliable:
                     # Switched from Ben (unreliable) to Amy (reliable)
-                    # Check if this is Block 7 (switching back to Amy)
-                    if block_num == 7:
+                    # Check if this is Block 6 (switching back to Amy)
+                    if block_num == 6:
                         switch_text = visual.TextStim(
                             win,
                             text="Amy is back for a day!\n\n"
