@@ -954,6 +954,12 @@ def get_stimulus_path(stimulus_num, is_lure=False, use_real_stimuli=True):
         Full path to image file
     """
     if use_real_stimuli:
+        # Build expected filename
+        if is_lure:
+            filename = f"Lure_{stimulus_num:03d}.jpg"
+        else:
+            filename = f"Image_{stimulus_num:03d}.jpg"
+        
         # Find which category this stimulus belongs to
         for category, (start, end) in CATEGORY_MAPPING.items():
             if start <= stimulus_num <= end:
@@ -961,25 +967,18 @@ def get_stimulus_path(stimulus_num, is_lure=False, use_real_stimuli=True):
                 folder_name = CATEGORY_FOLDER_MAP.get(category, category)
                 category_dir = os.path.join(STIMULI_DIR, folder_name)
                 if os.path.exists(category_dir):
-                    # List all object folders
+                    # List all object folders and search through them (like localizer does)
                     object_folders = [f for f in os.listdir(category_dir) 
                                      if os.path.isdir(os.path.join(category_dir, f))]
-                    # Find the object that corresponds to this stimulus number
-                    object_index = stimulus_num - start
-                    if 0 <= object_index < len(object_folders):
-                        object_folder = sorted(object_folders)[object_index]
-                        if is_lure:
-                            filename = f"Lure_{stimulus_num:03d}.jpg"
-                        else:
-                            filename = f"Image_{stimulus_num:03d}.jpg"
-                        return os.path.join(category_dir, object_folder, filename)
+                    
+                    # Search through all object folders to find the file with matching stimulus number
+                    for obj_folder in sorted(object_folders):
+                        obj_path = os.path.join(category_dir, obj_folder)
+                        file_path = os.path.join(obj_path, filename)
+                        if os.path.exists(file_path):
+                            return file_path
         
-        # Fallback: try direct path
-        if is_lure:
-            filename = f"Lure_{stimulus_num:03d}.jpg"
-        else:
-            filename = f"Image_{stimulus_num:03d}.jpg"
-        # Search all categories (fallback)
+        # Fallback: search all categories (like localizer does)
         for category in CATEGORY_NAMES:
             # Use mapped folder name if available, otherwise use category name as-is
             folder_name = CATEGORY_FOLDER_MAP.get(category, category)
