@@ -60,7 +60,7 @@ def get_input_method():
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
             size=(1400, 900),
-            color='white',
+            color='lightgray',
             units='height',
             fullscr=False,
             allowGUI=True,
@@ -1603,7 +1603,7 @@ try:
         
         win = visual.Window(
             size=(1400, 900), 
-            color='white', 
+            color='lightgray', 
             units='height',
             fullscr=False,
             waitBlanking=False,  # Prevent blocking on display sync
@@ -1911,7 +1911,7 @@ try:
         
         # Load and display image
         try:
-            img = visual.ImageStim(win, image=stimulus['path'], size=(0.8*0.75, 0.8*0.75))
+            img = visual.ImageStim(win, image=stimulus['path'], size=(0.8*0.75*1.35, 0.8*0.75*1.35))
             img.draw()
             win.flip()
             
@@ -2031,6 +2031,26 @@ try:
             print(f"Error loading image {stimulus['path']}: {e}")
             continue
 
+    # Calculate accuracy for question trials
+    question_trials = [trial for trial in localizer_data if trial.get('is_question_trial', False)]
+    if question_trials:
+        correct_count = sum(1 for trial in question_trials if trial.get('correct') is True)
+        total_questions = len(question_trials)
+        accuracy_percent = (correct_count / total_questions * 100) if total_questions > 0 else 0.0
+        accuracy_text = f"Your accuracy: {correct_count}/{total_questions} ({accuracy_percent:.1f}%)"
+    else:
+        accuracy_text = "No questions answered"
+    
+    # Show accuracy message
+    accuracy_display = visual.TextStim(
+        win,
+        text=accuracy_text,
+        color='black',
+        height=0.06*0.75,
+        pos=(0, 0.1),
+        wrapWidth=1.4*0.75
+    )
+    
     # Show completion message
     completion_text = visual.TextStim(
         win,
@@ -2038,13 +2058,14 @@ try:
              "Thank you for your participation.",
         color='black',
         height=0.06*0.75,
-        pos=(0, 0),
+        pos=(0, -0.1),
         wrapWidth=1.4*0.75
     )
 
+    accuracy_display.draw()
     completion_text.draw()
     win.flip()
-    wait_for_button("EXIT", additional_stimuli=[completion_text])
+    wait_for_button("EXIT", additional_stimuli=[accuracy_display, completion_text])
 
     # Close CSV file if it was opened
     if csv_file is not None:

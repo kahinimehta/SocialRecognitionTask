@@ -116,7 +116,7 @@ def get_input_method():
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
             size=(1400, 900),
-            color='white',
+            color='lightgray',
             units='height',
             fullscr=False,
             allowGUI=True,
@@ -588,7 +588,7 @@ try:
         
         win = visual.Window(
             size=(1400, 900), 
-            color='white', 
+            color='lightgray', 
             units='height',
             fullscr=False,
             waitBlanking=False,  # Prevent blocking on display sync
@@ -1990,12 +1990,12 @@ def load_image_stimulus(image_path, maintain_aspect_ratio=False):
             # Calculate size maintaining aspect ratio
             # Use height as reference (0.3) and scale width proportionally
             aspect_ratio = img_width / img_height
-            height = 0.3
+            height = 0.3 * 1.35  # 35% bigger
             width = height * aspect_ratio
             
             return visual.ImageStim(win, image=image_path, size=(width, height))
         else:
-            return visual.ImageStim(win, image=image_path, size=(0.3, 0.3))
+            return visual.ImageStim(win, image=image_path, size=(0.3*1.35, 0.3*1.35))  # 35% bigger
     else:
         # Fallback: colored rectangle
         return visual.Rect(win, size=(0.3, 0.3), fillColor='gray', lineColor='black')
@@ -2882,6 +2882,36 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     
     return slider_display_time, final_slider_display_time
 
+def create_arrow(x_pos, y_pos, color='black', arrow_length=0.08, arrow_width=0.02):
+    """Create a downward-pointing arrow at the specified position
+    Arrow points from above the slider down to the rating position on the slider
+    """
+    # Tip is at the slider position (y_pos) - this is where the rating is
+    tip_y = y_pos
+    tip_x = x_pos
+    # Arrow starts above slider (higher y value = higher on screen)
+    start_y = y_pos + arrow_length
+    start_x = x_pos
+    
+    # Create arrow using ShapeStim with vertices
+    # Arrow shape: vertical line with triangle tip pointing down
+    # In PsychoPy, positive y is up, so start_y > tip_y means start is above tip
+    arrow_vertices = [
+        (start_x, start_y),  # Top of arrow (start point, above slider)
+        (tip_x - arrow_width/2, tip_y + arrow_width),  # Left side of tip (just above tip)
+        (tip_x, tip_y),  # Tip point (at slider position)
+        (tip_x + arrow_width/2, tip_y + arrow_width),  # Right side of tip (just above tip)
+    ]
+    
+    arrow = visual.ShapeStim(
+        win,
+        vertices=arrow_vertices,
+        fillColor=color,
+        lineColor=color,
+        closeShape=True
+    )
+    return arrow
+
 def show_both_responses(participant_value, partner_value, participant_first, partner_name="Amy"):
     """Show both participant and partner responses with sliders"""
     # Use consistent slider positioning (lower, matching get_slider_response)
@@ -2895,25 +2925,13 @@ def show_both_responses(participant_value, partner_value, participant_first, par
         lineWidth=3
     )
     
-    # Participant handle (green) - use consistent sizing
+    # Participant arrow (green) - pointing to rating position
     p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
-    p_handle = visual.Circle(
-        win,
-        radius=0.02,
-        fillColor='green',
-        lineColor='black',
-        pos=(p_x_pos, slider_y_pos)
-    )
+    p_arrow = create_arrow(p_x_pos, slider_y_pos, color='green', arrow_length=0.08, arrow_width=0.02)
     
-    # Partner handle (blue) - use consistent sizing
+    # Partner arrow (blue) - pointing to rating position
     a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
-    a_handle = visual.Circle(
-        win,
-        radius=0.02,
-        fillColor='blue',
-        lineColor='black',
-        pos=(a_x_pos, slider_y_pos)
-    )
+    a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
     
     # Move labels farther from line to avoid overlap
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
@@ -2932,7 +2950,7 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     
     both_text = visual.TextStim(
         win,
-        text=f"Your rating: {p_label} (green)  |  {partner_name}'s rating: {a_label} (blue)",
+        text=f"Your choice: {p_label}  |  {partner_name}'s choice: {a_label}",
         color='black',
         height=0.04*0.75,
         pos=(0, 0.1),
@@ -2943,8 +2961,8 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     slider_line.draw()
     old_label.draw()
     new_label.draw()
-    p_handle.draw()
-    a_handle.draw()
+    p_arrow.draw()
+    a_arrow.draw()
     win.flip()
 
 def get_switch_stay_decision(image_stim=None, participant_value=None, partner_value=None, timeout=7.0, partner_name="Amy"):
@@ -3036,7 +3054,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     if participant_value is not None and partner_value is not None:
         slider_labels = visual.TextStim(
             win,
-            text=f"Your rating: {p_label} (green)  |  {partner_name}'s rating: {a_label} (blue)",
+            text=f"Your choice: {p_label}  |  {partner_name}'s choice: {a_label}",
             color='black',
             height=0.04*0.75,
             pos=(0, 0.25),  # Below question, above image
@@ -3093,10 +3111,10 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 slider_line.draw()
                 old_label.draw()
                 new_label.draw()
-                if participant_value is not None:
-                    p_handle.draw()
-                if partner_value is not None:
-                    a_handle.draw()
+                if participant_value is not None and p_arrow is not None:
+                    p_arrow.draw()
+                if partner_value is not None and a_arrow is not None:
+                    a_arrow.draw()
                 timeout_alert.draw()
                 win.flip()
                 core.wait(1.5)
@@ -3292,12 +3310,12 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
             # Don't override size - use default (0.3, 0.3) from load_image_stimulus
             image_stim.draw()
         
-        # Draw slider visualization below image (with handles showing both ratings)
+        # Draw slider visualization below image (with arrows showing both ratings)
         slider_line.draw()
-        if participant_value is not None:
-            p_handle.draw()
-        if partner_value is not None:
-            a_handle.draw()
+        if participant_value is not None and p_arrow is not None:
+            p_arrow.draw()
+        if partner_value is not None and a_arrow is not None:
+            a_arrow.draw()
         old_label.draw()
         new_label.draw()
         
@@ -5289,7 +5307,7 @@ def run_experiment():
                         ben_label = visual.TextStim(
                             win,
                             text="Ben",
-                            color='white',  # White for visibility on brown icon background
+                            color='lightgray',  # White for visibility on brown icon background
                             height=0.05*0.75,
                             pos=(0, -0.15),  # Same y-position as icon center to overlay
                             bold=True  # Make it bold for better visibility
