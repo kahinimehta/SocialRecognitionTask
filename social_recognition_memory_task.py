@@ -2004,8 +2004,9 @@ def load_image_stimulus(image_path, maintain_aspect_ratio=False):
 #  SLIDER FOR OLD-NEW RATING
 # =========================
 def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_num=None, max_trials=10, timeout=7.0):
-    """Get slider response from participant using click-only slider with submit button
-    Works with both touch screen and mouse input - click/tap anywhere on the slider line to set value (no dragging)"""
+    """Get slider response from participant using slider with submit button
+    Works with both touch screen and mouse input - click/tap anywhere on the slider line to set value
+    Mouse mode allows dragging the slider, touch screen uses tap-to-set"""
     # Create slider visual elements
     # Move slider lower on screen
     slider_y_pos = -0.3*0.6  # Lower than before (-0.2*0.6)
@@ -2113,7 +2114,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             # Keep using previous mouse state instead of defaulting
             core.wait(0.02)  # Slightly longer wait to let system recover
         
-        # Check if clicking/tapping on slider line (click-only, no dragging allowed)
+        # Check if clicking/tapping on slider line (mouse mode allows dragging, touch screen uses tap-to-set)
         on_slider_line = abs(mouse_pos[1] - slider_y_pos) < 0.05*0.75  # Within 0.05 of slider line y-position
         on_slider_x_range = -0.4*0.6 <= mouse_pos[0] <= 0.4*0.6  # Within slider x range
         
@@ -2192,8 +2193,26 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                 mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
             
         else:
-            # Standard button release detection for mouse/click mode
-            # Click/tap detection: button was just released (click-only, no dragging)
+            # Mouse/click mode: allow dragging the slider
+            # Check if mouse button is pressed and mouse is over slider line (enables dragging)
+            if mouse_buttons[0] and on_slider_line and on_slider_x_range:
+                # Mouse button is pressed and over slider line - update slider value (allows dragging)
+                x_pos = max(-0.4*0.6, min(0.4*0.6, mouse_pos[0]))
+                slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
+                slider_handle.pos = (x_pos, slider_y_pos)
+                
+                # Record decision onset time (first time mouse button is pressed on slider)
+                click_time = time.time()
+                if slider_decision_onset_time is None:
+                    slider_decision_onset_time = click_time  # First press = decision onset
+                    slider_click_times.append(click_time)  # Log first click
+                
+                # Check if moved from center (0.5)
+                if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
+                    has_moved = True
+                    slider_stop_time = click_time  # Update stop time while dragging
+            
+            # Also handle click on slider line (for single clicks, not just dragging)
             if prev_mouse_buttons[0] and not mouse_buttons[0]:
                 # Button was just released - check if it was on slider line
                 if on_slider_line and on_slider_x_range:
@@ -4658,7 +4677,7 @@ def run_experiment():
     win.flip()
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1, participant_slider_decision_onset_time_t1, participant_slider_click_times_t1 = get_slider_response(
-        "Click and drag on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
+        "Click on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
         "How close you are to either side indicates how CONFIDENT you are in your answer, but whichever side you are closer to indicates your ultimate answer.",
         image_stim=green_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )

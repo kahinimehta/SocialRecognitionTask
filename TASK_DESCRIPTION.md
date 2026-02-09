@@ -85,7 +85,7 @@ Each of the 10 trials follows this structure:
 2. **Image Presentation**: Shows either the studied image or its lure (50% chance each) for 1.0 second (fixed duration)
    - Image remains visible until participant responds or timeout (7 seconds)
 3. **Participant Rating**: Rate memory confidence on a continuous slider
-   - Click anywhere on the slider line to set rating (not dragging)
+   - Click anywhere on the slider line to set rating (mouse mode allows dragging, touch screen uses tap-to-set)
    - Click SUBMIT button to confirm
    - Timeout: 7 seconds (random answer selected if timeout)
 4. **AI Partner Rating**: AI partner also rates the image
@@ -287,7 +287,7 @@ All scoring is framed as "in-house curator" evaluations:
 ### Purpose
 
 - Familiarize participants with task mechanics
-- Practice using the slider (click-only, not dragging)
+- Practice using the slider (click or drag for mouse mode, tap for touch screen)
 - Understand collaboration decisions
 - Learn about the curator scoring system
 - **Note**: Practice stimuli are simple shapes, not replaced with final stimuli
