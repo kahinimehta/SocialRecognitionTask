@@ -80,6 +80,20 @@ Use this file when analyzing data.
 
 ---
 
+#### **`script.md`**
+Experimenter script for running the task with participants.
+
+This file contains:
+
+- **Quick start instructions** for running the main experiment and localizer task
+- **Complete script** with all text that appears on screen during the experiment
+- **What to say** guidance for experimenters at each stage
+- **Troubleshooting tips** and technical notes
+
+The script is organized by screen/phase, showing exactly what participants will see and what experimenters should say. Use this file when conducting sessions to ensure consistent instructions across participants.
+
+---
+
 
 ### 3. Demo / Media (needs to be updated)
 

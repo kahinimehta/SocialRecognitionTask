@@ -2168,7 +2168,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                         # Show message: "please select an answer first"
                         error_message = visual.TextStim(
                             win,
-                            text="Please select an answer first",
+                            text="Please select an answer first.",
                             color='red',
                             height=0.05*0.75*1.35,
                             pos=(0, slider_y_pos - 0.2)
@@ -3841,7 +3841,7 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
         color = 'red'
     
     # Show outcome with curator scoring (display rounded to 1 decimal place)
-    outcome_text_full = f"{outcome_text}\n\nThe in-house curator scored this image: {correctness_points_rounded:.1f} points based on image & your confidence"
+    outcome_text_full = f"{outcome_text}.\n\nThe in-house curator scored this image: {correctness_points_rounded:.1f} points based on image & your confidence."
     outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06*1.35, pos=(0, 0), wrapWidth=1.4)
     outcome_stim.draw()
     win.flip()
@@ -4167,7 +4167,7 @@ def run_experiment():
     # Initial click-to-start screen with button
     start_screen = visual.TextStim(
         win,
-        text="Hello & welcome to the social memory game! Pay careful attention to the text on the screen",
+        text="Hello & welcome to the social memory game! Pay careful attention to the text on the screen.",
         color='black',
         height=0.05*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.4*0.6),  # Moved higher to avoid overlap with button
@@ -4586,7 +4586,7 @@ def run_experiment():
     welcome_text_2 = visual.TextStim(
         win,
         text="Before you begin the real work, you'll complete a short training round to get familiar with the process.\n\n"
-             "For now, simply memorize the shapes you're about to see. Click continue when you're ready to get started!",
+             "For now, simply memorize the shapes you're about to see. Click CONTINUE when you're ready to get started!",
         color='black',
         height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.0),
@@ -5029,7 +5029,7 @@ def run_experiment():
         "• Rate your confidence on each photo if it belongs in the collection on the slider\n"
         "• LEFT = OLD (should be part of the collection)\n"
         "• RIGHT = NEW (I haven't seen these before, they are not part of the collection)\n"
-        "• Click anywhere on the slider line to set your rating, then click SUBMIT",
+        "• Click anywhere on the slider line to set your rating, then click SUBMIT.",
         header_color='darkred',
         body_color='black'
     )
@@ -5039,7 +5039,7 @@ def run_experiment():
         "Amy will also rate each image, but may not always be correct. She's super busy!\n\n"
         "• You can STAY with your answer\n"
         "• Or SWITCH to your partner Amy's answer\n"
-        "• Even if you both agree (OLD or NEW) you can switch to match your partner Amy's confidence level",
+        "• Even if you both agree (OLD or NEW), you can switch to match your partner Amy's confidence level.",
         header_color='darkred',
         body_color='black'
     )
@@ -5049,7 +5049,7 @@ def run_experiment():
         "Remember, confidence matters! An in-house curator will score your collection before the exhibition.\n\n"
         "• If you are confident and wrong (e.g., you click ALL the way to the left/OLD on an image that shouldn't be part of the collection), "
         "the curator will penalize you more heavily\n"
-        "• If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit",
+        "• If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit.",
         header_color='darkred',
         body_color='black'
     )
@@ -5283,7 +5283,7 @@ def run_experiment():
                                  "Amy has stepped away to prepare for her exhibition.\n\n"
                                  "While she's gone, you'll be working with Ben—another assistant in the studio.\n\n"
                                  "Ben is helping sort the same set of images, but he has trained differently than you.\n\n"
-                                 "As always, focus on making the best judgment you can. Click to start sorting!",
+                                 "As always, focus on making the best judgment you can. Click CONTINUE to start sorting!",
                             color='black',
                             height=0.04*0.75*1.35,
                             pos=(0, 0.25),  # Moved down for better spacing with image

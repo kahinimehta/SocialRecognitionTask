@@ -1978,7 +1978,7 @@ try:
                         feedback_text = "Correct!"
                         feedback_color = 'green'
                     else:
-                        feedback_text = "Incorrect"
+                        feedback_text = "Incorrect."
                         feedback_color = 'red'
                     
                     feedback_stim = visual.TextStim(
