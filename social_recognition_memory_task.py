@@ -2934,34 +2934,32 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
     a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
     
+    # Labels above arrows
+    p_label_text = visual.TextStim(
+        win,
+        text="Your choice",
+        color='black',
+        height=0.035*0.75*1.35,
+        pos=(p_x_pos, slider_y_pos + 0.12)  # Above participant arrow
+    )
+    
+    a_label_text = visual.TextStim(
+        win,
+        text=f"{partner_name}'s choice",
+        color='black',
+        height=0.035*0.75*1.35,
+        pos=(a_x_pos, slider_y_pos + 0.12)  # Above partner arrow
+    )
+    
     # Move labels farther from line to avoid overlap
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
-    # Labels
-    if participant_value < 0.5:
-        p_label = "OLD"
-    else:
-        p_label = "NEW"
-    
-    if partner_value < 0.5:
-        a_label = "OLD"
-    else:
-        a_label = "NEW"
-    
-    both_text = visual.TextStim(
-        win,
-        text=f"Your choice: {p_label}  |  {partner_name}'s choice: {a_label}",
-        color='black',
-        height=0.04*0.75*1.35,
-        pos=(0, 0.25),  # Move higher to avoid overlap with larger images
-        wrapWidth=1.2
-    )
-    
-    both_text.draw()
     slider_line.draw()
     old_label.draw()
     new_label.draw()
+    p_label_text.draw()
+    a_label_text.draw()
     p_arrow.draw()
     a_arrow.draw()
     win.flip()
@@ -2984,32 +2982,39 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     
     # Participant arrow (green) - pointing to rating position
     p_arrow = None
+    p_x_pos = None
+    p_label_text = None
     if participant_value is not None:
         p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
         p_arrow = create_arrow(p_x_pos, slider_y_pos, color='green', arrow_length=0.08, arrow_width=0.02)
+        # Label above participant arrow
+        p_label_text = visual.TextStim(
+            win,
+            text="Your choice",
+            color='black',
+            height=0.035*0.75*1.35,
+            pos=(p_x_pos, slider_y_pos + 0.12)  # Above participant arrow
+        )
     
     # Partner arrow (blue) - pointing to rating position
     a_arrow = None
+    a_x_pos = None
+    a_label_text = None
     if partner_value is not None:
         a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
         a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
+        # Label above partner arrow
+        a_label_text = visual.TextStim(
+            win,
+            text=f"{partner_name}'s choice",
+            color='black',
+            height=0.035*0.75*1.35,
+            pos=(a_x_pos, slider_y_pos + 0.12)  # Above partner arrow
+        )
     
     # Move labels farther from line to avoid overlap
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
-    
-    # Labels
-    if participant_value is not None:
-        if participant_value < 0.5:
-            p_label = "OLD"
-        else:
-            p_label = "NEW"
-    
-    if partner_value is not None:
-        if partner_value < 0.5:
-            a_label = "OLD"
-        else:
-            a_label = "NEW"
     
     # Create buttons (positioned below slider)
     stay_button = visual.Rect(
@@ -3040,17 +3045,6 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         wrapWidth=1.2,
         pos=(0, 0.45)  # Higher to avoid overlap with larger images
     )
-    
-    # Show labels for the slider
-    if participant_value is not None and partner_value is not None:
-        slider_labels = visual.TextStim(
-            win,
-            text=f"Your choice: {p_label}  |  {partner_name}'s choice: {a_label}",
-            color='black',
-            height=0.04*0.75*1.35,
-            pos=(0, 0.3),  # Higher to avoid overlap with larger images
-            wrapWidth=1.2
-        )
     
     mouse.setVisible(True)
     decision_onset_time = None  # Will be set when screen first appears
@@ -3092,8 +3086,6 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     pos=(0, -0.35)  # Lower to avoid overlap with buttons
                 )
                 decision_prompt.draw()
-                if participant_value is not None and partner_value is not None:
-                    slider_labels.draw()
                 if image_stim:
                     # Position image above slider
                     # Images are 35% bigger now, so position slightly lower to avoid overlap
@@ -3103,6 +3095,11 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 slider_line.draw()
                 old_label.draw()
                 new_label.draw()
+                # Draw labels above arrows
+                if participant_value is not None and p_label_text is not None:
+                    p_label_text.draw()
+                if partner_value is not None and a_label_text is not None:
+                    a_label_text.draw()
                 if participant_value is not None and p_arrow is not None:
                     p_arrow.draw()
                 if partner_value is not None and a_arrow is not None:
@@ -3292,8 +3289,6 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         
         # Draw everything in correct order
         decision_prompt.draw()
-        if participant_value is not None and partner_value is not None:
-            slider_labels.draw()
         
         # Draw image above slider (centered)
         if image_stim:
@@ -3305,12 +3300,17 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         
         # Draw slider visualization below image (with arrows showing both ratings)
         slider_line.draw()
+        old_label.draw()
+        new_label.draw()
+        # Draw labels above arrows
+        if participant_value is not None and p_label_text is not None:
+            p_label_text.draw()
+        if partner_value is not None and a_label_text is not None:
+            a_label_text.draw()
         if participant_value is not None and p_arrow is not None:
             p_arrow.draw()
         if partner_value is not None and a_arrow is not None:
             a_arrow.draw()
-        old_label.draw()
-        new_label.draw()
         
         # Draw buttons below slider
         stay_button.draw()
@@ -4163,8 +4163,8 @@ def run_experiment():
         win,
         text="Hello & welcome to the social memory game! Pay careful attention to the text on the screen",
         color='black',
-        height=0.06*0.75*1.35,
-        pos=(0, 0.2*0.6),
+        height=0.05*0.75*1.35,  # Reduced to ensure buttons are visually larger
+        pos=(0, 0.4*0.6),  # Moved higher to avoid overlap with button
         wrapWidth=1.4*0.75
     )
     
@@ -4174,14 +4174,14 @@ def run_experiment():
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.3*0.6)
+        pos=(0, -0.45*0.6)  # Moved closer to bottom
     )
     start_button_text = visual.TextStim(
         win,
         text="BEGIN",
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0, -0.3*0.6)
+        pos=(0, -0.45*0.6)  # Match button position
     )
     
     # Create mouse instance for this function (since we assign to mouse later, Python treats it as local)
@@ -4390,11 +4390,11 @@ def run_experiment():
     amy_path = os.path.join(STIMULI_DIR, "Amy.png")
     if os.path.exists(amy_path):
         amy_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
-        # Position Amy's image below the text (moved slightly up)
+        # Position Amy's image below the text (closer to text for better spacing)
         if hasattr(amy_image, 'setPos'):
-            amy_image.setPos((0, -0.05))  # Moved up from -0.1
+            amy_image.setPos((0, -0.05))  # Closer to text
         elif hasattr(amy_image, 'pos'):
-            amy_image.pos = (0, -0.05)  # Moved up from -0.1
+            amy_image.pos = (0, -0.05)  # Closer to text
     else:
         amy_image = None
         print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
@@ -4408,18 +4408,18 @@ def run_experiment():
              "She needs help sorting through large sets of images and deciding which ones truly belong. "
              "Will you be her employee of the month?",
         color='black',
-        height=0.04*0.75*1.35,
-        pos=(0, 0.35),  # Move text higher to avoid overlap with larger images
+        height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
+        pos=(0, 0.25),  # Moved down for better spacing with image
         wrapWidth=1.2
     )
     
-    # Label for Amy's image (first time shown) - below image (moved down to avoid overlap)
+    # Label for Amy's image (first time shown) - below image
     amy_label_1 = visual.TextStim(
         win,
         text="Amy",
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0, -0.3)  # Move lower to avoid overlap with larger images
+        pos=(0, -0.25)  # Below image
     )
     
     # Create custom button for this screen (positioned bottom right to avoid icon overlap)
@@ -4429,14 +4429,14 @@ def run_experiment():
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0.4, -0.5)  # Bottom right, moved even closer to bottom
+        pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
     )
     continue_text_welcome = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0.4, -0.5)  # Bottom right, moved even closer to bottom
+        pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
     )
     
     def redraw_welcome_1():
@@ -4480,7 +4480,7 @@ def run_experiment():
                     draw_screen()
                 else:
                     # Position has changed - check if touch is within button using position calculation
-                    button_x, button_y = 0.4, -0.3  # Bottom right position, moved up slightly
+                    button_x, button_y = 0.4, -0.4  # Updated to match button position
                     button_width, button_height = 0.3*0.75, 0.1*0.75
                     hit_margin_x = max(button_width * 0.5, 0.08)
                     hit_margin_y = max(button_height * 0.5, 0.04)
@@ -4536,7 +4536,7 @@ def run_experiment():
                 except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
                 
-                button_x, button_y = 0.4, -0.3  # Bottom right position, moved up slightly
+                button_x, button_y = 0.4, -0.4  # Updated to match button position
                 button_width, button_height = 0.3*0.75, 0.1*0.75
                 
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
@@ -4582,7 +4582,7 @@ def run_experiment():
         text="Before you begin the real work, you'll complete a short training round to get familiar with the process.\n\n"
              "For now, simply memorize the shapes you're about to see. Click continue when you're ready to get started!",
         color='black',
-        height=0.04*0.75*1.35,
+        height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.0),
         wrapWidth=1.2
     )
@@ -5064,8 +5064,8 @@ def run_experiment():
              "She'll provide her judgments as you work through each collection, but is distracted with other tasks.\n\n"
              "Sometimes she will go first, other times you will go first.",
         color='black',
-        height=0.04*0.75*1.35,
-        pos=(0, 0.2),  # Move text up
+        height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
+        pos=(0, 0.25),  # Moved down for better spacing with image
         wrapWidth=1.2
     )
     
@@ -5074,9 +5074,9 @@ def run_experiment():
     if os.path.exists(amy_path):
         amy_intro_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
         if hasattr(amy_intro_image, 'setPos'):
-            amy_intro_image.setPos((0, -0.1))  # Below text
+            amy_intro_image.setPos((0, -0.05))  # Closer to text
         elif hasattr(amy_intro_image, 'pos'):
-            amy_intro_image.pos = (0, -0.1)  # Below text
+            amy_intro_image.pos = (0, -0.05)  # Closer to text
     else:
         amy_intro_image = None
         print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
@@ -5087,7 +5087,7 @@ def run_experiment():
         text="Amy",
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0, -0.25)  # Below the image
+        pos=(0, -0.2)  # Below the image
     )
     
     # Create custom button for this screen (positioned bottom right to avoid icon overlap)
@@ -5097,14 +5097,14 @@ def run_experiment():
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0.4, -0.5)  # Bottom right, moved even closer to bottom
+        pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
     )
     continue_text_amy_intro = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0.4, -0.5)  # Bottom right, moved even closer to bottom
+        pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
     )
     
     def redraw_amy_intro():
@@ -5148,7 +5148,7 @@ def run_experiment():
                     draw_screen_amy_intro()
                 else:
                     # Position has changed - check if touch is within button using position calculation
-                    button_x_amy_intro, button_y_amy_intro = 0.4, -0.3
+                    button_x_amy_intro, button_y_amy_intro = 0.4, -0.4  # Updated to match button position
                     button_width_amy_intro, button_height_amy_intro = 0.3*0.75, 0.1*0.75
                     hit_margin_amy_intro_x = max(button_width_amy_intro * 0.5, 0.08)
                     hit_margin_amy_intro_y = max(button_height_amy_intro * 0.5, 0.04)
@@ -5193,7 +5193,7 @@ def run_experiment():
                 except (TypeError, ValueError):
                     mouse_x_amy_intro, mouse_y_amy_intro = 0.0, 0.0
                 
-                button_x_amy_intro, button_y_amy_intro = 0.4, -0.3
+                button_x_amy_intro, button_y_amy_intro = 0.4, -0.4  # Updated to match button position
                 button_width_amy_intro, button_height_amy_intro = 0.3*0.75, 0.1*0.75
                 
                 on_button_amy_intro = (button_x_amy_intro - button_width_amy_intro/2 <= mouse_x_amy_intro <= button_x_amy_intro + button_width_amy_intro/2 and
@@ -5280,30 +5280,29 @@ def run_experiment():
                                  "As always, focus on making the best judgment you can. Click to start sorting!",
                             color='black',
                             height=0.04*0.75*1.35,
-                            pos=(0, 0.2),  # Move text up
+                            pos=(0, 0.25),  # Moved down for better spacing with image
                             wrapWidth=1.2
                         )
                         
-                        # Load and display Ben's picture (maintain aspect ratio, shift down for white space)
+                        # Load and display Ben's picture (maintain aspect ratio)
                         ben_path = os.path.join(STIMULI_DIR, "Ben.png")
                         if os.path.exists(ben_path):
                             ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                             if hasattr(ben_image, 'setPos'):
-                                ben_image.setPos((0, -0.15))  # Shifted down to account for white space at bottom
+                                ben_image.setPos((0, -0.05))  # Closer to text
                             elif hasattr(ben_image, 'pos'):
-                                ben_image.pos = (0, -0.15)  # Shifted down to account for white space at bottom
+                                ben_image.pos = (0, -0.05)  # Closer to text
                         else:
                             ben_image = None
                             print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
                         
-                        # Label for Ben's image (first time shown) - overlaid on top of icon
+                        # Label for Ben's image (first time shown) - below image
                         ben_label = visual.TextStim(
                             win,
                             text="Ben",
-                            color='lightgray',  # White for visibility on brown icon background
+                            color='black',
                             height=0.05*0.75*1.35,
-                            pos=(0, -0.15),  # Same y-position as icon center to overlay
-                            bold=True  # Make it bold for better visibility
+                            pos=(0, -0.2)  # Below the image
                         )
                         
                         # Create custom button for this screen (positioned bottom right to avoid icon overlap)
@@ -5313,14 +5312,14 @@ def run_experiment():
                             height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
-                            pos=(0.4, -0.5)  # Bottom right, moved even closer to bottom
+                            pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
                         )
                         continue_text_ben = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
                             height=0.05*0.75*1.35,
-                            pos=(0.4, -0.5)  # Bottom right, moved even closer to bottom
+                            pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
                         )
                         
                         def redraw_ben():
@@ -5330,7 +5329,7 @@ def run_experiment():
                             continue_button_ben.draw()
                             continue_text_ben.draw()
                         
-                        button_x, button_y = 0.4, -0.3
+                        button_x, button_y = 0.4, -0.4  # Updated to match button position
                         continue_button = continue_button_ben
                         continue_text = continue_text_ben
                         
@@ -5340,19 +5339,19 @@ def run_experiment():
                             win,
                             text="Amy has to step away again! You will work with Ben again for the last collections.",
                             color='black',
-                            height=0.04*0.75*1.35,
-                            pos=(0, 0.2),  # Move text up
+                            height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
+                            pos=(0, 0.25),  # Moved down for better spacing with image
                             wrapWidth=1.2
                         )
                         
-                        # Load and display Ben's picture (maintain aspect ratio, shift down for white space)
+                        # Load and display Ben's picture (maintain aspect ratio)
                         ben_path = os.path.join(STIMULI_DIR, "Ben.png")
                         if os.path.exists(ben_path):
                             ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                             if hasattr(ben_image, 'setPos'):
-                                ben_image.setPos((0, -0.2))  # Shifted down to account for white space at bottom
+                                ben_image.setPos((0, -0.05))  # Closer to text
                             elif hasattr(ben_image, 'pos'):
-                                ben_image.pos = (0, -0.2)  # Shifted down to account for white space at bottom
+                                ben_image.pos = (0, -0.05)  # Closer to text
                         else:
                             ben_image = None
                             print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
@@ -5367,14 +5366,14 @@ def run_experiment():
                             height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
-                            pos=(0.4, -0.4)  # Bottom right
+                            pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
                         )
                         continue_text_ben_continue = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
                             height=0.05*0.75*1.35,
-                            pos=(0.4, -0.4)  # Bottom right
+                            pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
                         )
                         
                         def redraw_ben():
@@ -5538,8 +5537,8 @@ def run_experiment():
                                  "She's returning to help with exhibition preparation.\n\n"
                                  "You'll once again see her judgments as you work through these collections.",
                             color='black',
-                            height=0.04*0.75*1.35,
-                            pos=(0, 0.2),  # Move text up
+                            height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
+                            pos=(0, 0.25),  # Moved down for better spacing with image
                             wrapWidth=1.2
                         )
                         
@@ -5613,7 +5612,7 @@ def run_experiment():
                                         draw_screen_amy_return()
                                     else:
                                         # Position has changed - check if touch is within button using position calculation
-                                        button_x_amy_return, button_y_amy_return = 0.4, -0.3
+                                        button_x_amy_return, button_y_amy_return = 0.4, -0.4  # Updated to match button position
                                         button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
                                         hit_margin_amy_return_x = max(button_width_amy_return * 0.5, 0.08)
                                         hit_margin_amy_return_y = max(button_height_amy_return * 0.5, 0.04)
@@ -5658,7 +5657,7 @@ def run_experiment():
                                     except (TypeError, ValueError):
                                         mouse_x_amy_return, mouse_y_amy_return = 0.0, 0.0
                                     
-                                    button_x_amy_return, button_y_amy_return = 0.4, -0.3
+                                    button_x_amy_return, button_y_amy_return = 0.4, -0.4  # Updated to match button position
                                     button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
                                     
                                     on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 <= mouse_x_amy_return <= button_x_amy_return + button_width_amy_return/2 and
