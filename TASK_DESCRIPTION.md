@@ -249,7 +249,7 @@ All scoring is framed as "in-house curator" evaluations:
 - **Trial Number**: Trial within block
 - **Trial Type**: "studied" or "lure"
 - **Image Path**: Which image was shown
-- **Participant First**: True if participant responded first in this trial, False if AI responded first (alternates within blocks)
+- **Participant First**: True if participant responded first in this trial, False if AI responded first (randomized within blocks - AI goes first on 5 random trials per block)
 - **Time from Experiment Start**: Elapsed time since experiment began
 
 ### Data Storage
@@ -346,13 +346,13 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Block Counterbalancing
 
-- **Turn-taking**: Randomized within each block - AI goes first on 5 random trials out of 10 per block
-- **AI Accuracy**: Fixed order - Blocks 1-2, 7-8 reliable (Amy, ~75%); Blocks 3-6, 9-10 unreliable (Ben, ~25%)
+- **Turn-taking**: Alternates within each block (participant first, then AI first, etc.), starting with participant first in block 1
+- **AI Accuracy**: Fixed order - Blocks 1-3, 6-7 reliable (Amy, ~75%); Blocks 4-5, 8-10 unreliable (Ben, ~25%)
 - **Structure**: 
-  - Blocks 1-2: Reliable (Amy), alternating turn order
-  - Blocks 3-6: Unreliable (Ben), alternating turn order
-  - Blocks 7-8: Reliable (Amy), alternating turn order
-  - Blocks 9-10: Unreliable (Ben), alternating turn order
+  - Blocks 1-3: Reliable (Amy), randomized turn order (AI first on 5 random trials)
+  - Blocks 4-5: Unreliable (Ben), randomized turn order (AI first on 5 random trials)
+  - Blocks 6-7: Reliable (Amy), randomized turn order (AI first on 5 random trials)
+  - Blocks 8-10: Unreliable (Ben), randomized turn order (AI first on 5 random trials)
 
 ### AI Behavior Randomization
 

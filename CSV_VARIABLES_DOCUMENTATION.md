@@ -159,14 +159,14 @@ The localizer task generates one CSV file:
 - **Type**: Float (Unix timestamp) or None
 - **Description**: Time when participant first clicked/tapped on the slider bar (decision onset - when they start making their decision). 
   - **Touch screen version**: First time they tap the slider bar (may be different from `participant_slider_stop_time` if they tap multiple times to adjust)
-  - **Computer/mouse version**: First time they press the mouse button on the slider (when they start clicking or dragging the slider, decision onset equals the press time)
+  - **Computer/mouse version**: Same as `participant_slider_stop_time` (when they click the slider, decision onset equals the click time)
 - **Example**: `1764818195.2`, `None`
 
 ### `participant_slider_click_times`
 - **Type**: String (comma-separated list) or empty string
 - **Description**: List of all times (Unix timestamps) when participant clicked/tapped on the slider bar. 
   - **Touch screen version**: Records all taps on the slider bar (may be multiple taps as they adjust their rating). The first tap is also recorded in `participant_slider_decision_onset_time`.
-  - **Computer/mouse version**: Records all clicks on the slider bar (typically one click). Decision onset time equals the click time.
+  - **Computer/mouse version**: Records when mouse button is pressed on the slider bar (may be multiple presses if clicking multiple times or dragging). Decision onset time equals the first press time.
   - Stored as comma-separated string of timestamps for CSV compatibility (e.g., `"1764818195.2,1764818195.5,1764818196.1"`)
   - Empty list represented as empty string `""` if no clicks occurred
 - **Example**: `"1764818195.2,1764818195.5,1764818196.1"`, `"1764818195.5"`, `""`
