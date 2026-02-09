@@ -5691,7 +5691,7 @@ def run_experiment():
             block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy, num_trials=10)  # Experimental blocks have 10 trials
             reliability = "Reliable" if block_accuracy == 0.75 else "Unreliable"
             partner_name = "Amy" if block_accuracy == 0.75 else "Ben"
-            print(f"Block {block_num}: Partner {partner_name} ({reliability}, accuracy = {block_accuracy*100:.0f}%), alternating turn order starting with participant first")
+            print(f"Block {block_num}: Partner {partner_name} ({reliability}, accuracy = {block_accuracy*100:.0f}%), randomized turn order (AI first on 5 random trials)")
             print(f"  Stimuli: {selected_indices}")
             
             study_data, trial_data, study_file, trial_file, block_points = run_block(

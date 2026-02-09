@@ -144,10 +144,10 @@ Each of the 10 trials follows this structure:
   - Uses deterministic threshold: exactly 1 out of every 4 trials is correct
   - In a 10-trial block, exactly 2-3 trials will be correct (rounded)
 - **Block structure**:
-  - Blocks 1-3: Reliable (0.75, Amy), turn order: participant first (block 1), AI first (block 2), participant first (block 3)
-  - Blocks 4-5: Unreliable (0.25, Ben), turn order: AI first (block 4), participant first (block 5)
-  - Blocks 6-7: Reliable (0.75, Amy), turn order: AI first (block 6), participant first (block 7)
-  - Blocks 8-10: Unreliable (0.25, Ben), turn order: AI first (block 8), participant first (block 9), AI first (block 10)
+  - Blocks 1-3: Reliable (0.75, Amy), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 4-5: Unreliable (0.25, Ben), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 6-7: Reliable (0.75, Amy), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 8-10: Unreliable (0.25, Ben), turn order randomized within block (AI first on 5 random trials)
 
 **Implementation details**: The AI collaborator uses a hard threshold system to ensure deterministic accuracy rates. For reliable blocks (75% accuracy), trials are correct in positions 1, 2, and 3 of each group of 4 trials. For unreliable blocks (25% accuracy), only position 1 of each group of 4 trials is correct. This ensures consistent, predictable accuracy across all blocks.
 
@@ -282,7 +282,7 @@ All scoring is framed as "in-house curator" evaluations:
   5. Trial 2: Red circle - shows "Amy is confident they've seen this before", AI clicks "all the way on the old" side, then participant rates
   6. Trial 3: Blue square - shows "now, work with Amy", participant rates, then AI rates extremely unconfidently (very close to OLD/0.0, at 0.05) but incorrectly (as it's a new square), then participant performs switch/stay decision, outcome shown
 - **Outcome explanations**: For practice trials, outcomes explicitly explain the score (e.g., "You were 67% incorrect!" for a score of 0.33)
-- **Slider instruction**: Explicitly states "Note: You will click (not drag) on the slider to set your rating."
+- **Slider instruction**: For mouse/trackpad mode, participants can click or drag the slider. For touch screen mode, participants tap to set the rating.
 
 ### Purpose
 
@@ -346,7 +346,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Block Counterbalancing
 
-- **Turn-taking**: Alternates within each block (participant first, then AI first, etc.), starting with participant first in block 1
+- **Turn-taking**: Randomized within each block - AI goes first on 5 random trials out of 10 per block
 - **AI Accuracy**: Fixed order - Blocks 1-2, 7-8 reliable (Amy, ~75%); Blocks 3-6, 9-10 unreliable (Ben, ~25%)
 - **Structure**: 
   - Blocks 1-2: Reliable (Amy), alternating turn order

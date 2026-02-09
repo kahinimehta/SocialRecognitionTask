@@ -117,7 +117,7 @@ The localizer task generates one CSV file:
 
 ### `participant_first`
 - **Type**: Boolean
-- **Description**: True if participant responded first in this trial, False if AI responded first. Turn order alternates within each block (participant first, then AI first, etc.), starting with participant first in block 1.
+- **Description**: True if participant responded first in this trial, False if AI responded first. Turn order is randomized within each block (AI goes first on 5 random trials out of 10 per block).
 - **Example**: `True`, `False`
 
 ---
@@ -159,7 +159,7 @@ The localizer task generates one CSV file:
 - **Type**: Float (Unix timestamp) or None
 - **Description**: Time when participant first clicked/tapped on the slider bar (decision onset - when they start making their decision). 
   - **Touch screen version**: First time they tap the slider bar (may be different from `participant_slider_stop_time` if they tap multiple times to adjust)
-  - **Computer/mouse version**: Same as `participant_slider_stop_time` (when they click the slider, decision onset equals the click time)
+  - **Computer/mouse version**: First time they press the mouse button on the slider (when they start clicking or dragging the slider, decision onset equals the press time)
 - **Example**: `1764818195.2`, `None`
 
 ### `participant_slider_click_times`
