@@ -554,9 +554,55 @@ def get_category_for_stimulus(stimulus_num):
     return None
 
 def category_to_question(category_name):
-    """Convert category folder name to question text"""
-    # Convert BIG_ANIMAL -> "big animal", etc.
+    """Convert category name to question text
+    
+    Handles multiple formats:
+    - BIG_ANIMAL -> "big animal"
+    - biganimal -> "big animal" (splits camelCase-like names)
+    - BIRD -> "bird"
+    """
+    # First, map back to standard format if needed (for display purposes)
+    # The category_name might be the mapped folder name or the original category name
+    category_mapping_reverse = {
+        "biganimal": "BIG_ANIMAL",
+        "bigobject": "BIG_OBJECT",
+        "smallanimal": "SMALL_ANIMAL",
+        "smallobject": "SMALL_OBJECT",
+    }
+    
+    # If it's a mapped folder name, convert to standard format
+    if category_name.lower() in category_mapping_reverse:
+        category_name = category_mapping_reverse[category_name.lower()]
+    
+    # Convert to lowercase and split on underscore
     words = category_name.lower().split('_')
+    
+    # If no underscore, try to split camelCase-like names (e.g., "smallobject" -> "small object")
+    if len(words) == 1 and len(words[0]) > 0:
+        # Try to detect word boundaries in camelCase-like names
+        text = words[0]
+        # Insert space before capital letters (if any) or before common word boundaries
+        # For names like "smallobject", we need to detect where "small" ends and "object" begins
+        # Simple heuristic: look for common word patterns
+        common_words = ['big', 'small', 'animal', 'object', 'bird', 'food', 'fruit', 
+                       'insect', 'vegetable', 'vehicle']
+        result_words = []
+        remaining = text
+        while remaining:
+            found = False
+            for word in common_words:
+                if remaining.lower().startswith(word):
+                    result_words.append(word)
+                    remaining = remaining[len(word):]
+                    found = True
+                    break
+            if not found:
+                # If no match, take the whole thing
+                result_words.append(remaining)
+                break
+        if len(result_words) > 1:
+            words = result_words
+    
     category_text = ' '.join(words)
     
     # Check if category starts with a vowel sound
@@ -582,9 +628,28 @@ def is_test_participant(participant_id):
 def load_all_stimuli():
     """Load all 100 Image files and 100 Lure files from STIMULI directory (200 total)"""
     stimuli_list = []
+    found_images = set()  # Track which stimulus numbers have Image files
+    found_lures = set()   # Track which stimulus numbers have Lure files
+    
+    # Map category names to actual folder names (handle case/underscore differences)
+    category_folder_map = {
+        "BIG_ANIMAL": "biganimal",
+        "BIG_OBJECT": "bigobject",
+        "SMALL_ANIMAL": "smallanimal",
+        "SMALL_OBJECT": "smallobject",
+        # These match exactly
+        "BIRD": "BIRD",
+        "FOOD": "FOOD",
+        "FRUIT": "FRUIT",
+        "INSECT": "INSECT",
+        "VEGETABLE": "VEGETABLE",
+        "VEHICLE": "VEHICLE",
+    }
     
     for category in CATEGORY_MAPPING.keys():
-        category_dir = os.path.join(STIMULI_DIR, category)
+        # Use mapped folder name if available, otherwise use category name as-is
+        folder_name = category_folder_map.get(category, category)
+        category_dir = os.path.join(STIMULI_DIR, folder_name)
         if os.path.exists(category_dir):
             # List all object folders
             object_folders = [f for f in os.listdir(category_dir) 
@@ -609,11 +674,27 @@ def load_all_stimuli():
                                     'is_lure': is_lure,
                                     'stimulus_type': 'Lure' if is_lure else 'Image'
                                 })
+                                # Track which stimulus numbers we found
+                                if is_lure:
+                                    found_lures.add(stimulus_num)
+                                else:
+                                    found_images.add(stimulus_num)
                         except (ValueError, IndexError):
                             continue
     
     # Sort by stimulus number, then by type (Image first, then Lure) to ensure consistent ordering
     stimuli_list.sort(key=lambda x: (x['number'], x['is_lure']))
+    
+    # Provide detailed information if not all stimuli found
+    if len(stimuli_list) != 200:
+        num_images = len(found_images)
+        num_lures = len(found_lures)
+        print(f"Warning: Expected 200 stimuli (100 Image + 100 Lure), found {len(stimuli_list)}")
+        print(f"  - Found {num_images} unique Image files (expected 100)")
+        print(f"  - Found {num_lures} unique Lure files (expected 100)")
+        print(f"  - Missing Image files for stimulus numbers: {sorted(set(range(1, 101)) - found_images)}")
+        print(f"  - Missing Lure files for stimulus numbers: {sorted(set(range(1, 101)) - found_lures)}")
+    
     return stimuli_list
 
 def get_participant_id():
@@ -1708,6 +1789,19 @@ try:
 
     if len(all_stimuli) != 200:
         print(f"Warning: Expected 200 stimuli (100 Image + 100 Lure), found {len(all_stimuli)}")
+        print(f"  The localizer will proceed with the available {len(all_stimuli)} stimuli.")
+        print(f"  Check the detailed output above to see which stimulus files are missing.")
+
+    if len(all_stimuli) == 0:
+        print("ERROR: No stimuli found! Cannot proceed with localizer task.")
+        print("Please check that the STIMULI directory exists and contains image files.")
+        if win is not None:
+            try:
+                win.close()
+            except:
+                pass
+        core.quit()
+        exit(1)
 
     # Randomize order
     random.shuffle(all_stimuli)
@@ -1780,11 +1874,23 @@ try:
                 current_stimulus = stimulus
                 correct_category = current_stimulus['category']
                 
-                # Ask the question about this image's category
-                answer, timed_out, response_time = ask_category_question(correct_category, current_stimulus['object_name'])
+                # 50% chance to ask about correct category, 50% chance to ask about random category
+                ask_about_correct = random.choice([True, False])
                 
-                # The correct answer is always True since we're asking about the category this image belongs to
-                correct_answer = True
+                if ask_about_correct:
+                    # Ask about the actual category of the last object
+                    question_category = correct_category
+                    correct_answer = True
+                else:
+                    # Ask about a random category (different from the actual category)
+                    all_categories = list(CATEGORY_MAPPING.keys())
+                    # Remove the correct category from options
+                    wrong_categories = [c for c in all_categories if c != correct_category]
+                    question_category = random.choice(wrong_categories)
+                    correct_answer = False
+                
+                # Ask the question
+                answer, timed_out, response_time = ask_category_question(question_category, current_stimulus['object_name'])
                 
                 # Calculate correct only if not timed out
                 is_correct = (answer == correct_answer) if not timed_out else None
@@ -1800,8 +1906,8 @@ try:
                     'is_lure': current_stimulus['is_lure'],
                     'presentation_time': presentation_timestamp,
                     'is_question_trial': True,
-                    'question_category': correct_category,
-                    'question_text': category_to_question(correct_category),
+                    'question_category': question_category,
+                    'question_text': category_to_question(question_category),
                     'answer': answer if not timed_out else 'TIMEOUT',
                     'correct_answer': correct_answer,
                     'correct': is_correct,

@@ -925,6 +925,21 @@ CATEGORY_MAPPING = {
 
 CATEGORY_NAMES = list(CATEGORY_MAPPING.keys())
 
+# Map category names to actual folder names (handle case/underscore differences)
+CATEGORY_FOLDER_MAP = {
+    "BIG_ANIMAL": "biganimal",
+    "BIG_OBJECT": "bigobject",
+    "SMALL_ANIMAL": "smallanimal",
+    "SMALL_OBJECT": "smallobject",
+    # These match exactly
+    "BIRD": "BIRD",
+    "FOOD": "FOOD",
+    "FRUIT": "FRUIT",
+    "INSECT": "INSECT",
+    "VEGETABLE": "VEGETABLE",
+    "VEHICLE": "VEHICLE",
+}
+
 def get_stimulus_path(stimulus_num, is_lure=False, use_real_stimuli=True):
     """Get path to stimulus image
     
@@ -940,8 +955,9 @@ def get_stimulus_path(stimulus_num, is_lure=False, use_real_stimuli=True):
         # Find which category this stimulus belongs to
         for category, (start, end) in CATEGORY_MAPPING.items():
             if start <= stimulus_num <= end:
-                # Find the object folder within this category
-                category_dir = os.path.join(STIMULI_DIR, category)
+                # Use mapped folder name if available, otherwise use category name as-is
+                folder_name = CATEGORY_FOLDER_MAP.get(category, category)
+                category_dir = os.path.join(STIMULI_DIR, folder_name)
                 if os.path.exists(category_dir):
                     # List all object folders
                     object_folders = [f for f in os.listdir(category_dir) 
@@ -961,9 +977,11 @@ def get_stimulus_path(stimulus_num, is_lure=False, use_real_stimuli=True):
             filename = f"Lure_{stimulus_num:03d}.jpg"
         else:
             filename = f"Image_{stimulus_num:03d}.jpg"
-        # Search all categories
+        # Search all categories (fallback)
         for category in CATEGORY_NAMES:
-            category_dir = os.path.join(STIMULI_DIR, category)
+            # Use mapped folder name if available, otherwise use category name as-is
+            folder_name = CATEGORY_FOLDER_MAP.get(category, category)
+            category_dir = os.path.join(STIMULI_DIR, folder_name)
             if os.path.exists(category_dir):
                 for obj_folder in os.listdir(category_dir):
                     obj_path = os.path.join(category_dir, obj_folder)
@@ -4842,7 +4860,7 @@ def run_experiment():
     
     # Trial 3: Full trial with participant, AI, switch/stay
     # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3)
-    participant_value_t3, participant_rt_t3, participant_commit_time_t3, participant_slider_timeout_t3, participant_slider_stop_time_t3 = get_slider_response(
+    participant_value_t3, participant_rt_t3, participant_commit_time_t3, participant_slider_timeout_t3, participant_slider_stop_time_t3, participant_slider_decision_onset_time_t3, participant_slider_click_times_t3 = get_slider_response(
         "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     

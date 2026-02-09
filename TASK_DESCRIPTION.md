@@ -227,7 +227,7 @@ All scoring is framed as "in-house curator" evaluations:
 - **Old-New Slider Value**: Final slider position (0.0 = OLD, 1.0 = NEW)
 - **Switch/Stay Decision**: Choice made
 - **Switch/Stay RT**: Time to make decision
-- **Decision Onset Time**: Time when switch/stay screen appears
+- **Decision Onset Time**: Time when switch/stay screen appears (logged for both touchscreen and click/mouse input modes)
 - **Accuracy Outcome**: Whether final answer was correct
 - **Euclidean Distance**: Participant slider to ground truth
 

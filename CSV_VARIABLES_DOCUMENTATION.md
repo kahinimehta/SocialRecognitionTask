@@ -254,9 +254,10 @@ The localizer task generates one CSV file:
 - **Example**: `True`, `False`, `None`
 
 ### `decision_onset_time`
-- **Type**: Float (Unix timestamp)
-- **Description**: Time when the switch/stay decision screen appeared with all information
-- **Example**: `1764818203.4`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when the switch/stay decision screen appeared with all information (logged for both touchscreen and click/mouse input modes)
+- **Note**: `None` for practice trials 1 and 2 (no switch/stay decision screen shown)
+- **Example**: `1764818203.4`, `None`
 
 ---
 
@@ -470,15 +471,21 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 
 ### `question_category`
 - **Type**: String
-- **Description**: The category that was asked about in the question (same as `category` since we ask about the image's actual category)
-- **Possible values**: Same as `category`
-- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`
+- **Description**: The category that was asked about in the question
+- **Question design**: 50% of questions ask about the correct category (matches `category` field), 50% ask about a random incorrect category (different from `category` field)
+- **Possible values**: Same as `category` (all 10 category names)
+- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`, `"BIRD"` (may or may not match the actual `category` of the image)
 
 ### `question_text`
 - **Type**: String
 - **Description**: Full text of the question asked to the participant
-- **Format**: "Was the last object a [category]?" where category is converted from folder name (e.g., "BIG_ANIMAL" → "big animal")
-- **Example**: `"Was the last object a big animal?"`, `"Was the last object a fruit?"`
+- **Format**: "Was the last object a [category]?" or "Was the last object an [category]?" where category is converted from folder name to natural language
+- **Category conversion**: Handles multiple folder name formats:
+  - `BIG_ANIMAL` → "big animal"
+  - `smallobject` → "small object" (splits camelCase-like names)
+  - `BIRD` → "bird"
+- **Article selection**: Uses "a" or "an" based on whether the category starts with a vowel sound
+- **Example**: `"Was the last object a big animal?"`, `"Was the last object a small object?"`, `"Was the last object an insect?"`
 
 ### `answer`
 - **Type**: Boolean
@@ -486,9 +493,13 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 - **Example**: `True`, `False`
 
 ### `correct_answer`
-- **Type**: Boolean
-- **Description**: The correct answer to the question (always True, since we ask about the category the image actually belongs to)
-- **Example**: `True`
+- **Type**: Boolean or None
+- **Description**: The correct answer to the question
+- **Question design**: 
+  - `True` if the question asks about the correct category (matches the actual `category` of the image)
+  - `False` if the question asks about an incorrect category (does not match the actual `category` of the image)
+  - `None` for non-question trials
+- **Example**: `True`, `False`, `None`
 
 ### `correct`
 - **Type**: Boolean
@@ -556,14 +567,20 @@ The localizer task generates one CSV file:
 ### `question_category`
 - **Type**: String or None
 - **Description**: The category that was asked about in the question (only populated for question trials)
-- **Possible values**: Same as `category`, or `None` for non-question trials
-- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`, `None`
+- **Question design**: 50% of questions ask about the correct category (matches `category` field), 50% ask about a random incorrect category (different from `category` field)
+- **Possible values**: Same as `category` (all 10 category names), or `None` for non-question trials
+- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`, `"BIRD"` (may or may not match the actual `category` of the image), `None`
 
 ### `question_text`
 - **Type**: String or None
 - **Description**: Full text of the question asked to the participant (only populated for question trials)
-- **Format**: "Was the last object a [category]?" where category is converted from folder name (e.g., "BIG_ANIMAL" → "big animal")
-- **Example**: `"Was the last object a big animal?"`, `"Was the last object a fruit?"`, `None`
+- **Format**: "Was the last object a [category]?" or "Was the last object an [category]?" where category is converted from folder name to natural language
+- **Category conversion**: Handles multiple folder name formats:
+  - `BIG_ANIMAL` → "big animal"
+  - `smallobject` → "small object" (splits camelCase-like names)
+  - `BIRD` → "bird"
+- **Article selection**: Uses "a" or "an" based on whether the category starts with a vowel sound
+- **Example**: `"Was the last object a big animal?"`, `"Was the last object a small object?"`, `"Was the last object an insect?"`, `None`
 
 ### `answer`
 - **Type**: Boolean, String, or None
@@ -577,8 +594,12 @@ The localizer task generates one CSV file:
 
 ### `correct_answer`
 - **Type**: Boolean or None
-- **Description**: The correct answer to the question (always True for question trials, since we ask about the category the image actually belongs to)
-- **Example**: `True`, `None`
+- **Description**: The correct answer to the question
+- **Question design**: 
+  - `True` if the question asks about the correct category (matches the actual `category` of the image)
+  - `False` if the question asks about an incorrect category (does not match the actual `category` of the image)
+  - `None` for non-question trials
+- **Example**: `True`, `False`, `None`
 
 ### `correct`
 - **Type**: Boolean or None
@@ -615,8 +636,15 @@ The localizer task generates one CSV file:
   - Questions are asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (20 questions total)
   - **Timeout**: 10.0 seconds - if participant doesn't respond within 10 seconds, the question times out and the task continues to the next image
   - Question appears immediately after the image is shown
-- **Category conversion**: Category names are converted from folder format (e.g., "BIG_ANIMAL") to natural language (e.g., "big animal") for the question
-- **Correct answer**: The correct answer is always True since we ask about the category the image actually belongs to
+- **Question design**:
+  - **50% correct questions**: Ask about the actual category of the last object shown (correct answer = True)
+  - **50% incorrect questions**: Ask about a random category different from the last object's category (correct answer = False)
+  - Randomization ensures approximately equal distribution across all question trials
+- **Category conversion**: Category names are converted from folder format to natural language for questions:
+  - Folder names with underscores: `BIG_ANIMAL` → "big animal"
+  - Folder names without underscores: `smallobject` → "small object" (automatically splits camelCase-like names)
+  - Single-word categories: `BIRD` → "bird"
+  - Article selection: Uses "a" or "an" based on whether category starts with a vowel sound
 - **File saving**: 
   - Skipped if "test" (case-insensitive) is in the participant name
   - All files are saved to `../LOG_FILES/` directory (created automatically if it doesn't exist)
