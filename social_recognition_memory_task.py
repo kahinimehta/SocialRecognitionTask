@@ -4406,7 +4406,7 @@ def run_experiment():
              "You've just joined a small photography studio.\n\n"
              "Amy, a professional photographer, is preparing images for an upcoming exhibition.\n\n"
              "She needs help sorting through large sets of images and deciding which ones truly belong. "
-             "At the end of each exhibition she ranks her employees on a leaderboard for a raise — so you want to make sure you help as much as you can!",
+             "Will you be her employee of the month?",
         color='black',
         height=0.04*0.75*1.35,
         pos=(0, 0.35),  # Move text higher to avoid overlap with larger images
@@ -4689,7 +4689,7 @@ def run_experiment():
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1, participant_slider_decision_onset_time_t1, participant_slider_click_times_t1 = get_slider_response(
         "Click on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
-        "How close you are to either side indicates how CONFIDENT you are in your answer, but whichever side you are closer to indicates your ultimate answer.",
+        "How close you are to either side indicates how CONFIDENT you are in your answer.",
         image_stim=green_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
