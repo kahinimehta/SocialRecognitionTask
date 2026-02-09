@@ -1267,14 +1267,14 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.5*0.6)  # Moved even closer to bottom
+        pos=(0, -0.4*0.6)  # Moved away from edge for better clickability
     )
     continue_text = visual.TextStim(
         win,
         text=button_text,
         color='black',
-        height=0.05*0.75*1.35,
-        pos=(0, -0.5*0.6)  # Moved even closer to bottom
+        height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
+        pos=(0, -0.4*0.6)  # Moved away from edge for better clickability
     )
     
     # Draw initial screen once (button should be included in redraw_func)
@@ -1319,7 +1319,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.5*0.6  # Updated to match new button position
+                            button_x, button_y = 0.0, -0.4*0.6  # Updated to match new button position
                     except (TypeError, ValueError):
                         button_x, button_y = 0.0, -0.35*0.6
                     
@@ -1514,14 +1514,14 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
         height=0.1*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.5)  # Moved even closer to bottom
+        pos=(0, -0.4)  # Moved away from edge for better clickability
     )
     continue_text = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
-        height=0.05*1.35,
-        pos=(0, -0.5)  # Moved even closer to bottom
+        height=0.04*1.35,  # Reduced to ensure text fits within button
+        pos=(0, -0.4)  # Moved away from edge for better clickability
     )
     
     # Draw function that includes button
@@ -1569,7 +1569,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.5  # Updated to match new button position
+                            button_x, button_y = 0.0, -0.4  # Updated to match new button position
                     except (TypeError, ValueError):
                         button_x, button_y = 0.0, -0.35
                     
@@ -2934,7 +2934,7 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
     a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
     
-    # Labels above arrows
+    # Labels: "Your choice" on top, partner's choice on bottom
     p_label_text = visual.TextStim(
         win,
         text="Your choice",
@@ -2948,7 +2948,7 @@ def show_both_responses(participant_value, partner_value, participant_first, par
         text=f"{partner_name}'s choice",
         color='black',
         height=0.035*0.75*1.35,
-        pos=(a_x_pos, slider_y_pos + 0.12)  # Above partner arrow
+        pos=(a_x_pos, slider_y_pos - 0.12)  # Below partner arrow
     )
     
     # Move labels farther from line to avoid overlap
@@ -2984,9 +2984,20 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     p_arrow = None
     p_x_pos = None
     p_label_text = None
+    a_x_pos = None  # Initialize for distance calculation
     if participant_value is not None:
         p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
         p_arrow = create_arrow(p_x_pos, slider_y_pos, color='green', arrow_length=0.08, arrow_width=0.02)
+    
+    # Partner arrow (blue) - pointing to rating position
+    a_arrow = None
+    a_label_text = None
+    if partner_value is not None:
+        a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
+        a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
+    
+    # Labels: "Your choice" on top, partner's choice on bottom
+    if participant_value is not None and p_x_pos is not None:
         # Label above participant arrow
         p_label_text = visual.TextStim(
             win,
@@ -2996,36 +3007,31 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
             pos=(p_x_pos, slider_y_pos + 0.12)  # Above participant arrow
         )
     
-    # Partner arrow (blue) - pointing to rating position
-    a_arrow = None
-    a_x_pos = None
-    a_label_text = None
-    if partner_value is not None:
-        a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
-        a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
-        # Label above partner arrow
+    if partner_value is not None and a_x_pos is not None:
+        # Label below partner arrow
         a_label_text = visual.TextStim(
             win,
             text=f"{partner_name}'s choice",
             color='black',
             height=0.035*0.75*1.35,
-            pos=(a_x_pos, slider_y_pos + 0.12)  # Above partner arrow
+            pos=(a_x_pos, slider_y_pos - 0.12)  # Below partner arrow
         )
     
     # Move labels farther from line to avoid overlap
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
-    # Create buttons (positioned below slider)
+    # Create buttons (positioned below slider, away from edge for better clickability)
+    button_y_pos = slider_y_pos - 0.12  # Moved up slightly from edge
     stay_button = visual.Rect(
         win,
         width=0.2*0.75,
         height=0.08*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(-0.3*0.6, slider_y_pos - 0.15)
+        pos=(-0.3*0.6, button_y_pos)
     )
-    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.05*0.75*1.35, pos=(-0.3*0.6, slider_y_pos - 0.15))
+    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.04*0.75*1.35, pos=(-0.3*0.6, button_y_pos))  # Reduced to fit within button
     
     switch_button = visual.Rect(
         win,
@@ -3033,9 +3039,9 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         height=0.08*0.75*1.35,
         fillColor='lightcoral',
         lineColor='black',
-        pos=(0.3*0.6, slider_y_pos - 0.15)
+        pos=(0.3*0.6, button_y_pos)
     )
-    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.05*0.75*1.35, pos=(0.3*0.6, slider_y_pos - 0.15))
+    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.04*0.75*1.35, pos=(0.3*0.6, button_y_pos))  # Reduced to fit within button
     
     decision_prompt = visual.TextStim(
         win,
@@ -3364,14 +3370,14 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.5*0.6)  # Moved even closer to bottom
+        pos=(0, -0.4*0.6)  # Moved away from edge for better clickability
     )
     begin_text = visual.TextStim(
         win,
         text="BEGIN",
         color='black',
-        height=0.05*0.75*1.35,
-        pos=(0, -0.5*0.6)  # Moved even closer to bottom
+        height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
+        pos=(0, -0.4*0.6)  # Moved away from edge for better clickability
     )
     
     # Draw initial screen
@@ -3416,7 +3422,7 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.5*0.6  # Updated to match new button position
+                            button_x, button_y = 0.0, -0.4*0.6  # Updated to match new button position
                     except (TypeError, ValueError):
                         button_x, button_y = 0.0, -0.35*0.6
                     
@@ -3555,14 +3561,14 @@ def show_block_summary(block_num, total_points, max_points):
         height=0.1*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.5)  # Moved even closer to bottom
+        pos=(0, -0.4)  # Moved away from edge for better clickability
     )
     continue_text = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
-        height=0.05*1.35,
-        pos=(0, -0.5)  # Moved even closer to bottom
+        height=0.04*1.35,  # Reduced to ensure text fits within button
+        pos=(0, -0.4)  # Moved away from edge for better clickability
     )
     
     # Draw initial screen
@@ -3607,7 +3613,7 @@ def show_block_summary(block_num, total_points, max_points):
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.5  # Updated to match new button position
+                            button_x, button_y = 0.0, -0.4  # Updated to match new button position
                     except (TypeError, ValueError):
                         button_x, button_y = 0.0, -0.35
                     
@@ -4435,7 +4441,7 @@ def run_experiment():
         win,
         text="CONTINUE",
         color='black',
-        height=0.05*0.75*1.35,
+        height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
         pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
     )
     
@@ -5103,7 +5109,7 @@ def run_experiment():
         win,
         text="CONTINUE",
         color='black',
-        height=0.05*0.75*1.35,
+        height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
         pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
     )
     
@@ -5318,7 +5324,7 @@ def run_experiment():
                             win,
                             text="CONTINUE",
                             color='black',
-                            height=0.05*0.75*1.35,
+                            height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
                             pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
                         )
                         
@@ -5372,7 +5378,7 @@ def run_experiment():
                             win,
                             text="CONTINUE",
                             color='black',
-                            height=0.05*0.75*1.35,
+                            height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
                             pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
                         )
                         
@@ -5561,14 +5567,14 @@ def run_experiment():
                             height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
-                            pos=(0.4, -0.5)  # Bottom right, moved even closer to bottom
+                            pos=(0.4, -0.4)  # Bottom right, moved away from edge for better clickability
                         )
                         continue_text_amy_return = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
-                            height=0.05*0.75*1.35,
-                            pos=(0.4, -0.5)  # Bottom right, moved even closer to bottom
+                            height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
+                            pos=(0.4, -0.4)  # Bottom right, moved away from edge for better clickability
                         )
                         
                         def redraw_amy():
