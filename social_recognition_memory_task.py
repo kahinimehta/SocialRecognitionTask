@@ -4659,7 +4659,7 @@ def run_experiment():
     win.flip()
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1, participant_slider_decision_onset_time_t1, participant_slider_click_times_t1 = get_slider_response(
-        "CLICK once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
+        "Click and drag on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
         "How close you are to either side indicates how CONFIDENT you are in your answer, but whichever side you are closer to indicates your ultimate answer.",
         image_stim=green_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
