@@ -1007,12 +1007,12 @@ def select_study_stimuli_one_per_category():
     return selected
 
 def assign_stimuli_to_blocks():
-    """Assign 100 stimuli to 5 blocks ensuring:
-    - Each block has exactly 2 items from each of the 10 categories (20 stimuli per block)
+    """Assign 100 stimuli to 10 blocks ensuring:
+    - Each block has exactly 1 item from each of the 10 categories (10 stimuli per block)
     - No stimulus appears more than once across all blocks
     
     Returns:
-        list: List of 5 lists, each containing 20 stimulus numbers
+        list: List of 10 lists, each containing 10 stimulus numbers
     """
     # Get all stimuli organized by category
     stimuli_by_category = get_stimuli_by_category()
@@ -1021,21 +1021,19 @@ def assign_stimuli_to_blocks():
     for category in stimuli_by_category:
         random.shuffle(stimuli_by_category[category])
     
-    # Assign to blocks: each block gets 2 items from each category
+    # Assign to blocks: each block gets 1 item from each category
     # This ensures no repeats (since we use each category's items exactly once)
     blocks = []
     category_names = list(CATEGORY_MAPPING.keys())
     
-    for block_num in range(5):
+    for block_num in range(10):
         block_stimuli = []
         for category in category_names:
-            # Get 2 items from this category for this block
-            # Block 0 uses items 0-1, block 1 uses items 2-3, etc.
-            item_index_start = block_num * 2
-            item_index_end = item_index_start + 2
-            for item_index in range(item_index_start, item_index_end):
-                stimulus_num = stimuli_by_category[category][item_index]
-                block_stimuli.append(stimulus_num)
+            # Get 1 item from this category for this block
+            # Block 0 uses item 0, block 1 uses item 1, etc.
+            item_index = block_num
+            stimulus_num = stimuli_by_category[category][item_index]
+            block_stimuli.append(stimulus_num)
         
         # Shuffle the order within the block for randomization
         random.shuffle(block_stimuli)
@@ -2282,8 +2280,8 @@ class AICollaborator:
         
         Uses pre-generated randomized sequence to ensure exactly the target accuracy rate
         while randomizing which trials are correct/incorrect:
-        - 75% accuracy: exactly 15 out of 20 trials correct (randomized order)
-        - 25% accuracy: exactly 5 out of 20 trials correct (randomized order)
+        - 75% accuracy: approximately 7-8 out of 10 trials correct (randomized order)
+        - 25% accuracy: approximately 2-3 out of 10 trials correct (randomized order)
         """
         # Ground truth: studied items should be rated OLD, lures should be rated NEW
         if is_studied:
@@ -3532,11 +3530,12 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
 # =========================
 #  BLOCK STRUCTURE
 # =========================
-def run_block(block_num, studied_images, participant_first, ai_collaborator, stimuli_dir, num_trials=None, experiment_start_time=None, participant_id=None, study_file=None, trial_file=None):
+def run_block(block_num, studied_images, block_start_participant_first, ai_collaborator, stimuli_dir, num_trials=None, experiment_start_time=None, participant_id=None, study_file=None, trial_file=None):
     """Run a single block: study phase + recognition trials
     
     Args:
         stimuli_dir: Directory containing stimuli (STIMULI_DIR for real stimuli, PLACEHOLDER_DIR for practice)
+        block_start_participant_first: True if first trial in block has participant first, False if AI first
     """
     all_trial_data = []
     
@@ -3633,7 +3632,15 @@ def run_block(block_num, studied_images, participant_first, ai_collaborator, sti
     total_points = 0.0  # Track total points (correctness only)
     max_possible_points = float(num_trials)  # Max points from correctness only (1.0 per trial)
     
+    # Alternate turn order within block: start with block_start_participant_first, then alternate
     for trial_idx, (trial_num, img_path, is_studied) in enumerate(trial_sequence):
+        # Determine turn order for this trial: alternate starting from block_start_participant_first
+        # Trial 0: block_start_participant_first
+        # Trial 1: not block_start_participant_first
+        # Trial 2: block_start_participant_first
+        # etc.
+        participant_first = (trial_idx % 2 == 0) == block_start_participant_first
+        
         trial_data, points_earned = run_recognition_trial(
             trial_num, block_num, img_path, is_studied,
             participant_first, ai_collaborator, stimuli_dir, experiment_start_time, max_trials=num_trials, total_points=total_points,
@@ -4710,7 +4717,7 @@ def run_experiment():
 
     show_instructions(
         "Important Information for New Employees!\n"
-        "We have 5 collections with 20 images each to get through.\n\n"
+        "We have 10 collections with 10 images each to get through.\n\n"
         "Because the exhibition is so soon, you will have a time limit on each image decision!\n\n"
         "You will receive 0-1 points for each image.",
         header_color='black',
@@ -4881,49 +4888,55 @@ def run_experiment():
         body_color='black'
     )
     
-    # Experimental blocks (5 blocks, 20 trials each)
+    # Experimental blocks (10 blocks, 10 trials each)
     all_study_data = []
     all_trial_data = []
     total_experiment_points = 0.0  # Track total points across all experimental blocks
     
     try:
         # Block structure:
-        # Block 1: Reliable (0.75), Participant first
-        # Block 2: Unreliable (0.25), Participant first
-        # Block 3: Unreliable (0.25), Participant first
-        # Block 4: Reliable (0.75), Participant first
-        # Block 5: Unreliable (0.25), Participant first
+        # Blocks 1-2: Amy (Reliable 0.75), Participant first in block 1
+        # Blocks 3-6: Ben (Unreliable 0.25)
+        # Blocks 7-8: Amy (Reliable 0.75)
+        # Blocks 9-10: Ben (Unreliable 0.25)
+        # Turn order alternates within each block (participant first, then AI first, etc.)
+        # Starting with participant first in block 1
         
         block_conditions = [
-            (True, 0.75),   # Block 1: Participant first, Reliable
-            (True, 0.25),   # Block 2: Participant first, Unreliable
-            (True, 0.25),   # Block 3: Participant first, Unreliable
-            (True, 0.75),   # Block 4: Participant first, Reliable
-            (True, 0.25),   # Block 5: Participant first, Unreliable
+            (True, 0.75),   # Block 1: Participant first in first trial, Reliable (Amy)
+            (True, 0.75),   # Block 2: Participant first in first trial, Reliable (Amy)
+            (True, 0.25),   # Block 3: Participant first in first trial, Unreliable (Ben)
+            (True, 0.25),   # Block 4: Participant first in first trial, Unreliable (Ben)
+            (True, 0.25),   # Block 5: Participant first in first trial, Unreliable (Ben)
+            (True, 0.25),   # Block 6: Participant first in first trial, Unreliable (Ben)
+            (True, 0.75),   # Block 7: Participant first in first trial, Reliable (Amy)
+            (True, 0.75),   # Block 8: Participant first in first trial, Reliable (Amy)
+            (True, 0.25),   # Block 9: Participant first in first trial, Unreliable (Ben)
+            (True, 0.25),   # Block 10: Participant first in first trial, Unreliable (Ben)
         ]
         
-        # Assign stimuli to blocks: each block has 2 items from each category (20 stimuli), no repeats
+        # Assign stimuli to blocks: each block has 1 item from each category (10 stimuli), no repeats
         stimulus_assignments = assign_stimuli_to_blocks()
         
         # Track previous block's partner to determine when to show switch messages
         previous_partner_reliable = None  # None for first block
         
-        for block_num in range(1, 6):
+        for block_num in range(1, 11):
             # Use pre-assigned stimuli for this block (ensures 2 per category, no repeats)
             selected_indices = stimulus_assignments[block_num - 1]
             # Use real stimuli paths instead of placeholders
             studied_images = [get_stimulus_path(i, is_lure=False, use_real_stimuli=True) for i in selected_indices]
             
             # Get conditions for this block
-            participant_first, block_accuracy = block_conditions[block_num - 1]
+            block_start_participant_first, block_accuracy = block_conditions[block_num - 1]
             current_partner_reliable = (block_accuracy == 0.75)
             
             # Show partner switch message if partner changed
             if previous_partner_reliable is not None:
                 if previous_partner_reliable and not current_partner_reliable:
                     # Switched from Amy (reliable) to Ben (unreliable)
-                    # Check if this is the first switch (Block 2) or second switch (Block 5)
-                    if block_num == 2:
+                    # Check if this is the first switch (Block 3) or second switch (Block 9)
+                    if block_num == 3:
                         # First switch to Ben - show long message
                         switch_text = visual.TextStim(
                             win,
@@ -5050,7 +5063,7 @@ def run_experiment():
                         continue_text = None
                         button_x, button_y = 0, 0
                     
-                    # Only show Ben screen if we have valid text (Block 2 or Block 5)
+                    # Only show Ben screen if we have valid text (Block 3 or Block 9)
                     if switch_text is not None:
                     
                         # Custom wait for button with custom button position
@@ -5184,173 +5197,181 @@ def run_experiment():
                     
                 elif not previous_partner_reliable and current_partner_reliable:
                     # Switched from Ben (unreliable) to Amy (reliable)
-                    switch_text = visual.TextStim(
-                        win,
-                        text="Amy is back for a day!\n\n"
-                             "She's returning to help with exhibiition preparation.\n\n"
-                             "You'll once again see her judgments as you work through this collection.",
-                        color='black',
-                        height=0.04*0.75,
-                        pos=(0, 0.2),  # Move text up
-                        wrapWidth=1.2
-                    )
-                    
-                    # Load and display Amy's picture (maintain aspect ratio)
-                    amy_path = os.path.join(STIMULI_DIR, "Amy.png")
-                    if os.path.exists(amy_path):
-                        amy_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
-                        if hasattr(amy_image, 'setPos'):
-                            amy_image.setPos((0, -0.1))  # Below text
-                        elif hasattr(amy_image, 'pos'):
-                            amy_image.pos = (0, -0.1)  # Below text
-                    else:
-                        amy_image = None
-                        print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
-                    
-                    # Create custom button for this screen (positioned bottom right to avoid icon overlap)
-                    continue_button_amy_return = visual.Rect(
-                        win,
-                        width=0.3*0.75,
-                        height=0.1*0.75,
-                        fillColor='lightblue',
-                        lineColor='black',
-                        pos=(0.4, -0.3)  # Bottom right, moved up slightly
-                    )
-                    continue_text_amy_return = visual.TextStim(
-                        win,
-                        text="CONTINUE",
-                        color='black',
-                        height=0.05*0.75,
-                        pos=(0.4, -0.3)  # Bottom right, moved up slightly
-                    )
-                    
-                    def redraw_amy():
-                        switch_text.draw()  # Draw text first
-                        if amy_image:
-                            amy_image.draw()
-                        continue_button_amy_return.draw()
-                        continue_text_amy_return.draw()
-                    
-                    # Custom wait for button with custom button position
-                    mouse_amy_return = event.Mouse(win=win)
-                    mouse_amy_return.setVisible(True)
-                    
-                    def draw_screen_amy_return():
-                        redraw_amy()
-                        win.flip()
-                    
-                    draw_screen_amy_return()
-                    
-                    clicked_amy_return = False
-                    
-                    if USE_TOUCH_SCREEN:
-                        # Use keyboard method (position-change detection) for touch screens
-                        mouserec_amy_return = mouse_amy_return.getPos()
-                        try:
-                            mouserec_x_amy_return, mouserec_y_amy_return = float(mouserec_amy_return[0]), float(mouserec_amy_return[1])
-                        except:
-                            mouserec_x_amy_return, mouserec_y_amy_return = 0.0, 0.0
+                    # Check if this is Block 7 (switching back to Amy)
+                    if block_num == 7:
+                        switch_text = visual.TextStim(
+                            win,
+                            text="Amy is back for a day!\n\n"
+                                 "She's returning to help with exhibition preparation.\n\n"
+                                 "You'll once again see her judgments as you work through these collections.",
+                            color='black',
+                            height=0.04*0.75,
+                            pos=(0, 0.2),  # Move text up
+                            wrapWidth=1.2
+                        )
                         
-                        while not clicked_amy_return:
+                        # Load and display Amy's picture (maintain aspect ratio)
+                        amy_path = os.path.join(STIMULI_DIR, "Amy.png")
+                        if os.path.exists(amy_path):
+                            amy_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
+                            if hasattr(amy_image, 'setPos'):
+                                amy_image.setPos((0, -0.1))  # Below text
+                            elif hasattr(amy_image, 'pos'):
+                                amy_image.pos = (0, -0.1)  # Below text
+                        else:
+                            amy_image = None
+                            print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
+                        
+                        # Create custom button for this screen (positioned bottom right to avoid icon overlap)
+                        continue_button_amy_return = visual.Rect(
+                            win,
+                            width=0.3*0.75,
+                            height=0.1*0.75,
+                            fillColor='lightblue',
+                            lineColor='black',
+                            pos=(0.4, -0.3)  # Bottom right, moved up slightly
+                        )
+                        continue_text_amy_return = visual.TextStim(
+                            win,
+                            text="CONTINUE",
+                            color='black',
+                            height=0.05*0.75,
+                            pos=(0.4, -0.3)  # Bottom right, moved up slightly
+                        )
+                        
+                        def redraw_amy():
+                            switch_text.draw()  # Draw text first
+                            if amy_image:
+                                amy_image.draw()
+                            continue_button_amy_return.draw()
+                            continue_text_amy_return.draw()
+                        
+                        # Custom wait for button with custom button position
+                        mouse_amy_return = event.Mouse(win=win)
+                        mouse_amy_return.setVisible(True)
+                        
+                        def draw_screen_amy_return():
+                            redraw_amy()
+                            win.flip()
+                        
+                        draw_screen_amy_return()
+                        
+                        clicked_amy_return = False
+                        
+                        if USE_TOUCH_SCREEN:
+                            # Use keyboard method (position-change detection) for touch screens
+                            mouserec_amy_return = mouse_amy_return.getPos()
                             try:
-                                mouseloc_amy_return = mouse_amy_return.getPos()
+                                mouserec_x_amy_return, mouserec_y_amy_return = float(mouserec_amy_return[0]), float(mouserec_amy_return[1])
+                            except:
+                                mouserec_x_amy_return, mouserec_y_amy_return = 0.0, 0.0
+                            
+                            while not clicked_amy_return:
                                 try:
-                                    mouseloc_x_amy_return, mouseloc_y_amy_return = float(mouseloc_amy_return[0]), float(mouseloc_amy_return[1])
-                                except:
-                                    mouseloc_x_amy_return, mouseloc_y_amy_return = 0.0, 0.0
-                                
-                                # Check if mouse position has changed (touch moved) - keyboard method
-                                if mouseloc_x_amy_return == mouserec_x_amy_return and mouseloc_y_amy_return == mouserec_y_amy_return:
-                                    # Position hasn't changed, just redraw
+                                    mouseloc_amy_return = mouse_amy_return.getPos()
+                                    try:
+                                        mouseloc_x_amy_return, mouseloc_y_amy_return = float(mouseloc_amy_return[0]), float(mouseloc_amy_return[1])
+                                    except:
+                                        mouseloc_x_amy_return, mouseloc_y_amy_return = 0.0, 0.0
+                                    
+                                    # Check if mouse position has changed (touch moved) - keyboard method
+                                    if mouseloc_x_amy_return == mouserec_x_amy_return and mouseloc_y_amy_return == mouserec_y_amy_return:
+                                        # Position hasn't changed, just redraw
+                                        draw_screen_amy_return()
+                                    else:
+                                        # Position has changed - check if touch is within button using position calculation
+                                        button_x_amy_return, button_y_amy_return = 0.4, -0.3
+                                        button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
+                                        hit_margin_amy_return_x = max(button_width_amy_return * 0.5, 0.08)
+                                        hit_margin_amy_return_y = max(button_height_amy_return * 0.5, 0.04)
+                                        
+                                        on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 - hit_margin_amy_return_x <= mouseloc_x_amy_return <= button_x_amy_return + button_width_amy_return/2 + hit_margin_amy_return_x and
+                                                                button_y_amy_return - button_height_amy_return/2 - hit_margin_amy_return_y <= mouseloc_y_amy_return <= button_y_amy_return + button_height_amy_return/2 + hit_margin_amy_return_y)
+                                        
+                                        if on_button_amy_return:
+                                            # Visual feedback (no color change in touch screen mode)
+                                            draw_screen_amy_return()
+                                            core.wait(0.2)
+                                            clicked_amy_return = True
+                                            break
+                                        
+                                        # Update recorded position
+                                        mouserec_amy_return = mouse_amy_return.getPos()
+                                        try:
+                                            mouserec_x_amy_return, mouserec_y_amy_return = float(mouserec_amy_return[0]), float(mouserec_amy_return[1])
+                                        except:
+                                            mouserec_x_amy_return, mouserec_y_amy_return = mouseloc_x_amy_return, mouseloc_y_amy_return
+                                    
+                                    # Redraw every frame
                                     draw_screen_amy_return()
-                                else:
-                                    # Position has changed - check if touch is within button using position calculation
+                                    core.wait(0.01)
+                                except Exception as e:
+                                    print(f"Error in button wait: {e}", file=sys.stderr)
+                                    core.wait(0.01)
+                        else:
+                            # Standard mouse click detection for non-touch screens
+                            prev_mouse_buttons_amy_return = [False, False, False]
+                            
+                            while not clicked_amy_return:
+                                try:
+                                    mouse_buttons_amy_return = mouse_amy_return.getPressed()
+                                    mouse_pos_amy_return = mouse_amy_return.getPos()
+                                    
+                                    try:
+                                        if hasattr(mouse_pos_amy_return, '__len__') and len(mouse_pos_amy_return) >= 2:
+                                            mouse_x_amy_return, mouse_y_amy_return = float(mouse_pos_amy_return[0]), float(mouse_pos_amy_return[1])
+                                        else:
+                                            mouse_x_amy_return, mouse_y_amy_return = 0.0, 0.0
+                                    except (TypeError, ValueError):
+                                        mouse_x_amy_return, mouse_y_amy_return = 0.0, 0.0
+                                    
                                     button_x_amy_return, button_y_amy_return = 0.4, -0.3
                                     button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
-                                    hit_margin_amy_return_x = max(button_width_amy_return * 0.5, 0.08)
-                                    hit_margin_amy_return_y = max(button_height_amy_return * 0.5, 0.04)
                                     
-                                    on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 - hit_margin_amy_return_x <= mouseloc_x_amy_return <= button_x_amy_return + button_width_amy_return/2 + hit_margin_amy_return_x and
-                                                            button_y_amy_return - button_height_amy_return/2 - hit_margin_amy_return_y <= mouseloc_y_amy_return <= button_y_amy_return + button_height_amy_return/2 + hit_margin_amy_return_y)
+                                    on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 <= mouse_x_amy_return <= button_x_amy_return + button_width_amy_return/2 and
+                                                            button_y_amy_return - button_height_amy_return/2 <= mouse_y_amy_return <= button_y_amy_return + button_height_amy_return/2)
                                     
-                                    if on_button_amy_return:
-                                        # Visual feedback (no color change in touch screen mode)
-                                        draw_screen_amy_return()
-                                        core.wait(0.2)
-                                        clicked_amy_return = True
-                                        break
+                                    if prev_mouse_buttons_amy_return[0] and not mouse_buttons_amy_return[0]:
+                                        if on_button_amy_return:
+                                            continue_button_amy_return.fillColor = 'lightgreen'
+                                            draw_screen_amy_return()
+                                            core.wait(0.2)
+                                            clicked_amy_return = True
+                                            break
                                     
-                                    # Update recorded position
-                                    mouserec_amy_return = mouse_amy_return.getPos()
-                                    try:
-                                        mouserec_x_amy_return, mouserec_y_amy_return = float(mouserec_amy_return[0]), float(mouserec_amy_return[1])
-                                    except:
-                                        mouserec_x_amy_return, mouserec_y_amy_return = mouseloc_x_amy_return, mouseloc_y_amy_return
-                                
-                                # Redraw every frame
-                                draw_screen_amy_return()
-                                core.wait(0.01)
-                            except Exception as e:
-                                print(f"Error in button wait: {e}", file=sys.stderr)
-                                core.wait(0.01)
-                    else:
-                        # Standard mouse click detection for non-touch screens
-                        prev_mouse_buttons_amy_return = [False, False, False]
+                                    prev_mouse_buttons_amy_return = list(mouse_buttons_amy_return)
+                                    core.wait(0.01)
+                                except Exception as e:
+                                    print(f"Error in button wait: {e}", file=sys.stderr)
+                                    core.wait(0.01)
                         
-                        while not clicked_amy_return:
-                            try:
-                                mouse_buttons_amy_return = mouse_amy_return.getPressed()
-                                mouse_pos_amy_return = mouse_amy_return.getPos()
-                                
-                                try:
-                                    if hasattr(mouse_pos_amy_return, '__len__') and len(mouse_pos_amy_return) >= 2:
-                                        mouse_x_amy_return, mouse_y_amy_return = float(mouse_pos_amy_return[0]), float(mouse_pos_amy_return[1])
-                                    else:
-                                        mouse_x_amy_return, mouse_y_amy_return = 0.0, 0.0
-                                except (TypeError, ValueError):
-                                    mouse_x_amy_return, mouse_y_amy_return = 0.0, 0.0
-                                
-                                button_x_amy_return, button_y_amy_return = 0.4, -0.3
-                                button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
-                                
-                                on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 <= mouse_x_amy_return <= button_x_amy_return + button_width_amy_return/2 and
-                                                        button_y_amy_return - button_height_amy_return/2 <= mouse_y_amy_return <= button_y_amy_return + button_height_amy_return/2)
-                                
-                                if prev_mouse_buttons_amy_return[0] and not mouse_buttons_amy_return[0]:
-                                    if on_button_amy_return:
-                                        continue_button_amy_return.fillColor = 'lightgreen'
-                                        draw_screen_amy_return()
-                                        core.wait(0.2)
-                                        clicked_amy_return = True
-                                        break
-                                
-                                prev_mouse_buttons_amy_return = list(mouse_buttons_amy_return)
-                                core.wait(0.01)
-                            except Exception as e:
-                                print(f"Error in button wait: {e}", file=sys.stderr)
-                                core.wait(0.01)
-                    
-                    mouse_amy_return.setVisible(False)
-                    event.clearEvents()
+                        mouse_amy_return.setVisible(False)
+                        event.clearEvents()
+                    else:
+                        switch_text = None
                     
                 elif not previous_partner_reliable and not current_partner_reliable:
-                    # Still Ben, but switching blocks (Block 2 to Block 3)
+                    # Still Ben, but switching blocks (e.g., Block 3 to Block 4, or Block 9 to Block 10)
                     # No message needed - just continue to next block
-                    pass
+                    switch_text = None
+                elif previous_partner_reliable and current_partner_reliable:
+                    # Still Amy, but switching blocks (Block 1 to Block 2, or Block 7 to Block 8)
+                    # No message needed - just continue to next block
+                    switch_text = None
             
             # Update previous partner for next iteration
             previous_partner_reliable = current_partner_reliable
             
             # Create AI collaborator with block-specific accuracy
-            block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy, num_trials=20)  # Experimental blocks have 20 trials
-            turn_order = "Participant first" if participant_first else "AI first"
+            block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy, num_trials=10)  # Experimental blocks have 10 trials
             reliability = "Reliable" if block_accuracy == 0.75 else "Unreliable"
-            print(f"Block {block_num}: {turn_order}, AI {reliability} (accuracy = {block_accuracy*100:.0f}%)")
+            partner_name = "Amy" if block_accuracy == 0.75 else "Ben"
+            print(f"Block {block_num}: Partner {partner_name} ({reliability}, accuracy = {block_accuracy*100:.0f}%), alternating turn order starting with participant first")
             print(f"  Stimuli: {selected_indices}")
             
             study_data, trial_data, study_file, trial_file, block_points = run_block(
-                block_num, studied_images, participant_first,
-                block_ai_collaborator, STIMULI_DIR, num_trials=20,
+                block_num, studied_images, block_start_participant_first,
+                block_ai_collaborator, STIMULI_DIR, num_trials=10,
                 experiment_start_time=experiment_start_time, participant_id=participant_id,
                 study_file=study_file, trial_file=trial_file
             )
@@ -5362,7 +5383,7 @@ def run_experiment():
             # Data is already saved after each trial in run_block
             
             # Break between blocks
-            if block_num < 5:
+            if block_num < 10:
                 show_instructions(
                     f"Great job!\n\n"
                     "Take a short break.\n\n"
@@ -5388,8 +5409,8 @@ def run_experiment():
     experiment_end_time = time.time()
     total_task_time = experiment_end_time - experiment_start_time
     
-    # Calculate total points (5 blocks * 20 trials = 100 max)
-    max_possible_total = 5 * 20.0  # 100 max points across all blocks
+    # Calculate total points (10 blocks * 10 trials = 100 max)
+    max_possible_total = 10 * 10.0  # 100 max points across all blocks
     total_experiment_points_rounded = round(total_experiment_points, 2)
     
     # Show cumulative points message

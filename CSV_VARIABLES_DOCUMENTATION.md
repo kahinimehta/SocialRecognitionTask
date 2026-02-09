@@ -112,8 +112,8 @@ The localizer task generates one CSV file:
 
 ### `participant_first`
 - **Type**: Boolean
-- **Description**: Always True - participant always responds first in all blocks
-- **Example**: `True`
+- **Description**: True if participant responded first in this trial, False if AI responded first. Turn order alternates within each block (participant first, then AI first, etc.), starting with participant first in block 1.
+- **Example**: `True`, `False`
 
 ---
 
@@ -363,9 +363,9 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 - Timeout variables are True if the participant didn't respond within the time limit:
   - Slider and switch/stay decisions: 7 seconds
 - The experiment saves data incrementally after each trial, not just at the end
-- Block 0 is the practice block (3 trials), blocks 1-5 are experimental blocks (20 trials each)
+- Block 0 is the practice block (3 trials), blocks 1-10 are experimental blocks (10 trials each)
 - **Narrative context**: The experiment is framed as a photography studio collaboration where participants work with Amy (reliable partner) or Ben (unreliable partner) to help sort images for an exhibition. Scoring is framed as "in-house curator" evaluations.
-- **Scoring display**: Trial outcomes show "The in-house curator scored this image: X points" instead of "Points earned this trial". Block summaries show "The in-house curator scored this collection X points out of a total of 20 points!" (actual points, not scaled).
+- **Scoring display**: Trial outcomes show "The in-house curator scored this image: X points" instead of "Points earned this trial". Block summaries show "The in-house curator scored this collection X points out of a total of 10 points!" (actual points, not scaled).
 - Points are calculated based on Euclidean distance: `points = 1.0 - distance(final_answer, ground_truth)`
 - **Practice Block (Block 0)**:
   - Contains 3 practice trials with simplified stimuli (colored shapes)
@@ -376,24 +376,23 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
     - Trial 3: Full trial with participant, AI, and switch/stay decision. `ai_reliability` is `0.5` (50% for practice block)
   - All practice trials have `block_start_time`, `block_end_time`, `block_duration_seconds`, and `block_duration_minutes` set to `None` (practice block timing not tracked)
 - **Block structure**:
-  - Block 1: Reliable (exactly 0.75 accuracy, deterministic), Participant first
-  - Block 2: Unreliable (exactly 0.25 accuracy, deterministic), Participant first
-  - Block 3: Unreliable (exactly 0.25 accuracy, deterministic), Participant first
-  - Block 4: Reliable (exactly 0.75 accuracy, deterministic), Participant first
-  - Block 5: Unreliable (exactly 0.25 accuracy, deterministic), Participant first
+  - Blocks 1-2: Reliable (exactly 0.75 accuracy, deterministic, Amy), alternating turn order
+  - Blocks 3-6: Unreliable (exactly 0.25 accuracy, deterministic, Ben), alternating turn order
+  - Blocks 7-8: Reliable (exactly 0.75 accuracy, deterministic, Amy), alternating turn order
+  - Blocks 9-10: Unreliable (exactly 0.25 accuracy, deterministic, Ben), alternating turn order
   
   **AI Accuracy Implementation**: The AI collaborator uses deterministic thresholds to ensure exact accuracy rates:
   - **75% accuracy (Reliable blocks)**: Exactly 3 out of every 4 trials are correct (positions 1, 2, 3 in each group of 4)
   - **25% accuracy (Unreliable blocks)**: Exactly 1 out of every 4 trials is correct (position 1 in each group of 4)
-  - In a 20-trial block, reliable blocks will have exactly 15 correct trials, unreliable blocks will have exactly 5 correct trials
-- **Turn-taking**: Participant always goes first in all blocks
+  - In a 10-trial block, reliable blocks will have approximately 7-8 correct trials, unreliable blocks will have approximately 2-3 correct trials
+- **Turn-taking**: Alternates within each block (participant first, then AI first, etc.), starting with participant first in block 1. The `participant_first` field logs who goes first for each trial.
 - **Study phase timing**:
   - Images are shown for **1.0 second each** (fixed duration, no jitter)
   - **Jittered fixations** appear before EVERY image: **0.25-0.75 seconds** (uniform random distribution)
   - Fixation jitter: `random.uniform(0.25, 0.75)` - each fixation independently drawn
   - Fixation appears before the first image and between all subsequent images
-  - 20 fixations per block (before each of the 20 images)
-  - Total study phase duration: ~30-35 seconds (varies due to fixation jitter)
+  - 10 fixations per block (before each of the 10 images)
+  - Total study phase duration: ~15-17.5 seconds (varies due to fixation jitter)
 - **Recognition phase timing**:
   - **Pre-trial fixation**: 0.5 seconds (fixed duration, shown before each image)
   - Images are shown for **1.0 second each** (fixed duration, no jitter)
@@ -402,7 +401,7 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
   - Inter-trial jitter: `random.uniform(0.25, 0.75)` - each jitter independently drawn
   - Jitter shown as fixation cross during the inter-trial interval
   - **No jitter after the last trial** in each block
-  - **19 jittered fixations per block** (between 20 trials)
+  - **9 jittered fixations per block** (between 10 trials)
   - Participant slider timeout: **7.0 seconds** (fixed)
   - AI RT: Log-normal distribution (mu=0.5, sigma=0.3), capped at 5.0 seconds
 - **Switch/stay decision timing**:

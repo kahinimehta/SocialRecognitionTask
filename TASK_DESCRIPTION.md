@@ -5,7 +5,7 @@
 This task examines how participants collaborate with an AI partner during a recognition memory task. Participants study images and then test their memory by rating images as "OLD" (studied) or "NEW" (not studied), while collaborating with an AI partner who also provides ratings.
 
 **Duration**: 35-45 minutes (50-60 minutes for slower participants)  
-**Structure**: 5 blocks × 20 trials = 100 total trials  
+**Structure**: 10 blocks × 10 trials = 100 total trials  
 **Response Timeout**: 7 seconds per response
 
 ---
@@ -14,9 +14,9 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Overall Design
 
-- **5 experimental blocks**, each containing:
-  - **Study Phase**: View 20 images sequentially (no responses required)
-  - **Recognition Phase**: 20 trials testing memory with AI collaboration
+- **10 experimental blocks**, each containing:
+  - **Study Phase**: View 10 images sequentially (no responses required)
+  - **Recognition Phase**: 10 trials testing memory with AI collaboration
 
 - **1 practice block** (3 trials) to familiarize participants with the task
 
@@ -70,7 +70,7 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Phase 1: Study Phase
 
-- Participants view **20 images** sequentially
+- Participants view **10 images** sequentially
 - **No responses required**
 - Each image is shown for **1 second**
 - **Jittered fixations** (0.25-0.75 seconds) appear before EVERY image, including the first image
@@ -79,7 +79,7 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Phase 2: Recognition Phase
 
-Each of the 20 trials follows this structure:
+Each of the 10 trials follows this structure:
 
 1. **Pre-trial Fixation Cross**: 0.5 seconds (fixed duration, shown before each image)
 2. **Image Presentation**: Shows either the studied image or its lure (50% chance each) for 1.0 second (fixed duration)
@@ -101,7 +101,7 @@ Each of the 20 trials follows this structure:
    - Distribution: `random.uniform(0.25, 0.75)` - each jitter independently drawn
    - Shown as fixation cross during inter-trial interval
    - **No jitter after the last trial** in each block
-   - **19 jittered fixations per block** (between 20 trials)
+   - **9 jittered fixations per block** (between 10 trials)
 
 ---
 
@@ -129,23 +129,23 @@ Each of the 20 trials follows this structure:
 
 ### Turn-Taking Manipulation
 
-- **Participant always goes first** in all blocks
-- The AI partner responds after the participant in every trial
+- **Turn order alternates within each block**: Starting with participant first in block 1, then alternating (participant first, AI first, participant first, AI first, etc.)
+- Within each block: Trial 1 = participant first, Trial 2 = AI first, Trial 3 = participant first, etc.
+- The `participant_first` field in the CSV logs who goes first for each trial (True = participant first, False = AI first)
 
 ### AI Accuracy Manipulation
 
-- **Reliable blocks**: Exactly 75% correct (Blocks 1 and 4)
+- **Reliable blocks**: Exactly 75% correct (Blocks 1-2 and 7-8, Amy)
   - Uses deterministic threshold: exactly 3 out of every 4 trials are correct
-  - In a 20-trial block, exactly 15 trials will be correct
-- **Unreliable blocks**: Exactly 25% correct (Blocks 2, 3, and 5)
+  - In a 10-trial block, exactly 7-8 trials will be correct (rounded)
+- **Unreliable blocks**: Exactly 25% correct (Blocks 3-6 and 9-10, Ben)
   - Uses deterministic threshold: exactly 1 out of every 4 trials is correct
-  - In a 20-trial block, exactly 5 trials will be correct
+  - In a 10-trial block, exactly 2-3 trials will be correct (rounded)
 - **Block structure**:
-  - Block 1: Reliable (0.75), Participant first
-  - Block 2: Unreliable (0.25), Participant first
-  - Block 3: Unreliable (0.25), Participant first
-  - Block 4: Reliable (0.75), Participant first
-  - Block 5: Unreliable (0.25), Participant first
+  - Blocks 1-2: Reliable (0.75, Amy), alternating turn order (participant first in first trial)
+  - Blocks 3-6: Unreliable (0.25, Ben), alternating turn order (participant first in first trial)
+  - Blocks 7-8: Reliable (0.75, Amy), alternating turn order (participant first in first trial)
+  - Blocks 9-10: Unreliable (0.25, Ben), alternating turn order (participant first in first trial)
 
 **Implementation details**: The AI collaborator uses a hard threshold system to ensure deterministic accuracy rates. For reliable blocks (75% accuracy), trials are correct in positions 1, 2, and 3 of each group of 4 trials. For unreliable blocks (25% accuracy), only position 1 of each group of 4 trials is correct. This ensures consistent, predictable accuracy across all blocks.
 
@@ -190,11 +190,11 @@ All scoring is framed as "in-house curator" evaluations:
   - Range: 0.0 to 1.0 points per trial
 
 - **End of each block**: "The in-house curator scored this collection X points out of a total of 20 points!"
-  - Block points are the sum of all trial points (20 trials × 1.0 max = 20 points maximum)
+  - Block points are the sum of all trial points (10 trials × 1.0 max = 10 points maximum)
   - Each trial can earn up to 1.0 point based on Euclidean distance from correct answer
 
 - **End of experiment**: "The in-house curator scored this collection X points out of a total of 100 points!"
-  - Total experiment points are the sum across all 5 blocks (5 blocks × 20 trials = 100 points maximum)
+  - Total experiment points are the sum across all 10 blocks (10 blocks × 10 trials = 100 points maximum)
   - Each trial can earn up to 1.0 point based on Euclidean distance from correct answer
 
 ---
@@ -237,11 +237,11 @@ All scoring is framed as "in-house curator" evaluations:
 - **Timeout Flags**: Whether participant timed out on slider or switch/stay decision
 
 #### Trial Metadata
-- **Block Number**: Which block (0 = practice, 1-5 = experimental)
+- **Block Number**: Which block (0 = practice, 1-10 = experimental)
 - **Trial Number**: Trial within block
 - **Trial Type**: "studied" or "lure"
 - **Image Path**: Which image was shown
-- **Participant First**: Always True (participant always responds first)
+- **Participant First**: True if participant responded first in this trial, False if AI responded first (alternates within blocks)
 - **Time from Experiment Start**: Elapsed time since experiment began
 
 ### Data Storage
@@ -363,10 +363,10 @@ All scoring is framed as "in-house curator" evaluations:
   - Duration: 0.25-0.75 seconds (uniform random distribution)
   - Distribution: `random.uniform(0.25, 0.75)`
   - Appears before EVERY image, including the first image
-  - 20 fixations per block (before each of the 20 images)
-- **Total study phase duration**: Approximately 30-35 seconds per block
-  - 20 images × 1.0 second = 20 seconds
-  - 20 fixations × (0.25-0.75 seconds average 0.5) = ~10 seconds
+  - 10 fixations per block (before each of the 10 images)
+- **Total study phase duration**: Approximately 15-17.5 seconds per block
+  - 10 images × 1.0 second = 10 seconds
+  - 10 fixations × (0.25-0.75 seconds average 0.5) = ~5 seconds
 
 #### Recognition Phase Timing
 - **Pre-trial fixation**: 0.5 seconds (fixed duration, shown before each image)
@@ -378,7 +378,7 @@ All scoring is framed as "in-house curator" evaluations:
   - Appears between trials (after trial N completes, before trial N+1 starts)
   - Shown as fixation cross during jitter period
   - **No jitter after the last trial** in each block
-  - **19 jittered fixations per block** (between 20 trials)
+  - **9 jittered fixations per block** (between 10 trials)
 
 #### Participant Response Timeouts
 - **Slider response**: 7.0 seconds (fixed)
