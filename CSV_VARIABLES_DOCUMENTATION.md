@@ -619,6 +619,24 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 - **Note**: Only populated for question trials where participant answered (YES/NO button click or y/n key press). `None` for non-question trials or if participant timed out.
 - **Example**: `1764818181.1234567`, `None`
 
+### `feedback_onset_time`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when feedback was displayed after answering the question (in seconds since epoch, high precision)
+- **Note**: Only populated for question trials where participant answered before timeout. Feedback shows "Correct!" (green) or "Incorrect" (red) for 1.5 seconds. `None` for non-question trials or if participant timed out.
+- **Example**: `1764818182.1234567`, `None`
+
+### `feedback_offset_time`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when feedback was removed from display (in seconds since epoch, high precision)
+- **Note**: Only populated for question trials where participant answered before timeout. Feedback duration is 1.5 seconds. `None` for non-question trials or if participant timed out.
+- **Example**: `1764818183.6234567`, `None`
+
+### `feedback_duration`
+- **Type**: Float (seconds) or None
+- **Description**: Duration the feedback was displayed
+- **Note**: Only populated for question trials where participant answered before timeout. Fixed duration of 1.5 seconds. `None` for non-question trials or if participant timed out.
+- **Example**: `1.5`, `None`
+
 ---
 
 ## Notes on Localizer Task
@@ -639,6 +657,11 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
   - Questions are asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (20 questions total)
   - **Timeout**: 10.0 seconds - if participant doesn't respond within 10 seconds, the question times out and the task continues to the next image
   - Question appears immediately after the image is shown
+- **Feedback timing**:
+  - After answering a question (before timeout), feedback is displayed showing "Correct!" (green) or "Incorrect" (red)
+  - Feedback duration: 1.5 seconds (fixed)
+  - Feedback timing is logged: `feedback_onset_time`, `feedback_offset_time`, and `feedback_duration`
+  - No feedback is shown if participant times out
 - **Question design**:
   - **Exactly 50% correct questions**: Ask about the actual category of the last object shown (correct answer = True)
   - **Exactly 50% incorrect questions**: Ask about a random category different from the last object's category (correct answer = False)

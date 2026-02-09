@@ -721,15 +721,15 @@ def get_participant_id():
     try:
         if USE_TOUCH_SCREEN:
             print("Creating touch screen text stimuli...")
-            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045*0.75, wrapWidth=1.4*0.75, pos=(0, 0.35*0.6))
+            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.35*0.6))
             print("id_prompt created")
-            input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75, pos=(0, 0.25*0.6))
+            input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75*1.35, pos=(0, 0.25*0.6))
             print("input_display created")
         else:
             print("Creating mouse/trackpad text stimuli...")
-            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045*0.75, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
+            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
             print("id_prompt created")
-            input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75, pos=(0, 0.1*0.6))
+            input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75*1.35, pos=(0, 0.1*0.6))
             print("input_display created")
     except Exception as e:
         print(f"ERROR creating text stimuli: {e}")
@@ -764,9 +764,9 @@ def get_participant_id():
                     x_pos = start_x + col_idx * (button_width + button_spacing)
                     y_pos = start_y - row_idx * row_spacing
                     
-                    button = visual.Rect(win, width=button_width, height=0.08*0.75, fillColor='lightgray', 
+                    button = visual.Rect(win, width=button_width, height=0.08*0.75*1.35, fillColor='lightgray', 
                                         lineColor='black', pos=(x_pos, y_pos))
-                    text = visual.TextStim(win, text=key, color='black', height=0.04*0.75, pos=(x_pos, y_pos))
+                    text = visual.TextStim(win, text=key, color='black', height=0.04*0.75*1.35, pos=(x_pos, y_pos))
                     row_buttons.append((button, text, key, x_pos, y_pos))
                 
                 keyboard_buttons.append(row_buttons)
@@ -774,13 +774,13 @@ def get_participant_id():
             print("Creating special buttons...")
             # Special buttons - arranged horizontally between input and keyboard
             button_y_pos = 0.05*0.6  # Position between input (0.25) and keyboard start (-0.15)
-            backspace_button = visual.Rect(win, width=0.2*0.75, height=0.1*0.75, fillColor='lightcoral', 
+            backspace_button = visual.Rect(win, width=0.2*0.75, height=0.1*0.75*1.35, fillColor='lightcoral', 
                                           lineColor='black', lineWidth=2*0.75, pos=(-0.25*0.6, button_y_pos))
-            backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025*0.75, pos=(-0.25*0.6, button_y_pos))
+            backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025*0.75*1.35, pos=(-0.25*0.6, button_y_pos))
             
-            continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75, fillColor='lightgreen', 
+            continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75*1.35, fillColor='lightgreen', 
                                           lineColor='black', lineWidth=2*0.75, pos=(0.25*0.6, button_y_pos))
-            continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75, pos=(0.25*0.6, button_y_pos))
+            continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75*1.35, pos=(0.25*0.6, button_y_pos))
             print("All keyboard buttons created successfully")
         except Exception as e:
             print(f"ERROR creating keyboard buttons: {e}")
@@ -1057,7 +1057,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     continue_button = visual.Rect(
         win,
         width=0.3*0.75,
-        height=0.1*0.75,
+        height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
         pos=(0, -0.35*0.6)
@@ -1066,7 +1066,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         win,
         text=button_text,
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(0, -0.35*0.6)
     )
     
@@ -1262,8 +1262,8 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
         win,
         text=question_text,
         color='black',
-        height=0.06*0.75,
-        pos=(0, 0.2*0.6),
+        height=0.06*0.75*1.35,
+        pos=(0, 0.4*0.6),  # Move higher to avoid overlap with larger images
         wrapWidth=1.4*0.75
     )
     
@@ -1271,7 +1271,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
     yes_button = visual.Rect(
         win,
         width=0.25*0.75,
-        height=0.1*0.75,
+        height=0.1*0.75*1.35,
         fillColor='lightgreen',
         lineColor='black',
         pos=(-0.3*0.6, -0.2*0.6)
@@ -1280,14 +1280,14 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
         win,
         text="YES",
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(-0.3*0.6, -0.2*0.6)
     )
     
     no_button = visual.Rect(
         win,
         width=0.25*0.75,
-        height=0.1*0.75,
+        height=0.1*0.75*1.35,
         fillColor='lightcoral',
         lineColor='black',
         pos=(0.3*0.6, -0.2*0.6)
@@ -1296,7 +1296,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
         win,
         text="NO",
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(0.3*0.6, -0.2*0.6)
     )
     
@@ -1551,7 +1551,7 @@ def ask_category_question(category_name, last_object_name, timeout=10.0):
             win,
             text="Time's up! We've moved on to the next image.",
             color='red',
-            height=0.06,
+            height=0.06*1.35,
             pos=(0, 0),
             wrapWidth=1.4
         )
@@ -1729,7 +1729,7 @@ try:
     print("Testing window with simple draw...")
     sys.stdout.flush()
     try:
-        test_text = visual.TextStim(win, text=" ", color='black', height=0.05*0.75, pos=(0, 0))
+        test_text = visual.TextStim(win, text=" ", color='black', height=0.05*0.75*1.35, pos=(0, 0))
         test_text.draw()
         win.flip()
         print("Window draw test successful")
@@ -1777,7 +1777,7 @@ try:
     # =========================
 
     # Create fixation cross
-    fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75, pos=(0, 0))
+    fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     
     def show_fixation(duration=1.0):
         """Display fixation cross for specified duration"""
@@ -1847,7 +1847,7 @@ try:
              "about the previous image.\n\n"
              "Please pay attention to each image.",
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(0, 0),
         wrapWidth=1.4*0.75
     )
@@ -1877,7 +1877,8 @@ try:
             'fixation_onset_time', 'fixation_offset_time', 'fixation_duration',
             'image_onset_time', 'image_offset_time', 'is_question_trial', 
             'question_category', 'question_text', 'question_onset_time', 
-            'answer', 'correct_answer', 'correct', 'timed_out', 'response_time', 'answer_click_time'
+            'answer', 'correct_answer', 'correct', 'timed_out', 'response_time', 'answer_click_time',
+            'feedback_onset_time', 'feedback_offset_time', 'feedback_duration'
         ]
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
@@ -1964,6 +1965,37 @@ try:
                 # Calculate correct only if not timed out
                 is_correct = (answer == correct_answer) if not timed_out else None
                 
+                # Show feedback (correct/incorrect) after answering
+                feedback_onset_time = None
+                feedback_offset_time = None
+                feedback_duration = None
+                
+                if not timed_out:
+                    # Show feedback for 1.5 seconds
+                    feedback_onset_time = time.time()
+                    
+                    if is_correct:
+                        feedback_text = "Correct!"
+                        feedback_color = 'green'
+                    else:
+                        feedback_text = "Incorrect"
+                        feedback_color = 'red'
+                    
+                    feedback_stim = visual.TextStim(
+                        win,
+                        text=feedback_text,
+                        color=feedback_color,
+                        height=0.08*0.75*1.35,
+                        pos=(0, 0),
+                        wrapWidth=1.4*0.75
+                    )
+                    feedback_stim.draw()
+                    win.flip()
+                    core.wait(1.5)  # Show feedback for 1.5 seconds
+                    
+                    feedback_offset_time = time.time()
+                    feedback_duration = feedback_offset_time - feedback_onset_time
+                
                 # Record data with question fields
                 trial_data = {
                     'participant_id': participant_id,
@@ -1989,7 +2021,10 @@ try:
                     'correct': is_correct,
                     'timed_out': timed_out,
                     'response_time': response_time if response_time is not None else None,
-                    'answer_click_time': answer_click_time
+                    'answer_click_time': answer_click_time,
+                    'feedback_onset_time': feedback_onset_time,
+                    'feedback_offset_time': feedback_offset_time,
+                    'feedback_duration': feedback_duration
                 }
             else:
                 # Record data for non-question trials
@@ -2017,7 +2052,10 @@ try:
                     'correct': None,
                     'timed_out': None,
                     'response_time': None,
-                    'answer_click_time': None
+                    'answer_click_time': None,
+                    'feedback_onset_time': None,
+                    'feedback_offset_time': None,
+                    'feedback_duration': None
                 }
             
             localizer_data.append(trial_data)
@@ -2046,7 +2084,7 @@ try:
         win,
         text=accuracy_text,
         color='black',
-        height=0.06*0.75,
+        height=0.06*0.75*1.35,
         pos=(0, 0.1),
         wrapWidth=1.4*0.75
     )
@@ -2057,7 +2095,7 @@ try:
         text="LOCALIZER TASK COMPLETE!\n\n"
              "Thank you for your participation.",
         color='black',
-        height=0.06*0.75,
+        height=0.06*0.75*1.35,
         pos=(0, -0.1),
         wrapWidth=1.4*0.75
     )

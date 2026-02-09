@@ -714,7 +714,7 @@ try:
     print("Testing window with simple draw...")
     sys.stdout.flush()
     try:
-        test_text = visual.TextStim(win, text=" ", color='black', height=0.05*0.75, pos=(0, 0))
+        test_text = visual.TextStim(win, text=" ", color='black', height=0.05*0.75*1.35, pos=(0, 0))
         test_text.draw()
         win.flip()
         print("Window draw test successful")
@@ -817,19 +817,19 @@ def generate_practice_shapes(output_dir="PLACEHOLDERS"):
         os.makedirs(output_dir)
     
     # Green circle (practice shape 1)
-    img = Image.new('RGB', (200, 200), color='white')
+    img = Image.new('RGB', (200, 200), color='lightgray')
     draw = ImageDraw.Draw(img)
     draw.ellipse([20, 20, 180, 180], fill='green', outline='black', width=3)
     img.save(os.path.join(output_dir, "PRACTICE_GREEN_CIRCLE.png"))
     
     # Red circle (practice shape 2)
-    img = Image.new('RGB', (200, 200), color='white')
+    img = Image.new('RGB', (200, 200), color='lightgray')
     draw = ImageDraw.Draw(img)
     draw.ellipse([20, 20, 180, 180], fill='red', outline='black', width=3)
     img.save(os.path.join(output_dir, "PRACTICE_RED_CIRCLE.png"))
     
     # Blue circle (practice shape 3)
-    img = Image.new('RGB', (200, 200), color='white')
+    img = Image.new('RGB', (200, 200), color='lightgray')
     draw = ImageDraw.Draw(img)
     draw.ellipse([20, 20, 180, 180], fill='blue', outline='black', width=3)
     img.save(os.path.join(output_dir, "PRACTICE_BLUE_CIRCLE.png"))
@@ -875,26 +875,26 @@ def generate_placeholder_stimuli(num_stimuli=100, output_dir="PLACEHOLDERS"):
         if is_swapped:
             # Swapped: square is studied item, circle is lure
             # Create studied item (square)
-            img = Image.new('RGB', (200, 200), color='white')
+            img = Image.new('RGB', (200, 200), color='lightgray')
             draw = ImageDraw.Draw(img)
             draw.rectangle([20, 20, 180, 180], fill=color, outline='black', width=3)
             img.save(os.path.join(output_dir, f"IMAGE_{pair_num}.png"))
             
             # Create lure (circle)
-            img = Image.new('RGB', (200, 200), color='white')
+            img = Image.new('RGB', (200, 200), color='lightgray')
             draw = ImageDraw.Draw(img)
             draw.ellipse([20, 20, 180, 180], fill=color, outline='black', width=3)
             img.save(os.path.join(output_dir, f"LURE_{pair_num}.png"))
         else:
             # Normal: circle is studied item, square is lure
             # Create studied item (circle)
-            img = Image.new('RGB', (200, 200), color='white')
+            img = Image.new('RGB', (200, 200), color='lightgray')
             draw = ImageDraw.Draw(img)
             draw.ellipse([20, 20, 180, 180], fill=color, outline='black', width=3)
             img.save(os.path.join(output_dir, f"IMAGE_{pair_num}.png"))
             
             # Create lure (square)
-            img = Image.new('RGB', (200, 200), color='white')
+            img = Image.new('RGB', (200, 200), color='lightgray')
             draw = ImageDraw.Draw(img)
             draw.rectangle([20, 20, 180, 180], fill=color, outline='black', width=3)
             img.save(os.path.join(output_dir, f"LURE_{pair_num}.png"))
@@ -1155,13 +1155,13 @@ try:
     
     print(f"Window status: {win}, type: {type(win)}")
     print("Creating instr...")
-    instr = visual.TextStim(win, text="", color='black', height=0.04*0.75, wrapWidth=1.5*0.75, pos=(0, 0))
+    instr = visual.TextStim(win, text="", color='black', height=0.04*0.75*1.35, wrapWidth=1.5*0.75, pos=(0, 0))
     print("instr created")
     print("Creating fixation...")
-    fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75, pos=(0, 0))
+    fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     print("fixation created")
     print("Creating feedback_txt...")
-    feedback_txt = visual.TextStim(win, text="", color='black', height=0.05*0.75, pos=(0, 0))
+    feedback_txt = visual.TextStim(win, text="", color='black', height=0.05*0.75*1.35, pos=(0, 0))
     print("feedback_txt created")
     print("Creating mouse...")
     mouse = event.Mouse(win=win)
@@ -1264,7 +1264,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
     continue_button = visual.Rect(
         win,
         width=0.3*0.75,
-        height=0.1*0.75,
+        height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
         pos=(0, -0.35*0.6)
@@ -1273,7 +1273,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
         win,
         text=button_text,
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(0, -0.35*0.6)
     )
     
@@ -1445,7 +1445,7 @@ def wait_for_space(redraw_func=None):
     """Wait for button click (replaces space key press)"""
     wait_for_button(redraw_func=redraw_func)
 
-def show_instructions(text, header_color='darkblue', body_color='black', header_size=0.07, body_size=0.045):
+def show_instructions(text, header_color='darkblue', body_color='black', header_size=0.07*1.35, body_size=0.045*1.35):
     """Show instructions with formatted header and body text, with continue button"""
     # Split text into lines
     lines = text.split('\n')
@@ -1511,7 +1511,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
     continue_button = visual.Rect(
         win,
         width=0.3,
-        height=0.1,
+        height=0.1*1.35,
         fillColor='lightblue',
         lineColor='black',
         pos=(0, -0.35)
@@ -1520,7 +1520,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
         win,
         text="CONTINUE",
         color='black',
-        height=0.05,
+        height=0.05*1.35,
         pos=(0, -0.35)
     )
     
@@ -1704,11 +1704,11 @@ def get_participant_id():
     # Create text display - adjust positions for touch screen to avoid overlap
     # Layout: prompt at top, input below, buttons below input, keyboard at bottom
     if USE_TOUCH_SCREEN:
-        id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75, wrapWidth=1.4*0.75, pos=(0, 0.35*0.6))
-        input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75, pos=(0, 0.25*0.6))
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.35*0.6))
+        input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75*1.35, pos=(0, 0.25*0.6))
     else:
-        id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
-        input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75, pos=(0, 0.1*0.6))
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
+        input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75*1.35, pos=(0, 0.1*0.6))
     
     # Create on-screen keyboard if touch screen (no number row)
     keyboard_buttons = []
@@ -1746,18 +1746,18 @@ def get_participant_id():
                     win,
                     text=char.upper(),
                     color='black',
-                    height=0.04*0.75,
+                    height=0.04*0.75*1.35,
                     pos=(x_pos, y_pos)
                 )
                 keyboard_buttons.append((button, button_text, char))
         
         # Special buttons: Backspace, Continue (positioned between input and keyboard)
         special_y = 0.05*0.6  # Position between input (0.25) and keyboard start (-0.15)
-        backspace_button = visual.Rect(win, width=0.2*0.75, height=0.1*0.75, fillColor='lightcoral', lineColor='black', lineWidth=2*0.75, pos=(-0.25*0.6, special_y))
-        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025*0.75, pos=(-0.25*0.6, special_y))
+        backspace_button = visual.Rect(win, width=0.2*0.75, height=0.1*0.75*1.35, fillColor='lightcoral', lineColor='black', lineWidth=2*0.75, pos=(-0.25*0.6, special_y))
+        backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025*0.75*1.35, pos=(-0.25*0.6, special_y))
         
-        continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75, fillColor='lightgreen', lineColor='black', lineWidth=2*0.75, pos=(0.25*0.6, special_y))
-        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75, pos=(0.25*0.6, special_y))
+        continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75*1.35, fillColor='lightgreen', lineColor='black', lineWidth=2*0.75, pos=(0.25*0.6, special_y))
+        continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75*1.35, pos=(0.25*0.6, special_y))
     
     # Key list for keyboard input (non-touch)
     key_list = ['return', 'backspace', 'space'] + [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(48, 58)]
@@ -2025,27 +2025,28 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         pos=(0, slider_y_pos)  # Start at center
     )
     # Move labels farther from line and lower to avoid overlap with slider circle
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.5*0.6, slider_y_pos - 0.08))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
     # Image number display
     if trial_num is not None:
-        trial_text = visual.TextStim(win, text=f"Image {trial_num} of {max_trials}", color='gray', height=0.03*0.75, pos=(0, 0.4*0.6))
+        trial_text = visual.TextStim(win, text=f"Image {trial_num} of {max_trials}", color='gray', height=0.03*0.75*1.35, pos=(0, 0.55*0.6))  # Move higher to avoid overlap
     
     # Use smaller text height for longer instructions (practice trials)
-    text_height = 0.04*0.75 if len(prompt_text) > 100 else 0.05*0.75
-    prompt = visual.TextStim(win, text=prompt_text, color='black', height=text_height, pos=(0, 0.3*0.6), wrapWidth=1.4)
+    # Images are now 35% bigger (0.3*1.35 = 0.405 height), so move text higher to avoid overlap
+    text_height = 0.04*0.75*1.35 if len(prompt_text) > 100 else 0.05*0.75*1.35
+    prompt = visual.TextStim(win, text=prompt_text, color='black', height=text_height, pos=(0, 0.5*0.6), wrapWidth=1.4)  # Move higher to avoid overlap
     
     # Submit button (positioned below slider)
     submit_button = visual.Rect(
         win,
         width=0.15*0.75,
-        height=0.06*0.75,
+        height=0.06*0.75*1.35,
         fillColor='lightgray',
         lineColor='black',
         pos=(0, slider_y_pos - 0.12)
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*0.75, pos=(0, slider_y_pos - 0.12))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*0.75*1.35, pos=(0, slider_y_pos - 0.12))
     
     mouse.setVisible(True)
     
@@ -2087,7 +2088,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                 win,
                     text="Time's up! A random answer was selected. This will be logged as an invalid trial.",
                 color='red',
-                height=0.06*0.75,
+                height=0.06*0.75*1.35,
                 pos=(0, 0)
             )
             if image_stim:
@@ -2169,7 +2170,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                             win,
                             text="Please select an answer first",
                             color='red',
-                            height=0.05*0.75,
+                            height=0.05*0.75*1.35,
                             pos=(0, slider_y_pos - 0.2)
                         )
                         # Draw everything with error message
@@ -2249,7 +2250,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                         win,
                         text="Please select an answer first",
                         color='red',
-                        height=0.05*0.75,
+                        height=0.05*0.75*1.35,
                         pos=(0, slider_y_pos - 0.2)
                     )
                     # Draw everything with error message
@@ -2733,20 +2734,20 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
         lineColor='black',
         pos=(0, slider_y_pos)  # Will be set to target position on tap
     )
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.5*0.6, slider_y_pos - 0.08))
-    partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.05, pos=(0, 0.3))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
+    partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.05*1.35, pos=(0, 0.45))  # Move higher to avoid overlap with larger images
     
     # Submit button
     submit_button = visual.Rect(
         win,
         width=0.15,
-        height=0.06,
+        height=0.06*1.35,
         fillColor='lightgray',
         lineColor='black',
         pos=(0, -0.35)
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04, pos=(0, -0.35))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*1.35, pos=(0, -0.35))
     
     # Calculate target position
     target_x = -0.4*0.6 + (partner_value * 0.8*0.6)  # Target position
@@ -2934,8 +2935,8 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
     
     # Move labels farther from line to avoid overlap
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.5*0.6, slider_y_pos - 0.08))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
     # Labels
     if participant_value < 0.5:
@@ -2952,8 +2953,8 @@ def show_both_responses(participant_value, partner_value, participant_first, par
         win,
         text=f"Your choice: {p_label}  |  {partner_name}'s choice: {a_label}",
         color='black',
-        height=0.04*0.75,
-        pos=(0, 0.1),
+        height=0.04*0.75*1.35,
+        pos=(0, 0.25),  # Move higher to avoid overlap with larger images
         wrapWidth=1.2
     )
     
@@ -3004,8 +3005,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         )
     
     # Move labels farther from line to avoid overlap
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75, pos=(-0.5*0.6, slider_y_pos - 0.08))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75, pos=(0.5*0.6, slider_y_pos - 0.08))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
     # Labels
     if participant_value is not None:
@@ -3024,30 +3025,30 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     stay_button = visual.Rect(
         win,
         width=0.2*0.75,
-        height=0.08*0.75,
+        height=0.08*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
         pos=(-0.3*0.6, slider_y_pos - 0.15)
     )
-    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.05*0.75, pos=(-0.3*0.6, slider_y_pos - 0.15))
+    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.05*0.75*1.35, pos=(-0.3*0.6, slider_y_pos - 0.15))
     
     switch_button = visual.Rect(
         win,
         width=0.2*0.75,
-        height=0.08*0.75,
+        height=0.08*0.75*1.35,
         fillColor='lightcoral',
         lineColor='black',
         pos=(0.3*0.6, slider_y_pos - 0.15)
     )
-    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.05*0.75, pos=(0.3*0.6, slider_y_pos - 0.15))
+    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.05*0.75*1.35, pos=(0.3*0.6, slider_y_pos - 0.15))
     
     decision_prompt = visual.TextStim(
         win,
         text=f"Do you want to STAY with your answer or SWITCH to {partner_name}'s answer?",
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         wrapWidth=1.2,
-        pos=(0, 0.4)  # Higher to ensure it's fully visible
+        pos=(0, 0.45)  # Higher to avoid overlap with larger images
     )
     
     # Show labels for the slider
@@ -3056,8 +3057,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
             win,
             text=f"Your choice: {p_label}  |  {partner_name}'s choice: {a_label}",
             color='black',
-            height=0.04*0.75,
-            pos=(0, 0.25),  # Below question, above image
+            height=0.04*0.75*1.35,
+            pos=(0, 0.3),  # Higher to avoid overlap with larger images
             wrapWidth=1.2
         )
     
@@ -3097,7 +3098,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     win,
                     text="Time's up! A random decision was selected.",
                     color='red',
-                    height=0.06,
+                    height=0.06*1.35,
                     pos=(0, -0.35)  # Lower to avoid overlap with buttons
                 )
                 decision_prompt.draw()
@@ -3105,7 +3106,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     slider_labels.draw()
                 if image_stim:
                     # Position image above slider
-                    image_stim.pos = (0, 0.05)
+                    # Images are 35% bigger now, so position slightly lower to avoid overlap
+                    image_stim.pos = (0, 0.0)
                     # Don't override size - use default (0.3, 0.3) from load_image_stimulus
                     image_stim.draw()
                 slider_line.draw()
@@ -3306,7 +3308,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         # Draw image above slider (centered)
         if image_stim:
             # Position image above slider, between ratings text and slider
-            image_stim.pos = (0, 0.0)  # Centered vertically between ratings and slider
+            # Images are 35% bigger now, so position lower to avoid overlap with text above
+            image_stim.pos = (0, 0.0)  # Centered vertically, text is now higher
             # Don't override size - use default (0.3, 0.3) from load_image_stimulus
             image_stim.draw()
         
@@ -3359,8 +3362,8 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
         text=f"Ready to start sorting?\n\n"
              f"{collections_remaining} collection{'s' if collections_remaining > 1 else ''} remaining",
         color='black',
-        height=0.06*0.75,
-        pos=(0, 0.1),
+        height=0.06*0.75*1.35,
+        pos=(0, 0.3),  # Move higher to avoid overlap with larger images
         wrapWidth=1.2
     )
     
@@ -3368,7 +3371,7 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
     begin_button = visual.Rect(
         win,
         width=0.3*0.75,
-        height=0.1*0.75,
+        height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
         pos=(0, -0.35*0.6)
@@ -3377,7 +3380,7 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
         win,
         text="BEGIN",
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(0, -0.35*0.6)
     )
     
@@ -3550,7 +3553,7 @@ def show_block_summary(block_num, total_points, max_points):
         text=f"Collection {block_num} Complete!\n\n"
              f"The in-house curator scored this collection {total_points_rounded:.1f} points out of a total of {int(max_points)} points!",
         color='black',
-        height=0.05,
+        height=0.05*1.35,
         pos=(0, 0.1),
         wrapWidth=1.2
     )
@@ -3559,7 +3562,7 @@ def show_block_summary(block_num, total_points, max_points):
     continue_button = visual.Rect(
         win,
         width=0.3,
-        height=0.1,
+        height=0.1*1.35,
         fillColor='lightblue',
         lineColor='black',
         pos=(0, -0.35)
@@ -3568,7 +3571,7 @@ def show_block_summary(block_num, total_points, max_points):
         win,
         text="CONTINUE",
         color='black',
-        height=0.05,
+        height=0.05*1.35,
         pos=(0, -0.35)
     )
     
@@ -3802,8 +3805,8 @@ def show_leaderboard(participant_id, total_points):
         win,
         text=leaderboard_text,
         color='black',
-        height=0.04,
-        pos=(0, 0.1),
+        height=0.04*1.35,
+        pos=(0, 0.3),  # Move higher to avoid overlap with larger images
         wrapWidth=1.6,
         font='Courier New'  # Monospace font for alignment
     )
@@ -3843,7 +3846,7 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
     
     # Show outcome with curator scoring (display rounded to 1 decimal place)
     outcome_text_full = f"{outcome_text}\n\nThe in-house curator scored this image: {correctness_points_rounded:.1f} points based on image & your confidence"
-    outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06, pos=(0, 0), wrapWidth=1.4)
+    outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06*1.35, pos=(0, 0), wrapWidth=1.4)
     outcome_stim.draw()
     win.flip()
     core.wait(2.0)  # Show for 2.0 seconds (increased from 1.5)
@@ -4170,7 +4173,7 @@ def run_experiment():
         win,
         text="Hello & welcome to the social memory game! Pay careful attention to the text on the screen",
         color='black',
-        height=0.06*0.75,
+        height=0.06*0.75*1.35,
         pos=(0, 0.2*0.6),
         wrapWidth=1.4*0.75
     )
@@ -4178,7 +4181,7 @@ def run_experiment():
     start_button = visual.Rect(
         win,
         width=0.3*0.75,
-        height=0.1*0.75,
+        height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
         pos=(0, -0.3*0.6)
@@ -4187,7 +4190,7 @@ def run_experiment():
         win,
         text="BEGIN",
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(0, -0.3*0.6)
     )
     
@@ -4415,25 +4418,25 @@ def run_experiment():
              "She needs help sorting through large sets of images and deciding which ones truly belong. "
              "At the end of each exhibition she ranks her employees on a leaderboard for a raise — so you want to make sure you help as much as you can!",
         color='black',
-        height=0.04*0.75,
-        pos=(0, 0.2),  # Move text up
+        height=0.04*0.75*1.35,
+        pos=(0, 0.35),  # Move text higher to avoid overlap with larger images
         wrapWidth=1.2
     )
     
-    # Label for Amy's image (first time shown) - below image (moved up slightly)
+    # Label for Amy's image (first time shown) - below image (moved down to avoid overlap)
     amy_label_1 = visual.TextStim(
         win,
         text="Amy",
         color='black',
-        height=0.05*0.75,
-        pos=(0, -0.2)  # Moved up from -0.25
+        height=0.05*0.75*1.35,
+        pos=(0, -0.3)  # Move lower to avoid overlap with larger images
     )
     
     # Create custom button for this screen (positioned bottom right to avoid icon overlap)
     continue_button_welcome = visual.Rect(
         win,
         width=0.3*0.75,
-        height=0.1*0.75,
+        height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
         pos=(0.4, -0.3)  # Bottom right, moved up slightly
@@ -4442,7 +4445,7 @@ def run_experiment():
         win,
         text="CONTINUE",
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(0.4, -0.3)  # Bottom right, moved up slightly
     )
     
@@ -4589,7 +4592,7 @@ def run_experiment():
         text="Before you begin the real work, you'll complete a short training round to get familiar with the process.\n\n"
              "For now, simply memorize the shapes you're about to see. Click continue when you're ready to get started!",
         color='black',
-        height=0.04*0.75,
+        height=0.04*0.75*1.35,
         pos=(0, 0.0),
         wrapWidth=1.2
     )
@@ -4601,28 +4604,28 @@ def run_experiment():
     
     # Generate practice shapes as placeholder stimuli (IMAGE_1, IMAGE_2, IMAGE_3)
     # Green circle
-    img = Image.new('RGB', (200, 200), color='white')
+    img = Image.new('RGB', (200, 200), color='lightgray')
     draw = ImageDraw.Draw(img)
     draw.ellipse([20, 20, 180, 180], fill='green', outline='black', width=3)
     green_circle_path = os.path.join(PLACEHOLDER_DIR, "IMAGE_1.png")
     img.save(green_circle_path)
     
     # Red circle
-    img = Image.new('RGB', (200, 200), color='white')
+    img = Image.new('RGB', (200, 200), color='lightgray')
     draw = ImageDraw.Draw(img)
     draw.ellipse([20, 20, 180, 180], fill='red', outline='black', width=3)
     red_circle_path = os.path.join(PLACEHOLDER_DIR, "IMAGE_2.png")
     img.save(red_circle_path)
     
     # Blue circle (for encoding/sequential presentation)
-    img = Image.new('RGB', (200, 200), color='white')
+    img = Image.new('RGB', (200, 200), color='lightgray')
     draw = ImageDraw.Draw(img)
     draw.ellipse([20, 20, 180, 180], fill='blue', outline='black', width=3)
     blue_circle_path = os.path.join(PLACEHOLDER_DIR, "IMAGE_3_CIRCLE.png")
     img.save(blue_circle_path)
     
     # Blue square (for trial 3 recognition - it's NEW, not seen before)
-    img = Image.new('RGB', (200, 200), color='white')
+    img = Image.new('RGB', (200, 200), color='lightgray')
     draw = ImageDraw.Draw(img)
     draw.rectangle([20, 20, 180, 180], fill='blue', outline='black', width=3)
     blue_square_path = os.path.join(PLACEHOLDER_DIR, "IMAGE_3.png")
@@ -4674,7 +4677,7 @@ def run_experiment():
         win,
         text="Now let's see how well you recall the shapes you've seen!",
         color='black',
-        height=0.06*0.75,
+        height=0.06*0.75*1.35,
         pos=(0, 0),
         wrapWidth=1.2
     )
@@ -4711,7 +4714,7 @@ def run_experiment():
     color_t1 = 'green' if participant_accuracy_t1 else 'red'
     # Skip in-house curator message in practice - just show correctness
     outcome_stim_t1 = visual.TextStim(win, text=outcome_text_t1, 
-                                      color=color_t1, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
+                                      color=color_t1, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t1.draw()
     win.flip()
     core.wait(1.5)  # Brief display for practice
@@ -4778,7 +4781,7 @@ def run_experiment():
     # Trial 2: Show message first, then AI rates (all the way OLD), then participant rates
     # Show message that partner is confident (Amy in practice)
     partner_message = visual.TextStim(win, text="Amy is confident she's seen this before!", 
-                                      color='blue', height=0.05*0.75, pos=(0, 0.4))
+                                      color='blue', height=0.05*0.75*1.35, pos=(0, 0.4))
     # Show message with red circle (use default positioning - no manual pos/size)
     partner_message.draw()
     red_circle.draw()
@@ -4822,7 +4825,7 @@ def run_experiment():
     color_t2 = 'green' if participant_accuracy_t2 else 'red'
     # Skip in-house curator message in practice - just show correctness
     outcome_stim_t2 = visual.TextStim(win, text=outcome_text_t2, 
-                                      color=color_t2, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
+                                      color=color_t2, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t2.draw()
     win.flip()
     core.wait(1.5)  # Brief display for practice
@@ -4877,7 +4880,7 @@ def run_experiment():
     
     # Show message: "now, work with your partner." (Amy in practice)
     work_with_partner_text = visual.TextStim(win, text="Now, work with Amy.", 
-                                            color='black', height=0.06*0.75, pos=(0, 0.2))
+                                            color='black', height=0.06*0.75*1.35, pos=(0, 0.2))
     work_with_partner_text.draw()
     win.flip()
     core.wait(2.0)
@@ -4890,7 +4893,7 @@ def run_experiment():
     if hasattr(blue_square, 'draw'):
         blue_square.draw()
     else:
-        blue_square = visual.Rect(win, width=0.3, height=0.3, fillColor='blue', lineColor='black', pos=(0, 0))
+        blue_square = visual.Rect(win, width=0.3, height=0.3*1.35, fillColor='blue', lineColor='black', pos=(0, 0))
         blue_square.draw()
     win.flip()
     core.wait(1.0)
@@ -4947,7 +4950,7 @@ def run_experiment():
         outcome_text_t3 = f"Incorrect! Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
     color_t3 = 'green' if participant_accuracy_t3 else 'red'
     outcome_stim_t3 = visual.TextStim(win, text=outcome_text_t3, 
-                                      color=color_t3, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
+                                      color=color_t3, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t3.draw()
     win.flip()
     core.wait(2.0)  # Show for 2.0 seconds (same as regular trials)
@@ -5071,7 +5074,7 @@ def run_experiment():
              "She'll provide her judgments as you work through each collection, but is distracted with other tasks.\n\n"
              "Sometimes she will go first, other times you will go first.",
         color='black',
-        height=0.04*0.75,
+        height=0.04*0.75*1.35,
         pos=(0, 0.2),  # Move text up
         wrapWidth=1.2
     )
@@ -5093,7 +5096,7 @@ def run_experiment():
         win,
         text="Amy",
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(0, -0.25)  # Below the image
     )
     
@@ -5101,7 +5104,7 @@ def run_experiment():
     continue_button_amy_intro = visual.Rect(
         win,
         width=0.3*0.75,
-        height=0.1*0.75,
+        height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
         pos=(0.4, -0.3)  # Bottom right, moved up slightly
@@ -5110,7 +5113,7 @@ def run_experiment():
         win,
         text="CONTINUE",
         color='black',
-        height=0.05*0.75,
+        height=0.05*0.75*1.35,
         pos=(0.4, -0.3)  # Bottom right, moved up slightly
     )
     
@@ -5286,7 +5289,7 @@ def run_experiment():
                                  "Ben is helping sort the same set of images, but he has trained differently than you.\n\n"
                                  "As always, focus on making the best judgment you can. Click to start sorting!",
                             color='black',
-                            height=0.04*0.75,
+                            height=0.04*0.75*1.35,
                             pos=(0, 0.2),  # Move text up
                             wrapWidth=1.2
                         )
@@ -5308,7 +5311,7 @@ def run_experiment():
                             win,
                             text="Ben",
                             color='lightgray',  # White for visibility on brown icon background
-                            height=0.05*0.75,
+                            height=0.05*0.75*1.35,
                             pos=(0, -0.15),  # Same y-position as icon center to overlay
                             bold=True  # Make it bold for better visibility
                         )
@@ -5317,7 +5320,7 @@ def run_experiment():
                         continue_button_ben = visual.Rect(
                             win,
                             width=0.3*0.75,
-                            height=0.1*0.75,
+                            height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
                             pos=(0.4, -0.3)  # Bottom right, moved up slightly
@@ -5326,7 +5329,7 @@ def run_experiment():
                             win,
                             text="CONTINUE",
                             color='black',
-                            height=0.05*0.75,
+                            height=0.05*0.75*1.35,
                             pos=(0.4, -0.3)  # Bottom right, moved up slightly
                         )
                         
@@ -5347,7 +5350,7 @@ def run_experiment():
                             win,
                             text="Amy has to step away again! You will work with Ben again for the last collections.",
                             color='black',
-                            height=0.04*0.75,
+                            height=0.04*0.75*1.35,
                             pos=(0, 0.2),  # Move text up
                             wrapWidth=1.2
                         )
@@ -5371,7 +5374,7 @@ def run_experiment():
                         continue_button_ben_continue = visual.Rect(
                             win,
                             width=0.3*0.75,
-                            height=0.1*0.75,
+                            height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
                             pos=(0.4, -0.4)  # Bottom right
@@ -5380,7 +5383,7 @@ def run_experiment():
                             win,
                             text="CONTINUE",
                             color='black',
-                            height=0.05*0.75,
+                            height=0.05*0.75*1.35,
                             pos=(0.4, -0.4)  # Bottom right
                         )
                         
@@ -5545,7 +5548,7 @@ def run_experiment():
                                  "She's returning to help with exhibition preparation.\n\n"
                                  "You'll once again see her judgments as you work through these collections.",
                             color='black',
-                            height=0.04*0.75,
+                            height=0.04*0.75*1.35,
                             pos=(0, 0.2),  # Move text up
                             wrapWidth=1.2
                         )
@@ -5566,7 +5569,7 @@ def run_experiment():
                         continue_button_amy_return = visual.Rect(
                             win,
                             width=0.3*0.75,
-                            height=0.1*0.75,
+                            height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
                             pos=(0.4, -0.3)  # Bottom right, moved up slightly
@@ -5575,7 +5578,7 @@ def run_experiment():
                             win,
                             text="CONTINUE",
                             color='black',
-                            height=0.05*0.75,
+                            height=0.05*0.75*1.35,
                             pos=(0.4, -0.3)  # Bottom right, moved up slightly
                         )
                         
@@ -5762,7 +5765,7 @@ def run_experiment():
         win,
         text=f"The in-house curator scored all your collections {total_experiment_points_rounded:.1f} points out of a total of {int(max_possible_total)} points!",
         color='black',
-        height=0.05,
+        height=0.05*1.35,
         pos=(0, 0),
         wrapWidth=1.2
     )
