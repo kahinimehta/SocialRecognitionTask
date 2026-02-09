@@ -1,6 +1,7 @@
-﻿Image/Lure Number,Difficulty,,High=Very similar
-1,High,,Low=Not similar
-2,Low,,Medium=Somewhat similar
+﻿Image/Lure Number,Difficulty,,
+High=Very similar; Low=Not similar
+1,High,,
+2,Low,,
 3,Low,,
 4,Medium,,
 5,Medium,,
@@ -98,4 +99,5 @@
 97,High,,
 98,High,,
 99,Low,,
+
 100,High,,
