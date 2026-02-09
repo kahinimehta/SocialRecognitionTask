@@ -1830,6 +1830,14 @@ try:
     # Randomize order
     random.shuffle(all_stimuli)
 
+    # Pre-generate randomized sequence for question categories (exactly 50% correct, 50% random)
+    # There are 20 questions total (every 10th trial out of 200 trials)
+    num_questions = 20
+    num_correct_questions = num_questions // 2  # Exactly 10 correct, 10 random
+    question_sequence = [True] * num_correct_questions + [False] * (num_questions - num_correct_questions)
+    random.shuffle(question_sequence)  # Randomize the order
+    question_index = 0  # Track which question we're on
+
     # Show instructions
     instructions = visual.TextStim(
         win,
@@ -1926,8 +1934,14 @@ try:
                 current_stimulus = stimulus
                 correct_category = current_stimulus['category']
                 
-                # 50% chance to ask about correct category, 50% chance to ask about random category
-                ask_about_correct = random.choice([True, False])
+                # Use pre-generated randomized sequence to ensure exactly 50% correct, 50% random
+                # (but in randomized order)
+                if question_index < len(question_sequence):
+                    ask_about_correct = question_sequence[question_index]
+                    question_index += 1
+                else:
+                    # Fallback if we exceed sequence (shouldn't happen, but safety check)
+                    ask_about_correct = random.choice([True, False])
                 
                 if ask_about_correct:
                     # Ask about the actual category of the last object

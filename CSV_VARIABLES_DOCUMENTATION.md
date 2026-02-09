@@ -554,7 +554,7 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 ### `question_category`
 - **Type**: String
 - **Description**: The category that was asked about in the question
-- **Question design**: 50% of questions ask about the correct category (matches `category` field), 50% ask about a random incorrect category (different from `category` field)
+- **Question design**: Exactly 50% of questions ask about the correct category (matches `category` field), exactly 50% ask about a random incorrect category (different from `category` field). Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions in randomized order.
 - **Possible values**: Same as `category` (all 10 category names)
 - **Example**: `"FRUIT"`, `"BIG_ANIMAL"`, `"BIRD"` (may or may not match the actual `category` of the image)
 
@@ -641,9 +641,9 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
   - **Timeout**: 10.0 seconds - if participant doesn't respond within 10 seconds, the question times out and the task continues to the next image
   - Question appears immediately after the image is shown
 - **Question design**:
-  - **50% correct questions**: Ask about the actual category of the last object shown (correct answer = True)
-  - **50% incorrect questions**: Ask about a random category different from the last object's category (correct answer = False)
-  - Randomization ensures approximately equal distribution across all question trials
+  - **Exactly 50% correct questions**: Ask about the actual category of the last object shown (correct answer = True)
+  - **Exactly 50% incorrect questions**: Ask about a random category different from the last object's category (correct answer = False)
+  - Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions (out of 20 total) in randomized order
 - **Category conversion**: Category names are converted from folder format to natural language for questions:
   - Folder names with underscores: `BIG_ANIMAL` → "big animal"
   - Folder names without underscores: `smallobject` → "small object" (automatically splits camelCase-like names)
