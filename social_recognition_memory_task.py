@@ -3919,14 +3919,13 @@ def run_block(block_num, studied_images, block_start_participant_first, ai_colla
     total_points = 0.0  # Track total points (correctness only)
     max_possible_points = float(num_trials)  # Max points from correctness only (1.0 per trial)
     
-    # Alternate turn order within block: start with block_start_participant_first, then alternate
+    # Randomly select 5 trials where AI goes first (out of 10 trials per block)
+    # This ensures AI goes first on exactly 5 random trials in each block
+    ai_first_trials = set(random.sample(range(num_trials), num_trials // 2))
+    
     for trial_idx, (trial_num, img_path, is_studied) in enumerate(trial_sequence):
-        # Determine turn order for this trial: alternate starting from block_start_participant_first
-        # Trial 0: block_start_participant_first
-        # Trial 1: not block_start_participant_first
-        # Trial 2: block_start_participant_first
-        # etc.
-        participant_first = (trial_idx % 2 == 0) == block_start_participant_first
+        # Determine turn order: AI goes first on randomly selected trials, participant goes first on others
+        participant_first = trial_idx not in ai_first_trials
         
         trial_data, points_earned = run_recognition_trial(
             trial_num, block_num, img_path, is_studied,
@@ -5032,7 +5031,8 @@ def run_experiment():
     amy_intro_text = visual.TextStim(
         win,
         text="Remember: you'll be working with Amy to sort through this collection.\n\n"
-             "She'll provide her judgments as you work through each collection, but is distracted with other tasks.",
+             "She'll provide her judgments as you work through each collection, but is distracted with other tasks.\n\n",
+             "Sometimes she will go first, other times you will go first.",
         color='black',
         height=0.04*0.75,
         pos=(0, 0.2),  # Move text up
@@ -5203,20 +5203,19 @@ def run_experiment():
         # Blocks 4-5: Ben (Unreliable 0.25)
         # Blocks 6-7: Amy (Reliable 0.75)
         # Blocks 8-10: Ben (Unreliable 0.25)
-        # Turn order: AI goes first on blocks 2, 4, 6, 8, 10 (even-numbered blocks)
-        # Turn order alternates within each block starting from the block's initial turn order
-        
+        # Turn order is randomized within each block: AI goes first on a random 5 out of 10 trials
+        # The 5 trials where AI goes first are randomly selected for each block
         block_conditions = [
-            (True, 0.75),   # Block 1: Participant first in first trial, Reliable (Amy)
-            (False, 0.75),  # Block 2: AI first in first trial, Reliable (Amy)
-            (True, 0.75),   # Block 3: Participant first in first trial, Reliable (Amy)
-            (False, 0.25),  # Block 4: AI first in first trial, Unreliable (Ben)
-            (True, 0.25),   # Block 5: Participant first in first trial, Unreliable (Ben)
-            (False, 0.75),  # Block 6: AI first in first trial, Reliable (Amy)
-            (True, 0.75),   # Block 7: Participant first in first trial, Reliable (Amy)
-            (False, 0.25),  # Block 8: AI first in first trial, Unreliable (Ben)
-            (True, 0.25),   # Block 9: Participant first in first trial, Unreliable (Ben)
-            (False, 0.25),  # Block 10: AI first in first trial, Unreliable (Ben)
+            (True, 0.75),   # Block 1: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.75),   # Block 2: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.75),   # Block 3: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.25),   # Block 4: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.25),   # Block 5: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.75),   # Block 6: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.75),   # Block 7: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.25),   # Block 8: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.25),   # Block 9: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.25),   # Block 10: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
         ]
         
         # Assign stimuli to blocks: each block has 1 item from each category (10 stimuli), no repeats

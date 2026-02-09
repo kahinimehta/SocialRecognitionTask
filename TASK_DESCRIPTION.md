@@ -130,10 +130,9 @@ Each of the 10 trials follows this structure:
 
 ### Turn-Taking Manipulation
 
-- **Turn order alternates within each block**: Starting turn order varies by block
-- **AI goes first** on blocks 2, 4, 6, 8, 10 (even-numbered blocks)
-- **Participant goes first** on blocks 1, 3, 5, 7, 9 (odd-numbered blocks)
-- Within each block, turn order alternates starting from the block's initial turn order
+- **Turn order is randomized within each block**: AI goes first on a **random 5 out of 10 trials** in each block
+- The 5 trials where AI goes first are randomly selected for each block (different randomization per block)
+- Participant goes first on the remaining 5 trials in each block
 - The `participant_first` field in the CSV logs who goes first for each trial (True = participant first, False = AI first)
 
 ### AI Accuracy Manipulation

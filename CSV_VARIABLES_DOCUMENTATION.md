@@ -411,9 +411,9 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
   - **25% accuracy (Unreliable blocks)**: Exactly 1 out of every 4 trials is correct (position 1 in each group of 4)
   - In a 10-trial block, reliable blocks will have approximately 7-8 correct trials, unreliable blocks will have approximately 2-3 correct trials
 - **Turn-taking**: 
-  - **AI goes first** on blocks 2, 4, 6, 8, 10 (even-numbered blocks)
-  - **Participant goes first** on blocks 1, 3, 5, 7, 9 (odd-numbered blocks)
-  - Within each block, turn order alternates starting from the block's initial turn order
+  - Turn order is randomized within each block: AI goes first on a **random 5 out of 10 trials** in each block
+  - The 5 trials where AI goes first are randomly selected for each block (different randomization per block)
+  - Participant goes first on the remaining 5 trials in each block
   - The `participant_first` field logs who goes first for each trial (True = participant first, False = AI first)
 - **Study phase timing**:
   - Images are shown for **1.0 second each** (fixed duration, no jitter)
