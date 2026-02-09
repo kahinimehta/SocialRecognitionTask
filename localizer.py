@@ -1841,9 +1841,10 @@ try:
         # Define fieldnames for all images (will include question fields for every 10th)
         fieldnames = [
             'participant_id', 'trial', 'stimulus_number', 'object_name', 'category',
-            'stimulus_type', 'is_lure', 'presentation_time', 'is_question_trial', 
-            'question_category', 'question_text', 'answer', 'correct_answer', 
-            'correct', 'timed_out', 'response_time'
+            'stimulus_type', 'is_lure', 'image_path', 'presentation_time', 
+            'image_onset_time', 'image_offset_time', 'is_question_trial', 
+            'question_category', 'question_text', 'question_onset_time', 
+            'answer', 'correct_answer', 'correct', 'timed_out', 'response_time'
         ]
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
@@ -1863,11 +1864,19 @@ try:
             img.draw()
             win.flip()
             
+            # Record image onset time
+            image_onset_time = time.time()
+            
             # Show image for exactly 1 second
             core.wait(1.0)
             
+            # Record image offset time
+            image_offset_time = time.time()
+            
             # Check if this is the 10th image (or every 10th after the first)
             is_question_trial = (idx % 10 == 0)
+            
+            question_onset_time = None
             
             if is_question_trial:
                 # Ask category question about the image we just showed (the 10th, 20th, 30th, etc.)
@@ -1889,6 +1898,9 @@ try:
                     question_category = random.choice(wrong_categories)
                     correct_answer = False
                 
+                # Record question onset time
+                question_onset_time = time.time()
+                
                 # Ask the question
                 answer, timed_out, response_time = ask_category_question(question_category, current_stimulus['object_name'])
                 
@@ -1904,10 +1916,14 @@ try:
                     'category': current_stimulus['category'],
                     'stimulus_type': current_stimulus['stimulus_type'],
                     'is_lure': current_stimulus['is_lure'],
+                    'image_path': current_stimulus['path'],
                     'presentation_time': presentation_timestamp,
+                    'image_onset_time': image_onset_time,
+                    'image_offset_time': image_offset_time,
                     'is_question_trial': True,
                     'question_category': question_category,
                     'question_text': category_to_question(question_category),
+                    'question_onset_time': question_onset_time,
                     'answer': answer if not timed_out else 'TIMEOUT',
                     'correct_answer': correct_answer,
                     'correct': is_correct,
@@ -1924,10 +1940,14 @@ try:
                     'category': stimulus['category'],
                     'stimulus_type': stimulus['stimulus_type'],
                     'is_lure': stimulus['is_lure'],
+                    'image_path': stimulus['path'],
                     'presentation_time': presentation_timestamp,
+                    'image_onset_time': image_onset_time,
+                    'image_offset_time': image_offset_time,
                     'is_question_trial': False,
                     'question_category': None,
                     'question_text': None,
+                    'question_onset_time': None,
                     'answer': None,
                     'correct_answer': None,
                     'correct': None,
@@ -1942,8 +1962,9 @@ try:
                 csv_writer.writerow(trial_data)
                 csv_file.flush()  # Ensure data is written immediately
             
-            # Brief pause before next image
-            core.wait(0.5)
+            # Jittered pause before next image (0.25-0.75 seconds, uniform random distribution)
+            inter_image_jitter = random.uniform(0.25, 0.75)
+            core.wait(inter_image_jitter)
                 
         except Exception as e:
             print(f"Error loading image {stimulus['path']}: {e}")

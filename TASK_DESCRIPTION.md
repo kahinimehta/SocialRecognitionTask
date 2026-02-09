@@ -401,6 +401,19 @@ All scoring is framed as "in-house curator" evaluations:
   - Decision screen remains visible until timeout or button click
   - Random decision (STAY or SWITCH) selected if timeout
 
+#### Localizer Task Timing
+- **Image duration**: 1.0 second per image (fixed, no jitter)
+- **Inter-image jitter**: 
+  - Duration: 0.25-0.75 seconds (uniform random distribution)
+  - Distribution: `random.uniform(0.25, 0.75)` - each interval independently drawn
+  - Prevents predictable timing patterns and reduces anticipatory responses
+  - Total images: 200 (100 Image + 100 Lure versions)
+  - Total inter-image jitter time: ~50-150 seconds (varies due to randomization)
+- **Question timing**: 10.0 second timeout (fixed)
+  - **Note**: This differs from the main task, which uses 7.0 second timeouts
+  - Questions asked at trials 10, 20, 30, ..., 200 (every 10th trial)
+- **Total task duration**: Approximately 4-6 minutes (varies due to jitter and question response times)
+
 #### AI Response Timing
 - **AI RT distribution**: Log-normal
   - Underlying normal: mu = 0.5, sigma = 0.3

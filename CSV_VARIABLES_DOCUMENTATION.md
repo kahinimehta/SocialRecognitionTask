@@ -439,9 +439,24 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 
 The **localizer_[participant_id]_[timestamp].csv** file contains data from the localizer task, where participants view 200 images (100 Image + 100 Lure versions) in random order and answer category questions at every 10th image.
 
+**File structure**: Each row represents one image presentation, logged in presentation order (trial 1 = first image shown, trial 2 = second image shown, etc.). All 200 images are logged sequentially, with question response data included for question trials (every 10th trial).
+
+**What is recorded**:
+- Image file path (`image_path`)
+- Presentation order (`trial`, 1-200)
+- Image onset time (`image_onset_time`, Unix timestamp)
+- Image offset time (`image_offset_time`, Unix timestamp)
+- Question onset time (`question_onset_time`, Unix timestamp, for question trials only)
+- Whether question was correct (`correct`, True/False/None)
+
 **Important**: The localizer task has different timeout settings than the main task:
 - **Localizer question timeout**: 10.0 seconds (fixed)
 - **Main task timeouts**: 7.0 seconds for slider and switch/stay decisions
+
+**Stimulus presentation jittering**:
+- Inter-image intervals are jittered: **0.25-0.75 seconds** (uniform random distribution)
+- Each interval is independently drawn from `random.uniform(0.25, 0.75)`
+- This prevents predictable timing patterns and helps reduce anticipatory responses
 
 ### `participant_id`
 - **Type**: String
@@ -450,85 +465,14 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 
 ### `trial`
 - **Type**: Integer
-- **Description**: Trial number when the question was asked (always a multiple of 10: 10, 20, 30, ..., 100)
-- **Example**: `10`, `20`, `30`, `100`
+- **Description**: Trial number representing the presentation order (1-indexed, 1-200)
+- **Presentation order**: Each image is logged in the order it appears (trial 1 = first image shown, trial 2 = second image shown, etc.)
+- **Question trials**: Questions are asked at trials 10, 20, 30, ..., 200 (every 10th trial)
+- **Example**: `1`, `10`, `20`, `50`, `200`
 
 ### `stimulus_number`
 - **Type**: Integer (1-100)
 - **Description**: The stimulus number of the image that was shown (from Image_001.jpg to Image_100.jpg)
-- **Example**: `1`, `42`, `100`
-
-### `object_name`
-- **Type**: String
-- **Description**: Name of the object folder containing the image (e.g., "Apple", "Car", "Elephant")
-- **Example**: `"Apple"`, `"Car"`, `"Elephant"`
-
-### `category`
-- **Type**: String
-- **Description**: Category folder name that the image belongs to
-- **Possible values**: `"BIG_ANIMAL"`, `"BIG_OBJECT"`, `"BIRD"`, `"FOOD"`, `"FRUIT"`, `"INSECT"`, `"SMALL_ANIMAL"`, `"SMALL_OBJECT"`, `"VEGETABLE"`, `"VEHICLE"`
-- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`
-
-### `question_category`
-- **Type**: String
-- **Description**: The category that was asked about in the question
-- **Question design**: 50% of questions ask about the correct category (matches `category` field), 50% ask about a random incorrect category (different from `category` field)
-- **Possible values**: Same as `category` (all 10 category names)
-- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`, `"BIRD"` (may or may not match the actual `category` of the image)
-
-### `question_text`
-- **Type**: String
-- **Description**: Full text of the question asked to the participant
-- **Format**: "Was the last object a [category]?" or "Was the last object an [category]?" where category is converted from folder name to natural language
-- **Category conversion**: Handles multiple folder name formats:
-  - `BIG_ANIMAL` → "big animal"
-  - `smallobject` → "small object" (splits camelCase-like names)
-  - `BIRD` → "bird"
-- **Article selection**: Uses "a" or "an" based on whether the category starts with a vowel sound
-- **Example**: `"Was the last object a big animal?"`, `"Was the last object a small object?"`, `"Was the last object an insect?"`
-
-### `answer`
-- **Type**: Boolean
-- **Description**: Participant's response to the question (True = YES, False = NO)
-- **Example**: `True`, `False`
-
-### `correct_answer`
-- **Type**: Boolean or None
-- **Description**: The correct answer to the question
-- **Question design**: 
-  - `True` if the question asks about the correct category (matches the actual `category` of the image)
-  - `False` if the question asks about an incorrect category (does not match the actual `category` of the image)
-  - `None` for non-question trials
-- **Example**: `True`, `False`, `None`
-
-### `correct`
-- **Type**: Boolean
-- **Description**: Whether the participant's answer matches the correct answer (True if correct, False if incorrect)
-- **Example**: `True`, `False`
-
----
-
-## Localizer Task CSV Variables
-
-The localizer task generates one CSV file:
-- **localizer_[participant_id]_[timestamp].csv** - Localizer task data
-
-**File Format**: Each row represents one image presentation. Question trials (every 10th image) include question response data.
-
-### `participant_id`
-- **Type**: String
-- **Description**: Participant identifier
-- **Example**: `"kini"`, `"P001"`
-
-### `trial`
-- **Type**: Integer
-- **Description**: Trial number (1-indexed, 1-200)
-- **Note**: Questions are asked at trials 10, 20, 30, ..., 200 (every 10th trial)
-- **Example**: `1`, `10`, `50`, `200`
-
-### `stimulus_number`
-- **Type**: Integer (1-100)
-- **Description**: The stimulus number of the image (from Image_001.jpg to Image_100.jpg, or corresponding Lure)
 - **Example**: `1`, `42`, `100`
 
 ### `object_name`
@@ -553,11 +497,27 @@ The localizer task generates one CSV file:
 - **Description**: True if this is a lure stimulus, False if it's an original Image
 - **Example**: `True`, `False`
 
+### `image_path`
+- **Type**: String
+- **Description**: Full path to the image file that was displayed
+- **Example**: `"STIMULI/biganimal/Elephant/Image_042.jpg"`, `"STIMULI/smallobject/Key/Lure_042.jpg"`
+
 ### `presentation_time`
 - **Type**: String (datetime format)
-- **Description**: Timestamp when the image was displayed
+- **Description**: Timestamp when the image was displayed (human-readable format)
 - **Format**: `"YYYY-MM-DD HH:MM:SS.ffffff"`
 - **Example**: `"2026-01-30 23:21:31.123456"`
+
+### `image_onset_time`
+- **Type**: Float (Unix timestamp)
+- **Description**: Time when the image was displayed (in seconds since epoch, high precision)
+- **Example**: `1764818171.2572181`
+
+### `image_offset_time`
+- **Type**: Float (Unix timestamp)
+- **Description**: Time when the image was removed from display (in seconds since epoch, high precision)
+- **Note**: Images are displayed for exactly 1.0 second, so `image_offset_time - image_onset_time = 1.0`
+- **Example**: `1764818172.2572181`
 
 ### `is_question_trial`
 - **Type**: Boolean
@@ -565,11 +525,11 @@ The localizer task generates one CSV file:
 - **Example**: `True`, `False`
 
 ### `question_category`
-- **Type**: String or None
-- **Description**: The category that was asked about in the question (only populated for question trials)
+- **Type**: String
+- **Description**: The category that was asked about in the question
 - **Question design**: 50% of questions ask about the correct category (matches `category` field), 50% ask about a random incorrect category (different from `category` field)
-- **Possible values**: Same as `category` (all 10 category names), or `None` for non-question trials
-- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`, `"BIRD"` (may or may not match the actual `category` of the image), `None`
+- **Possible values**: Same as `category` (all 10 category names)
+- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`, `"BIRD"` (may or may not match the actual `category` of the image)
 
 ### `question_text`
 - **Type**: String or None
@@ -581,6 +541,12 @@ The localizer task generates one CSV file:
   - `BIRD` → "bird"
 - **Article selection**: Uses "a" or "an" based on whether the category starts with a vowel sound
 - **Example**: `"Was the last object a big animal?"`, `"Was the last object a small object?"`, `"Was the last object an insect?"`, `None`
+
+### `question_onset_time`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when the question was displayed (in seconds since epoch, high precision)
+- **Note**: Only populated for question trials (every 10th trial). `None` for non-question trials.
+- **Example**: `1764818180.1234567`, `None`
 
 ### `answer`
 - **Type**: Boolean, String, or None
@@ -627,9 +593,12 @@ The localizer task generates one CSV file:
 
 - **Image presentation timing**:
   - Each image is displayed for **1.0 second** (fixed duration, no jitter)
-  - **0.5 second pause** between images (fixed, no jitter)
+  - **Jittered inter-image interval**: **0.25-0.75 seconds** (uniform random distribution) between images
+  - Inter-image jitter: `random.uniform(0.25, 0.75)` - each interval independently drawn
   - Total images: 200 (100 Image + 100 Lure versions)
   - Total image presentation time: 200 images × 1.0 second = 200 seconds (~3.3 minutes)
+  - Total inter-image jitter time: ~50-150 seconds (varies due to randomization)
+  - **Total task duration**: Approximately 4-6 minutes (varies due to jitter and question response times)
   - Total inter-image pause time: 199 pauses × 0.5 seconds = 99.5 seconds
   - Total task duration: ~300 seconds (~5 minutes) plus question response times
 - **Question timing**:
