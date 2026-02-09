@@ -1566,11 +1566,25 @@ try:
     import time
     # Window creation happens exactly 0.4 seconds after continue was clicked
     # (delay already handled in get_input_method function)
-    # Add delay to ensure temp window is fully closed
+    # Ensure temp window is fully closed before creating main window
     print("Waiting before creating main window...")
     sys.stdout.flush()
     sys.stderr.flush()
-    time.sleep(0.2)  # Longer delay to ensure temp window is fully closed
+    
+    # Close temp window if it still exists
+    if temp_win is not None:
+        try:
+            print("Closing temp window...", file=sys.stderr)
+            sys.stderr.flush()
+            temp_win.close()
+            temp_win = None
+            time.sleep(0.3)  # Give time for window to fully close
+        except Exception as e:
+            print(f"Warning: Error closing temp window: {e}", file=sys.stderr)
+            sys.stderr.flush()
+    
+    # Additional delay to ensure temp window is fully closed
+    time.sleep(0.2)
     
     print("Creating main window (1400x900)...")
     sys.stdout.flush()
@@ -1583,18 +1597,40 @@ try:
         # Ensure events are cleared before window creation
         event.clearEvents()
         
+        # Force garbage collection to clean up any lingering window references
+        import gc
+        gc.collect()
+        
         print("DEBUG: Calling visual.Window(size=(1400, 900), fullscr=False)...", file=sys.stderr)
         sys.stderr.flush()
         
-        win = visual.Window(
-            size=(1400, 900), 
-            color='white', 
-            units='height',
-            fullscr=False,
-            waitBlanking=False,  # Prevent blocking on display sync
-            allowGUI=True,  # Ensure GUI is available
-            useFBO=False  # Disable framebuffer objects to prevent hangs
-        )
+        # Try to create window with macOS-specific workarounds
+        try:
+            win = visual.Window(
+                size=(1400, 900), 
+                color='white', 
+                units='height',
+                fullscr=False,
+                waitBlanking=False,  # Prevent blocking on display sync
+                allowGUI=True,  # Ensure GUI is available
+                useFBO=False,  # Disable framebuffer objects to prevent hangs
+                screen=0,  # Explicitly specify screen
+                useRetina=False  # Disable Retina to avoid compatibility issues
+            )
+        except Exception as e1:
+            # If that fails, try without useRetina parameter (might not be available in all versions)
+            print(f"First window creation attempt failed: {e1}, trying alternative...", file=sys.stderr)
+            sys.stderr.flush()
+            win = visual.Window(
+                size=(1400, 900), 
+                color='white', 
+                units='height',
+                fullscr=False,
+                waitBlanking=False,
+                allowGUI=True,
+                useFBO=False,
+                screen=0
+            )
         
         print("DEBUG: visual.Window() call completed successfully", file=sys.stderr)
         sys.stderr.flush()
@@ -1749,13 +1785,20 @@ try:
     print("="*60)
     sys.stdout.flush()
     
-    # Don't close temp window - keep it open to prevent PsychoPy from auto-quitting
-    # Closing it causes PsychoPy to detect all windows are closed and quit
-    # We'll just leave it open (it's behind the main window anyway)
+    # Close temp window now that main window is created
+    # The main window will prevent PsychoPy from auto-quitting
     if temp_win is not None:
-        print("DEBUG: Keeping temp window open to prevent PsychoPy auto-quit", file=sys.stderr)
-        sys.stderr.flush()
-        # Don't close temp_win - leave it open
+        try:
+            print("DEBUG: Closing temp window now that main window is created", file=sys.stderr)
+            sys.stderr.flush()
+            temp_win.close()
+            temp_win = None
+            # Small delay to ensure window is fully closed
+            import time
+            time.sleep(0.1)
+        except Exception as e:
+            print(f"Warning: Error closing temp window: {e}", file=sys.stderr)
+            sys.stderr.flush()
     
     # =========================
     #  MAIN EXPERIMENT
