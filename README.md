@@ -28,9 +28,11 @@ Localizer task script for category verification.
 
 - Shows all 200 images from the STIMULI folder (100 Image + 100 Lure versions) in random order
 - **Image presentation timing**:
-  - Each image displayed for **1.0 second** (fixed duration)
-  - **Jittered inter-image interval**: **0.25-0.75 seconds** (uniform random distribution) between images
-  - Inter-image jitter: `random.uniform(0.25, 0.75)` - each interval independently drawn
+  - Starts with a **fixation cross** (jittered 0.25-0.75 seconds)
+  - Each image displayed for **0.5 seconds** (fixed duration, no jitter)
+  - **Jittered fixation cross** appears between images: **0.25-0.75 seconds** (uniform random distribution)
+  - Fixation jitter: `random.uniform(0.25, 0.75)` - each fixation independently drawn
+  - Fixation appears before EVERY image, including the first image
   - Questions asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (every 10th trial)
 - At every 10th trial, asks a category question: "Was the last object a [category]?"
 - **Question design**: 50% of questions ask about the correct category (the category of the last object shown), 50% ask about a random incorrect category

@@ -508,6 +508,23 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 - **Format**: `"YYYY-MM-DD HH:MM:SS.ffffff"`
 - **Example**: `"2026-01-30 23:21:31.123456"`
 
+### `fixation_onset_time`
+- **Type**: Float (Unix timestamp)
+- **Description**: Time when the fixation cross appeared before this image (in seconds since epoch, high precision)
+- **Note**: Fixation appears before EVERY image, including the first image
+- **Example**: `1764818170.5`
+
+### `fixation_offset_time`
+- **Type**: Float (Unix timestamp)
+- **Description**: Time when the fixation cross was removed (in seconds since epoch, high precision)
+- **Example**: `1764818170.75`
+
+### `fixation_duration`
+- **Type**: Float (seconds)
+- **Description**: Duration the fixation cross was displayed (jittered 0.25-0.75 seconds)
+- **Distribution**: `random.uniform(0.25, 0.75)` - each fixation independently drawn
+- **Example**: `0.42`, `0.68`, `0.31`
+
 ### `image_onset_time`
 - **Type**: Float (Unix timestamp)
 - **Description**: Time when the image was displayed (in seconds since epoch, high precision)
@@ -516,8 +533,8 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 ### `image_offset_time`
 - **Type**: Float (Unix timestamp)
 - **Description**: Time when the image was removed from display (in seconds since epoch, high precision)
-- **Note**: Images are displayed for exactly 1.0 second, so `image_offset_time - image_onset_time = 1.0`
-- **Example**: `1764818172.2572181`
+- **Note**: Images are displayed for exactly 0.5 seconds, so `image_offset_time - image_onset_time = 0.5`
+- **Example**: `1764818171.7572181`
 
 ### `is_question_trial`
 - **Type**: Boolean
@@ -591,16 +608,18 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 
 ## Notes on Localizer Task
 
+- **Fixation cross timing**:
+  - Starts with a fixation cross before the first image (jittered 0.25-0.75 seconds)
+  - Jittered fixation appears between images: 0.25-0.75 seconds (uniform random distribution)
+  - Fixation jitter: `random.uniform(0.25, 0.75)` - each fixation independently drawn
+  - Fixation appears before EVERY image, including the first image
+  - 200 fixations total (before each of the 200 images)
 - **Image presentation timing**:
-  - Each image is displayed for **1.0 second** (fixed duration, no jitter)
-  - **Jittered inter-image interval**: **0.25-0.75 seconds** (uniform random distribution) between images
-  - Inter-image jitter: `random.uniform(0.25, 0.75)` - each interval independently drawn
+  - Each image is displayed for **0.5 seconds** (fixed duration, no jitter)
   - Total images: 200 (100 Image + 100 Lure versions)
-  - Total image presentation time: 200 images × 1.0 second = 200 seconds (~3.3 minutes)
-  - Total inter-image jitter time: ~50-150 seconds (varies due to randomization)
-  - **Total task duration**: Approximately 4-6 minutes (varies due to jitter and question response times)
-  - Total inter-image pause time: 199 pauses × 0.5 seconds = 99.5 seconds
-  - Total task duration: ~300 seconds (~5 minutes) plus question response times
+  - Total image presentation time: 200 images × 0.5 seconds = 100 seconds (~1.7 minutes)
+  - Total fixation time: ~50-150 seconds (varies due to randomization)
+  - **Total task duration**: Approximately 3-5 minutes (varies due to fixation jitter and question response times)
 - **Question timing**:
   - Questions are asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (20 questions total)
   - **Timeout**: 10.0 seconds - if participant doesn't respond within 10 seconds, the question times out and the task continues to the next image

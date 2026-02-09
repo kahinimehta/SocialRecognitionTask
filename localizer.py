@@ -1761,6 +1761,15 @@ try:
     #  MAIN EXPERIMENT
     # =========================
 
+    # Create fixation cross
+    fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75, pos=(0, 0))
+    
+    def show_fixation(duration=1.0):
+        """Display fixation cross for specified duration"""
+        fixation.draw()
+        win.flip()
+        core.wait(duration)
+
     # Get participant ID
     print("About to call get_participant_id()...")
     print(f"USE_TOUCH_SCREEN = {USE_TOUCH_SCREEN}")
@@ -1842,6 +1851,7 @@ try:
         fieldnames = [
             'participant_id', 'trial', 'stimulus_number', 'object_name', 'category',
             'stimulus_type', 'is_lure', 'image_path', 'presentation_time', 
+            'fixation_onset_time', 'fixation_offset_time', 'fixation_duration',
             'image_onset_time', 'image_offset_time', 'is_question_trial', 
             'question_category', 'question_text', 'question_onset_time', 
             'answer', 'correct_answer', 'correct', 'timed_out', 'response_time'
@@ -1918,6 +1928,9 @@ try:
                     'is_lure': current_stimulus['is_lure'],
                     'image_path': current_stimulus['path'],
                     'presentation_time': presentation_timestamp,
+                    'fixation_onset_time': fixation_onset,
+                    'fixation_offset_time': fixation_offset,
+                    'fixation_duration': fixation_duration,
                     'image_onset_time': image_onset_time,
                     'image_offset_time': image_offset_time,
                     'is_question_trial': True,
@@ -1961,10 +1974,6 @@ try:
             if csv_writer is not None:
                 csv_writer.writerow(trial_data)
                 csv_file.flush()  # Ensure data is written immediately
-            
-            # Jittered pause before next image (0.25-0.75 seconds, uniform random distribution)
-            inter_image_jitter = random.uniform(0.25, 0.75)
-            core.wait(inter_image_jitter)
                 
         except Exception as e:
             print(f"Error loading image {stimulus['path']}: {e}")
