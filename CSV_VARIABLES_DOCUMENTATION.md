@@ -12,14 +12,19 @@ The experiment generates three CSV files:
 The localizer task generates one CSV file:
 4. **localizer_[participant_id]_[timestamp].csv** - Localizer task data
 
+**File saving locations**:
+- For touch screen mode: files saved to `../LOG_FILES/` directory
+- For click/mouse mode: files saved to the current directory
+- File saving is skipped if "test" (case-insensitive) is in the participant name
+
 ---
 
 ## Study Phase CSV Variables
 
 ### `block`
 - **Type**: Integer
-- **Description**: Block number (0 = practice block, 1-5 = experimental blocks)
-- **Example**: `0`, `1`, `2`
+- **Description**: Block number (0 = practice block, 1-10 = experimental blocks)
+- **Example**: `0`, `1`, `2`, `10`
 
 ### `phase`
 - **Type**: String
@@ -76,8 +81,8 @@ The localizer task generates one CSV file:
 
 ### `block`
 - **Type**: Integer
-- **Description**: Block number (0 = practice block, 1-5 = experimental blocks)
-- **Example**: `0`, `1`, `2`
+- **Description**: Block number (0 = practice block, 1-10 = experimental blocks)
+- **Example**: `0`, `1`, `2`, `10`
 
 ### `trial`
 - **Type**: Integer
@@ -146,8 +151,25 @@ The localizer task generates one CSV file:
 
 ### `participant_slider_stop_time`
 - **Type**: Float (Unix timestamp) or None
-- **Description**: Time when participant clicked on the slider to set their rating. None if they never clicked on the slider.
+- **Description**: Time when participant clicked on the slider to set their rating (final position). None if they never clicked on the slider.
+- **Note**: For touch screens, this may be different from `participant_slider_decision_onset_time` if the participant taps multiple times to adjust their rating.
 - **Example**: `1764818195.5`, `None`
+
+### `participant_slider_decision_onset_time`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when participant first clicked/tapped on the slider bar (decision onset - when they start making their decision). 
+  - **Touch screen version**: First time they tap the slider bar (may be different from `participant_slider_stop_time` if they tap multiple times to adjust)
+  - **Computer/mouse version**: Same as `participant_slider_stop_time` (when they click the slider, decision onset equals the click time)
+- **Example**: `1764818195.2`, `None`
+
+### `participant_slider_click_times`
+- **Type**: String (comma-separated list) or empty string
+- **Description**: List of all times (Unix timestamps) when participant clicked/tapped on the slider bar. 
+  - **Touch screen version**: Records all taps on the slider bar (may be multiple taps as they adjust their rating). The first tap is also recorded in `participant_slider_decision_onset_time`.
+  - **Computer/mouse version**: Records all clicks on the slider bar (typically one click). Decision onset time equals the click time.
+  - Stored as comma-separated string of timestamps for CSV compatibility (e.g., `"1764818195.2,1764818195.5,1764818196.1"`)
+  - Empty list represented as empty string `""` if no clicks occurred
+- **Example**: `"1764818195.2,1764818195.5,1764818196.1"`, `"1764818195.5"`, `""`
 
 ---
 
@@ -198,8 +220,8 @@ The localizer task generates one CSV file:
 ### `ai_reliability`
 - **Type**: Float (0.0 to 1.0)
 - **Description**: AI's accuracy rate/reliability for this trial
-  - `0.75` = Reliable partner (Amy in blocks 1 and 4) - exactly 75% accurate using deterministic threshold
-  - `0.25` = Unreliable partner (Ben in blocks 2, 3, and 5) - exactly 25% accurate using deterministic threshold
+  - `0.75` = Reliable partner (Amy in blocks 1-2 and 7-8) - exactly 75% accurate using deterministic threshold
+  - `0.25` = Unreliable partner (Ben in blocks 3-6 and 9-10) - exactly 25% accurate using deterministic threshold
   - `0.5` = Practice block (50% reliability)
 - **Note**: Accuracy rates are deterministic, not probabilistic. Reliable blocks use a hard threshold ensuring exactly 3 out of every 4 trials are correct. Unreliable blocks ensure exactly 1 out of every 4 trials is correct.
 - **Example**: `0.75`, `0.25`, `0.5`
@@ -321,6 +343,7 @@ The localizer task generates one CSV file:
   - Formula: `1.0 - euclidean_distance(final_answer, ground_truth)`
   - Range: 0.0 to 1.0
   - Based on correctness only (Euclidean distance from correct answer)
+  - **Precision**: Full precision is maintained in logged data (not rounded). Display shown to participants is rounded to 1 decimal place for readability.
 - **Example**: `0.6857638888888889`, `0.0`, `1.0`
 
 ---
@@ -360,12 +383,13 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 
 - All timestamps are in Unix time (seconds since January 1, 1970)
 - All slider values range from 0.0 (OLD/studied) to 1.0 (NEW/lure)
-- Timeout variables are True if the participant didn't respond within the time limit:
-  - Slider and switch/stay decisions: 7 seconds
+- **Timeout settings (Main Task only)**: Timeout variables are True if the participant didn't respond within the time limit:
+  - Slider and switch/stay decisions: **7.0 seconds** (fixed)
+  - **Note**: The localizer task uses a different timeout (10.0 seconds for questions) - see Localizer Task section below
 - The experiment saves data incrementally after each trial, not just at the end
 - Block 0 is the practice block (3 trials), blocks 1-10 are experimental blocks (10 trials each)
 - **Narrative context**: The experiment is framed as a photography studio collaboration where participants work with Amy (reliable partner) or Ben (unreliable partner) to help sort images for an exhibition. Scoring is framed as "in-house curator" evaluations.
-- **Scoring display**: Trial outcomes show "The in-house curator scored this image: X points" instead of "Points earned this trial". Block summaries show "The in-house curator scored this collection X points out of a total of 10 points!" (actual points, not scaled).
+- **Scoring display**: Trial outcomes show "The in-house curator scored this image: X points" instead of "Points earned this trial". Block summaries show "The in-house curator scored this collection X points out of a total of 10 points!" (actual points, not scaled). All point displays (trial, block summary, final score) are rounded to 1 decimal place for readability, but logged data maintains full precision.
 - Points are calculated based on Euclidean distance: `points = 1.0 - distance(final_answer, ground_truth)`
 - **Practice Block (Block 0)**:
   - Contains 3 practice trials with simplified stimuli (colored shapes)
@@ -412,7 +436,11 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 
 ## Localizer Task CSV Variables
 
-The **localizer_[participant_id]_[timestamp].csv** file contains data from the localizer task, where participants view 100 images in random order and answer category questions at every 10th image.
+The **localizer_[participant_id]_[timestamp].csv** file contains data from the localizer task, where participants view 200 images (100 Image + 100 Lure versions) in random order and answer category questions at every 10th image.
+
+**Important**: The localizer task has different timeout settings than the main task:
+- **Localizer question timeout**: 10.0 seconds (fixed)
+- **Main task timeouts**: 7.0 seconds for slider and switch/stay decisions
 
 ### `participant_id`
 - **Type**: String
@@ -543,9 +571,9 @@ The localizer task generates one CSV file:
 - **Possible values**: 
   - `True` (YES) for question trials where participant answered YES
   - `False` (NO) for question trials where participant answered NO
-  - `"TIMEOUT"` if participant timed out (though localizer has no timeout)
+  - `"TIMEOUT"` if participant timed out (10.0 second timeout)
   - `None` for non-question trials
-- **Example**: `True`, `False`, `None`
+- **Example**: `True`, `False`, `"TIMEOUT"`, `None`
 
 ### `correct_answer`
 - **Type**: Boolean or None
@@ -560,8 +588,12 @@ The localizer task generates one CSV file:
 
 ### `timed_out`
 - **Type**: Boolean or None
-- **Description**: Whether the participant timed out on the question (always False for localizer, as there is no timeout)
-- **Example**: `False`, `None`
+- **Description**: Whether the participant timed out on the question
+  - `True` if participant didn't respond within 10.0 seconds
+  - `False` if participant responded before timeout
+  - `None` for non-question trials
+- **Timeout duration**: 10.0 seconds (fixed)
+- **Example**: `True`, `False`, `None`
 
 ### `response_time`
 - **Type**: Float (seconds) or None
@@ -581,14 +613,13 @@ The localizer task generates one CSV file:
   - Total task duration: ~300 seconds (~5 minutes) plus question response times
 - **Question timing**:
   - Questions are asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (20 questions total)
-  - **No timeout** for questions - participant must respond (YES/NO buttons)
+  - **Timeout**: 10.0 seconds - if participant doesn't respond within 10 seconds, the question times out and the task continues to the next image
   - Question appears immediately after the image is shown
 - **Category conversion**: Category names are converted from folder format (e.g., "BIG_ANIMAL") to natural language (e.g., "big animal") for the question
 - **Correct answer**: The correct answer is always True since we ask about the category the image actually belongs to
 - **File saving**: 
   - Skipped if "test" (case-insensitive) is in the participant name
-  - For touch screen mode: files saved to `../LOG_FILES/` directory
-  - For click/mouse mode: files saved to the current directory
+  - All files are saved to `../LOG_FILES/` directory (created automatically if it doesn't exist)
   - File naming format: `localizer_[participant_id]_[timestamp].csv`
   - Example: `localizer_kini_20260130_232131.csv`
 

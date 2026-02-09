@@ -33,7 +33,8 @@ Localizer task script for category verification.
   - Questions asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (every 10th trial)
 - At every 10th trial, asks a category question: "Was the last object a [category]?"
 - Category is inferred from the folder name (e.g., BIG_ANIMAL → "big animal")
-- **Question timing**: No timeout - participant must respond (YES/NO buttons)
+- **Question timing**: **10.0 second timeout** - if participant doesn't respond within 10 seconds, the question times out and the task continues
+  - **Note**: This differs from the main task, which uses 7.0 second timeouts for slider and switch/stay decisions
 - Records participant responses (YES/NO) and accuracy
 - Saves data to CSV file: `localizer_[participant_id]_[timestamp].csv`
 - **Example filename**: `localizer_kini_20260130_232131.csv`

@@ -6,7 +6,7 @@ This task examines how participants collaborate with an AI partner during a reco
 
 **Duration**: 35-45 minutes (50-60 minutes for slower participants)  
 **Structure**: 10 blocks × 10 trials = 100 total trials  
-**Response Timeout**: 7 seconds per response
+**Response Timeout**: 7 seconds per response (slider and switch/stay decisions)
 
 ---
 
@@ -46,10 +46,10 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Study Phase Stimulus Selection
 
-- **Each block contains exactly 2 items from each of the 10 categories (20 stimuli per block)**
-- **No repeats across blocks**: Each of the 100 stimuli appears exactly once across all 5 experimental blocks
-- Example: Block 1 might have Apple and Banana (FRUIT), Carrot and Kale (VEGETABLE), Chair and Bench (BIG_OBJECT), etc.
-- Example: Block 2 might have Orange and Grape (FRUIT), Pepper and Broccoli (VEGETABLE), Couch and Table (BIG_OBJECT), etc.
+- **Each block contains exactly 1 item from each of the 10 categories (10 stimuli per block)**
+- **No repeats across blocks**: Each of the 100 stimuli appears exactly once across all 10 experimental blocks
+- Example: Block 1 might have Apple (FRUIT), Carrot (VEGETABLE), Chair (BIG_OBJECT), etc.
+- Example: Block 2 might have Banana (FRUIT), Kale (VEGETABLE), Bench (BIG_OBJECT), etc.
 
 ### Recognition Trial Distribution
 
@@ -117,6 +117,7 @@ Each of the 10 trials follows this structure:
   1. Click anywhere on the slider line to set their rating
   2. Click the "SUBMIT" button to confirm
   3. Cannot submit if slider hasn't been clicked (still at center)
+  4. If they try to submit without selecting, they see an error message: "Please select an answer first"
 - **Timeout**: 7 seconds (random answer selected if timeout)
 
 ### AI Partner Rating
@@ -188,14 +189,20 @@ All scoring is framed as "in-house curator" evaluations:
 - **After each trial**: "The in-house curator scored this image: X points"
   - Points are based on Euclidean distance from correct answer (1.0 - distance)
   - Range: 0.0 to 1.0 points per trial
+  - **Display rounding**: Points are displayed rounded to 1 decimal place (e.g., 0.7, 0.9, 1.0)
+  - **Note**: The logged data in CSV files maintains full precision (not rounded)
 
-- **End of each block**: "The in-house curator scored this collection X points out of a total of 20 points!"
+- **End of each block**: "The in-house curator scored this collection X points out of a total of 10 points!"
   - Block points are the sum of all trial points (10 trials × 1.0 max = 10 points maximum)
   - Each trial can earn up to 1.0 point based on Euclidean distance from correct answer
+  - **Display rounding**: Block summary points are displayed rounded to 1 decimal place (e.g., 7.5, 8.2, 10.0)
+  - **Note**: The logged data in CSV files maintains full precision (not rounded)
 
 - **End of experiment**: "The in-house curator scored this collection X points out of a total of 100 points!"
   - Total experiment points are the sum across all 10 blocks (10 blocks × 10 trials = 100 points maximum)
   - Each trial can earn up to 1.0 point based on Euclidean distance from correct answer
+  - **Display rounding**: Final experiment score is displayed rounded to 1 decimal place (e.g., 75.3, 82.7, 100.0)
+  - **Note**: The logged data in CSV files maintains full precision (not rounded)
 
 ---
 
@@ -205,7 +212,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 **Correctness Feedback**: 
 - "Correct!" (green) or "Incorrect" (red)
-- Points earned this trial displayed
+- Points earned this trial displayed (rounded to 1 decimal place for display, full precision maintained in logged data)
 
 ---
 
@@ -250,6 +257,8 @@ All scoring is framed as "in-house curator" evaluations:
 - **Study Phase Data**: Saved to `recognition_study_[participant_id]_[timestamp].csv`
 - **Trial Data**: Saved to `recognition_trials_[participant_id]_[timestamp].csv`
 - **Summary Data**: Total task time saved to `recognition_summary_[participant_id]_[timestamp].csv`
+- **File saving locations**: All files are saved to `../LOG_FILES/` directory (created automatically if it doesn't exist)
+- **File saving**: Skipped if "test" (case-insensitive) is in the participant name
 
 ---
 
@@ -258,7 +267,7 @@ All scoring is framed as "in-house curator" evaluations:
 ### Structure
 
 - **3 trials** (practice only)
-- **3 shape stimuli**: Green circle, red circle, blue circle (for sequential presentation)
+- **4 shape stimuli**: Green circle, red circle, blue circle (for sequential presentation), and blue square (for trial 3 recognition)
 - **Practice recognition trials**:
   - Trial 1: Green circle (participant rates only)
   - Trial 2: Red circle (AI rates first, then participant rates)
@@ -266,10 +275,11 @@ All scoring is framed as "in-house curator" evaluations:
 - **Practice flow**:
   1. Welcome message with Amy's story and picture
   2. Sequential presentation of 3 shapes (green circle, red circle, blue circle), each for 1.5 seconds with fixations between
+  3. Trial 3 uses a blue square (not the blue circle from encoding) - this is NEW and tests recognition
   3. Transition screen: "Now let's see how well you recall the objects you've seen!"
   4. Trial 1: Green circle - participant rates only
   5. Trial 2: Red circle - shows "Amy is confident they've seen this before", AI clicks "all the way on the old" side, then participant rates
-  6. Trial 3: Blue square - shows "now, work with Amy", participant rates, then AI clicks "all the way on the old" side (incorrectly, as it's a new square), then participant performs switch/stay decision, outcome shown
+  6. Trial 3: Blue square - shows "now, work with Amy", participant rates, then AI rates extremely unconfidently (very close to OLD/0.0, at 0.05) but incorrectly (as it's a new square), then participant performs switch/stay decision, outcome shown
 - **Outcome explanations**: For practice trials, outcomes explicitly explain the score (e.g., "You were 67% incorrect!" for a score of 0.33)
 - **Slider instruction**: Explicitly states "Note: You will click (not drag) on the slider to set your rating."
 
@@ -303,6 +313,7 @@ All scoring is framed as "in-house curator" evaluations:
 - Shows participant ranked 1-5 out of 10 (randomly assigned rank)
 - **Anonymized participant names**: P01-P10
 - Participant shown as "[ID] (you)" at their rank
+- **No scores displayed** - only rank and participant names
 - Based on total points earned across all experimental blocks
 
 ### Transition Screens
@@ -310,8 +321,9 @@ All scoring is framed as "in-house curator" evaluations:
 - **Initial screen**: "Hello & welcome to the social memory game! Pay careful attention to the text on the screen"
 - **Before practice**: Welcome message with Amy's story and picture
 - **After practice**: Transition message explaining the real work begins with Amy organizing photographs
+- **Before each block**: "Ready to start sorting?" screen showing collections remaining count with BEGIN button
 - **Between blocks**: Partner switch messages when partner changes (Amy ↔ Ben), or brief break message
-- **Final screen**: Shows cumulative curator scoring, leaderboard, total task time, and thank you message
+- **Final screen**: Shows cumulative curator scoring, leaderboard (without scores), total task time, and thank you message
 
 ---
 
@@ -320,27 +332,26 @@ All scoring is framed as "in-house curator" evaluations:
 ### Stimulus Randomization
 
 - **100 stimuli** organized by category, with items shuffled within each category
-- **Each block contains exactly 2 items from each of the 10 categories (20 stimuli per block)**
+- **Each block contains exactly 1 item from each of the 10 categories (10 stimuli per block)**
 - Each stimulus appears exactly once across all experimental blocks
 - **First recognition image** is never the same as the last study image
 - Items within each block are randomized for presentation order
 
 ### Trial Randomization
 
-- **Studied vs. lure**: Each of the 20 block images appears once in recognition (10 studied, 10 lures)
+- **Studied vs. lure**: Each of the 10 block images appears once in recognition (5 studied, 5 lures)
 - **Trial order**: Randomized within each block
 - **Image assignments**: Randomly assigned to studied/lure conditions
 
 ### Block Counterbalancing
 
-- **Turn-taking**: Participant always goes first in all blocks
-- **AI Accuracy**: Fixed order - Blocks 1, 4 reliable (~75%); Blocks 2, 3, 5 unreliable (~25%)
+- **Turn-taking**: Alternates within each block (participant first, then AI first, etc.), starting with participant first in block 1
+- **AI Accuracy**: Fixed order - Blocks 1-2, 7-8 reliable (Amy, ~75%); Blocks 3-6, 9-10 unreliable (Ben, ~25%)
 - **Structure**: 
-  - Block 1: Reliable, Participant first
-  - Block 2: Unreliable, Participant first
-  - Block 3: Unreliable, Participant first
-  - Block 4: Reliable, Participant first
-  - Block 5: Unreliable, Participant first
+  - Blocks 1-2: Reliable (Amy), alternating turn order
+  - Blocks 3-6: Unreliable (Ben), alternating turn order
+  - Blocks 7-8: Reliable (Amy), alternating turn order
+  - Blocks 9-10: Unreliable (Ben), alternating turn order
 
 ### AI Behavior Randomization
 
@@ -380,7 +391,9 @@ All scoring is framed as "in-house curator" evaluations:
   - **No jitter after the last trial** in each block
   - **9 jittered fixations per block** (between 10 trials)
 
-#### Participant Response Timeouts
+#### Participant Response Timeouts (Main Task)
+**Note**: These timeout settings apply to the main social recognition memory task only. The localizer task uses a 10.0 second timeout for questions (see README.md).
+
 - **Slider response**: 7.0 seconds (fixed)
   - Image remains visible until timeout or submission
   - Random answer selected if timeout (not center position)
@@ -407,11 +420,13 @@ All scoring is framed as "in-house curator" evaluations:
 - All reaction times recorded from stimulus onset to response
 - Timestamps recorded in Unix time (seconds since epoch)
 
-### Response Timeouts
+### Response Timeouts (Main Task)
 
-- **Slider response**: 7 seconds
-- **Switch/Stay decision**: 7 seconds
-- If timeout: Random answer selected, timeout flag recorded in data
+**Note**: These timeout settings apply to the main social recognition memory task only. The localizer task has different timeout settings (see README.md for localizer details).
+
+- **Slider response**: 7.0 seconds (fixed)
+- **Switch/Stay decision**: 7.0 seconds (fixed)
+- If timeout: Random answer/decision selected, timeout flag recorded in data
 
 ### Window and Display
 

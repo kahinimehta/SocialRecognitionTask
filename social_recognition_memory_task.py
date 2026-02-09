@@ -2033,6 +2033,8 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     start_time = time.time()
     slider_commit_time = None
     slider_stop_time = None  # Time when slider value is set (clicked)
+    slider_decision_onset_time = None  # First time participant clicks/taps the slider bar (decision onset)
+    slider_click_times = []  # List of all times participant clicks/taps the slider bar (for touch screens)
     prev_mouse_buttons = [False, False, False]
     has_moved = False  # Track if slider has been moved from center
     timed_out = False
@@ -2112,10 +2114,16 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                     slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
                     slider_handle.pos = (x_pos, slider_y_pos)
                     
+                    # Record decision onset time (first click on slider bar)
+                    click_time = time.time()
+                    if slider_decision_onset_time is None:
+                        slider_decision_onset_time = click_time  # First click = decision onset
+                    slider_click_times.append(click_time)  # Log all clicks
+                    
                     # Check if moved from center (0.5)
                     if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
                         has_moved = True
-                        slider_stop_time = time.time()  # Record when value was set immediately
+                        slider_stop_time = click_time  # Record when value was set immediately
                 
                 # Check if submit button is touched (keyboard method - respond immediately on position change)
                 submit_x, submit_y = submit_button.pos
@@ -2131,9 +2139,35 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                 submit_clicked = (submit_x - submit_width/2 - submit_hit_margin_x <= mouseloc_x <= submit_x + submit_width/2 + submit_hit_margin_x and
                                submit_y - submit_height/2 - submit_hit_margin_y <= mouseloc_y <= submit_y + submit_height/2 + submit_hit_margin_y)
                 
-                if submit_clicked and has_moved:
-                    slider_commit_time = time.time()  # Record immediately, no delay
-                    break
+                if submit_clicked:
+                    if has_moved:
+                        slider_commit_time = time.time()  # Record immediately, no delay
+                        break
+                    else:
+                        # Show message: "please select an answer first"
+                        error_message = visual.TextStim(
+                            win,
+                            text="Please select an answer first",
+                            color='red',
+                            height=0.05*0.75,
+                            pos=(0, slider_y_pos - 0.2)
+                        )
+                        # Draw everything with error message
+                        if image_stim:
+                            image_stim.draw()
+                        if trial_num is not None:
+                            trial_text.draw()
+                        prompt.draw()
+                        slider_line.draw()
+                        old_label.draw()
+                        new_label.draw()
+                        slider_handle.draw()
+                        submit_button.draw()
+                        submit_text.draw()
+                        error_message.draw()
+                        win.flip()
+                        core.wait(1.0)  # Show error message for 1 second
+                        # Continue loop (don't break)
                 
                 # Update recorded position
                 mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
@@ -2149,10 +2183,16 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                     slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
                     slider_handle.pos = (x_pos, slider_y_pos)
                     
+                    # For mouse/computer version, decision onset = slider stop time (same as when they click)
+                    click_time = time.time()
+                    if slider_decision_onset_time is None:
+                        slider_decision_onset_time = click_time  # First click = decision onset (same as stop time for mouse)
+                    slider_click_times.append(click_time)  # Log all clicks
+                    
                     # Check if moved from center (0.5)
                     if abs(slider_value - 0.5) > 0.01:  # Moved at least 1% from center
                         has_moved = True
-                        slider_stop_time = time.time()  # Record when value was set
+                        slider_stop_time = click_time  # Record when value was set
             
             # Check if submit button is clicked/touched (on mouse/touch release)
             submit_x, submit_y = submit_button.pos
@@ -2160,10 +2200,36 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             submit_clicked = (submit_x - submit_width/2 <= mouse_pos[0] <= submit_x + submit_width/2 and
                              submit_y - submit_height/2 <= mouse_pos[1] <= submit_y + submit_height/2)
             
-            # Only allow submit if slider has been moved from center
-            if prev_mouse_buttons[0] and not mouse_buttons[0] and submit_clicked and has_moved:
-                slider_commit_time = time.time()
-                break
+            # Check if submit button is clicked
+            if prev_mouse_buttons[0] and not mouse_buttons[0] and submit_clicked:
+                if has_moved:
+                    slider_commit_time = time.time()
+                    break
+                else:
+                    # Show message: "please select an answer first"
+                    error_message = visual.TextStim(
+                        win,
+                        text="Please select an answer first",
+                        color='red',
+                        height=0.05*0.75,
+                        pos=(0, slider_y_pos - 0.2)
+                    )
+                    # Draw everything with error message
+                    if image_stim:
+                        image_stim.draw()
+                    if trial_num is not None:
+                        trial_text.draw()
+                    prompt.draw()
+                    slider_line.draw()
+                    old_label.draw()
+                    new_label.draw()
+                    slider_handle.draw()
+                    submit_button.draw()
+                    submit_text.draw()
+                    error_message.draw()
+                    win.flip()
+                    core.wait(1.0)  # Show error message for 1 second
+                    # Continue loop (don't break)
         
         # Update submit button color based on whether slider has moved (only for click mode)
         if not USE_TOUCH_SCREEN:
@@ -2207,7 +2273,15 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     mouse.setVisible(False)
     slider_rt = slider_commit_time - start_time if slider_commit_time else timeout
     
-    return slider_value, slider_rt, slider_commit_time, timed_out, slider_stop_time
+    # For mouse/computer version, if decision onset wasn't set, set it to slider_stop_time
+    if slider_decision_onset_time is None and slider_stop_time is not None:
+        slider_decision_onset_time = slider_stop_time
+    
+    # Ensure slider_click_times is a list (even if empty)
+    if slider_click_times is None:
+        slider_click_times = []
+    
+    return slider_value, slider_rt, slider_commit_time, timed_out, slider_stop_time, slider_decision_onset_time, slider_click_times
 
 # =========================
 #  AI COLLABORATOR
@@ -2428,7 +2502,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     # Determine order: participant first or partner first
     if participant_first:
         # P1: Participant responds first (image stays on screen)
-        participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time = get_slider_response(
+        participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time, participant_slider_decision_onset_time, participant_slider_click_times = get_slider_response(
             "Rate your memory: OLD or NEW?", image_stim=img_stim, trial_num=trial_num, max_trials=max_trials, timeout=7.0
         )
         
@@ -2482,6 +2556,8 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "participant_commit_time": participant_commit_time,
             "participant_slider_timeout": participant_slider_timeout,
             "participant_slider_stop_time": participant_slider_stop_time,
+            "participant_slider_decision_onset_time": participant_slider_decision_onset_time,
+            "participant_slider_click_times": participant_slider_click_times,
             "ai_slider_value": ai_confidence,
             "ai_rt": ai_rt,
             "ai_decision_time": ai_decision_time,
@@ -2518,7 +2594,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         ai_slider_display_time, ai_final_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name)
         
         # P1: Participant responds (image stays on screen)
-        participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time = get_slider_response(
+        participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time, participant_slider_decision_onset_time, participant_slider_click_times = get_slider_response(
             "Rate your memory: OLD or NEW?", image_stim=img_stim, trial_num=trial_num, max_trials=max_trials, timeout=7.0
         )
         
@@ -2562,6 +2638,8 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "participant_commit_time": participant_commit_time,
             "participant_slider_timeout": participant_slider_timeout,
             "participant_slider_stop_time": participant_slider_stop_time,
+            "participant_slider_decision_onset_time": participant_slider_decision_onset_time,
+            "participant_slider_click_times": participant_slider_click_times,
             "ai_slider_value": ai_confidence,
             "ai_rt": ai_rt,
             "ai_decision_time": ai_decision_time,
@@ -3216,15 +3294,205 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     mouse.setVisible(False)
     return decision, decision_rt, decision_commit_time, timed_out, decision_onset_time
 
+def show_ready_to_start_screen(block_num, total_blocks=10):
+    """Show 'ready to start sorting?' screen before each block with collections remaining count"""
+    collections_remaining = total_blocks - block_num + 1
+    
+    ready_text = visual.TextStim(
+        win,
+        text=f"Ready to start sorting?\n\n"
+             f"{collections_remaining} collection{'s' if collections_remaining > 1 else ''} remaining",
+        color='black',
+        height=0.06*0.75,
+        pos=(0, 0.1),
+        wrapWidth=1.2
+    )
+    
+    # Create begin button
+    begin_button = visual.Rect(
+        win,
+        width=0.3*0.75,
+        height=0.1*0.75,
+        fillColor='lightblue',
+        lineColor='black',
+        pos=(0, -0.35*0.6)
+    )
+    begin_text = visual.TextStim(
+        win,
+        text="BEGIN",
+        color='black',
+        height=0.05*0.75,
+        pos=(0, -0.35*0.6)
+    )
+    
+    # Draw initial screen
+    def redraw():
+        ready_text.draw()
+        begin_button.draw()
+        begin_text.draw()
+        win.flip()
+    
+    redraw()
+    
+    # Wait for button click - use same pattern as other touch screen buttons
+    mouse_btn = event.Mouse(win=win)
+    mouse_btn.setVisible(True)
+    clicked = False
+    last_hover_state = None
+    
+    if USE_TOUCH_SCREEN:
+        # Use keyboard method (position-change detection) for touch screens
+        mouserec = mouse_btn.getPos()
+        try:
+            mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+        except:
+            mouserec_x, mouserec_y = 0.0, 0.0
+        
+        while not clicked:
+            try:
+                mouseloc = mouse_btn.getPos()
+                try:
+                    mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
+                except:
+                    mouseloc_x, mouseloc_y = 0.0, 0.0
+                
+                # Check if mouse position has changed (touch moved) - keyboard method
+                if mouseloc_x == mouserec_x and mouseloc_y == mouserec_y:
+                    # Position hasn't changed, just redraw
+                    redraw()
+                else:
+                    # Position has changed - check if touch is within button using position calculation
+                    try:
+                        button_pos = begin_button.pos
+                        if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                            button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                        else:
+                            button_x, button_y = 0.0, -0.35*0.6
+                    except (TypeError, ValueError):
+                        button_x, button_y = 0.0, -0.35*0.6
+                    
+                    try:
+                        button_width = float(begin_button.width)
+                        button_height = float(begin_button.height)
+                    except (TypeError, ValueError):
+                        button_width, button_height = 0.3*0.75, 0.1*0.75
+                    
+                    hit_margin_x = max(button_width * 0.5, 0.08)
+                    hit_margin_y = max(button_height * 0.5, 0.04)
+                    
+                    on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x <= button_x + button_width/2 + hit_margin_x and
+                                button_y - button_height/2 - hit_margin_y <= mouseloc_y <= button_y + button_height/2 + hit_margin_y)
+                    
+                    if on_button:
+                        # Visual feedback (no color change in touch screen mode)
+                        redraw()
+                        core.wait(0.2)
+                        clicked = True
+                        break
+                    
+                    # Update recorded position
+                    mouserec = mouse_btn.getPos()
+                    try:
+                        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                    except:
+                        mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                
+                # Redraw every frame
+                redraw()
+            except (AttributeError, Exception):
+                pass
+            
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if 'space' in keys:
+                    clicked = True
+                    break
+                elif 'escape' in keys:
+                    core.quit()
+            except (AttributeError, Exception):
+                pass
+            
+            safe_wait(0.01)
+    else:
+        # Standard mouse click detection for non-touch screens
+        prev_mouse_buttons = [False, False, False]
+        
+        while not clicked:
+            try:
+                mouse_buttons = mouse_btn.getPressed()
+                mouse_pos = mouse_btn.getPos()
+                
+                try:
+                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
+                        mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
+                    else:
+                        mouse_x, mouse_y = 0.0, 0.0
+                except (TypeError, ValueError):
+                    mouse_x, mouse_y = 0.0, 0.0
+                
+                try:
+                    button_pos = begin_button.pos
+                    if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
+                        button_x, button_y = float(button_pos[0]), float(button_pos[1])
+                    else:
+                        button_x, button_y = 0.0, -0.35*0.6
+                except (TypeError, ValueError):
+                    button_x, button_y = 0.0, -0.35*0.6
+                
+                try:
+                    button_width = float(begin_button.width)
+                    button_height = float(begin_button.height)
+                except (TypeError, ValueError):
+                    button_width, button_height = 0.3*0.75, 0.1*0.75
+                
+                on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
+                            button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                
+                if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                    if on_button:
+                        begin_button.fillColor = 'lightgreen'
+                        redraw()
+                        core.wait(0.2)
+                        clicked = True
+                        break
+                
+                if on_button != last_hover_state:
+                    if on_button:
+                        begin_button.fillColor = 'lightcyan'
+                    else:
+                        begin_button.fillColor = 'lightblue'
+                    redraw()
+                    last_hover_state = on_button
+                
+                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
+            except (AttributeError, Exception):
+                pass
+            
+            # Check for space key as backup
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if 'space' in keys:
+                    clicked = True
+                    break
+                elif 'escape' in keys:
+                    core.quit()
+            except (AttributeError, Exception):
+                pass
+            
+            safe_wait(0.01)
+    
+    mouse_btn.setVisible(False)
+    event.clearEvents()
+
 def show_block_summary(block_num, total_points, max_points):
     """Show block summary with curator scoring"""
-    # Show actual points out of max_points (typically 20 for a block)
-    total_points_rounded = round(total_points, 2)
+    # Show actual points out of max_points (rounded to 1 decimal place for display, full precision maintained in logged data)
+    total_points_rounded = round(total_points, 1)
     
     summary_text = visual.TextStim(
         win,
         text=f"Collection {block_num} Complete!\n\n"
-             f"The in-house curator scored this collection {total_points_rounded:.2f} points out of a total of {int(max_points)} points!",
+             f"The in-house curator scored this collection {total_points_rounded:.1f} points out of a total of {int(max_points)} points!",
         color='black',
         height=0.05,
         pos=(0, 0.1),
@@ -3466,13 +3734,13 @@ def show_leaderboard(participant_id, total_points):
             display_score = score
         leaderboard_entries.append((i, name, display_score))
     
-    # Display leaderboard
+    # Display leaderboard (without scores)
     leaderboard_text = "AMY'S EMPLOYEE RANKING & LEADERSHIP BOARD\n\n"
-    leaderboard_text += f"{'Rank':<6} {'Participant':<20} {'Score':<10}\n"
-    leaderboard_text += "-" * 40 + "\n"
+    leaderboard_text += f"{'Rank':<6} {'Participant':<20}\n"
+    leaderboard_text += "-" * 30 + "\n"
     
     for rank, name, score in leaderboard_entries:
-        leaderboard_text += f"{rank:<6} {name:<20} {score:.2f}\n"
+        leaderboard_text += f"{rank:<6} {name:<20}\n"
     
     leaderboard_stim = visual.TextStim(
         win,
@@ -3504,8 +3772,8 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
     euclidean_distance = abs(final_answer - correct_answer)
     correctness_points = max(0.0, 1.0 - euclidean_distance)  # Closer = more points
     
-    # Round to 2 decimal places for display
-    correctness_points_rounded = round(correctness_points, 2)
+    # Round to 1 decimal place for display only (full precision kept in logged data)
+    correctness_points_rounded = round(correctness_points, 1)
     
     # Determine if answer is correct (within 0.5 of correct answer)
     participant_accuracy = euclidean_distance < 0.5
@@ -3517,8 +3785,8 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
         outcome_text = "Incorrect"
         color = 'red'
     
-    # Show outcome with curator scoring
-    outcome_text_full = f"{outcome_text}\n\nThe in-house curator scored this image: {correctness_points_rounded:.2f} points based on image & your confidence"
+    # Show outcome with curator scoring (display rounded to 1 decimal place)
+    outcome_text_full = f"{outcome_text}\n\nThe in-house curator scored this image: {correctness_points_rounded:.1f} points based on image & your confidence"
     outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06, pos=(0, 0), wrapWidth=1.4)
     outcome_stim.draw()
     win.flip()
@@ -3805,6 +4073,17 @@ def save_data_incremental(all_study_data, all_trial_data, participant_id,
                     # Convert NaN to empty string for CSV (standard CSV representation)
                     if isinstance(value, float) and np.isnan(value):
                         complete_row[field] = ''
+                    elif isinstance(value, list):
+                        # Convert list to comma-separated string for CSV
+                        if len(value) == 0:
+                            complete_row[field] = ''
+                        else:
+                            complete_row[field] = ','.join(str(v) for v in value)
+                    elif value is None:
+                        complete_row[field] = ''
+                    elif isinstance(value, bool):
+                        # Convert boolean to string for CSV compatibility
+                        complete_row[field] = str(value)
                     else:
                         complete_row[field] = value
                 writer.writerow(complete_row)
@@ -4360,7 +4639,7 @@ def run_experiment():
         green_circle.draw()
     win.flip()
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
-    participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1 = get_slider_response(
+    participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1, participant_slider_decision_onset_time_t1, participant_slider_click_times_t1 = get_slider_response(
         "CLICK once on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
         "How close you are to either side indicates how CONFIDENT you are in your answer, but whichever side you are closer to indicates your ultimate answer.",
         image_stim=green_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
@@ -4399,6 +4678,8 @@ def run_experiment():
         'participant_commit_time': participant_commit_time_t1,
         'participant_slider_timeout': participant_slider_timeout_t1,
         'participant_slider_stop_time': participant_slider_stop_time_t1,
+        'participant_slider_decision_onset_time': participant_slider_decision_onset_time_t1,
+        'participant_slider_click_times': participant_slider_click_times_t1,
         'ai_slider_value': np.nan,
         'ai_rt': np.nan,
         'ai_decision_time': np.nan,
@@ -4470,7 +4751,7 @@ def run_experiment():
         ai_final_slider_display_time_t2 = time.time()
     
     # Participant rates
-    participant_value_t2, participant_rt_t2, participant_commit_time_t2, participant_slider_timeout_t2, participant_slider_stop_time_t2 = get_slider_response(
+    participant_value_t2, participant_rt_t2, participant_commit_time_t2, participant_slider_timeout_t2, participant_slider_stop_time_t2, participant_slider_decision_onset_time_t2, participant_slider_click_times_t2 = get_slider_response(
         "Rate your memory: OLD or NEW?",
         image_stim=red_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
@@ -4509,6 +4790,8 @@ def run_experiment():
         'participant_commit_time': participant_commit_time_t2,
         'participant_slider_timeout': participant_slider_timeout_t2,
         'participant_slider_stop_time': participant_slider_stop_time_t2,
+        'participant_slider_decision_onset_time': participant_slider_decision_onset_time_t2,
+        'participant_slider_click_times': participant_slider_click_times_t2,
         'ai_slider_value': ai_confidence_t2,
         'ai_rt': ai_rt_t2,
         'ai_decision_time': ai_decision_time_t2,
@@ -4563,8 +4846,8 @@ def run_experiment():
         "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
-    # AI rates (all the way OLD) - but it's actually NEW (square), so AI is wrong (Amy in practice)
-    ai_confidence_t3 = 0.0  # All the way OLD (AI says old, but it's actually new)
+    # AI rates (extremely unconfident, very close to OLD but not exactly) - but it's actually NEW (square), so AI is wrong (Amy in practice)
+    ai_confidence_t3 = 0.05  # Extremely unconfident - very close to OLD (0.0) but slightly above (AI says old, but it's actually new)
     ai_rt_t3 = 2.0
     ai_correct_t3 = False  # It's actually NEW (square), so AI is incorrect
     ground_truth_t3 = 1.0  # NEW
@@ -4601,12 +4884,12 @@ def run_experiment():
     correctness_points_t3 = max(0.0, 1.0 - euclidean_distance_t3)
     participant_accuracy_t3 = euclidean_distance_t3 < 0.5
     
-    # Show outcome with points for practice trial 3
-    correctness_points_rounded_t3 = round(correctness_points_t3, 2)
+    # Show outcome with points for practice trial 3 (display rounded to 1 decimal place, full precision kept in logged data)
+    correctness_points_rounded_t3 = round(correctness_points_t3, 1)
     if participant_accuracy_t3:
-        outcome_text_t3 = f"Correct! Based off your answer and confidence, your points are {correctness_points_rounded_t3:.2f}"
+        outcome_text_t3 = f"Correct! Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
     else:
-        outcome_text_t3 = f"Incorrect! Based off your answer and confidence, your points are {correctness_points_rounded_t3:.2f}"
+        outcome_text_t3 = f"Incorrect! Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
     color_t3 = 'green' if participant_accuracy_t3 else 'red'
     outcome_stim_t3 = visual.TextStim(win, text=outcome_text_t3, 
                                       color=color_t3, height=0.06*0.75, pos=(0, 0), wrapWidth=1.2)
@@ -4633,6 +4916,8 @@ def run_experiment():
         'participant_commit_time': participant_commit_time_t3,
         'participant_slider_timeout': participant_slider_timeout_t3,
         'participant_slider_stop_time': participant_slider_stop_time_t3,
+        'participant_slider_decision_onset_time': participant_slider_decision_onset_time_t3,
+        'participant_slider_click_times': participant_slider_click_times_t3,
         'ai_slider_value': ai_confidence_t3,
         'ai_rt': ai_rt_t3,
         'ai_decision_time': ai_decision_time_t3,
@@ -5362,6 +5647,9 @@ def run_experiment():
             # Update previous partner for next iteration
             previous_partner_reliable = current_partner_reliable
             
+            # Show "ready to start sorting?" screen before each block
+            show_ready_to_start_screen(block_num, total_blocks=10)
+            
             # Create AI collaborator with block-specific accuracy
             block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy, num_trials=10)  # Experimental blocks have 10 trials
             reliability = "Reliable" if block_accuracy == 0.75 else "Unreliable"
@@ -5411,12 +5699,13 @@ def run_experiment():
     
     # Calculate total points (10 blocks * 10 trials = 100 max)
     max_possible_total = 10 * 10.0  # 100 max points across all blocks
-    total_experiment_points_rounded = round(total_experiment_points, 2)
+    # Round to 1 decimal place for display (full precision maintained in logged data)
+    total_experiment_points_rounded = round(total_experiment_points, 1)
     
     # Show cumulative points message
     cumulative_text = visual.TextStim(
         win,
-        text=f"The in-house curator scored all your collections {total_experiment_points_rounded:.2f} points out of a total of {int(max_possible_total)} points!",
+        text=f"The in-house curator scored all your collections {total_experiment_points_rounded:.1f} points out of a total of {int(max_possible_total)} points!",
         color='black',
         height=0.05,
         pos=(0, 0),
