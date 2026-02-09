@@ -81,7 +81,7 @@ Use this file when analyzing data.
 ---
 
 
-### 3. Demo / Media
+### 3. Demo / Media (needs to be updated)
 
 #### **`Demo.mp4`**
 Short screen recording from early version demonstrating:
@@ -94,7 +94,7 @@ Short screen recording from early version demonstrating:
 
 ---
 
-### 4. Example Data Outputs
+### 4. Example Data Outputs (needs to be updated)
 
 These are example CSVs produced by running the task with test parameters. Your real participants' files will follow identical formats.
 
@@ -129,7 +129,7 @@ Localizer task data.
 ---
 
 #### **`STIMULI`**
-Stimuli used in the task. From the THINGS dataset
+Stimuli used in the task. From the THINGS dataset. Also included with STIMULI: `ImagevsLure.pdf` to visualize all stimuli & manual ratings: `Image_Similarity_Rater.csv` of how visually similar the images are.
 
 
 
