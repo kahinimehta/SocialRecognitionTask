@@ -3707,26 +3707,26 @@ def show_block_summary(block_num, total_points, max_points):
     event.clearEvents()
 
 def show_leaderboard(participant_id, total_points):
-    """Show a fake leaderboard with participant ranked 1-5 out of 10"""
-    # Generate fake participant names (P01-P10, excluding current participant)
-    all_participants = [f"P{i:02d}" for i in range(1, 11)]
+    """Show a fake leaderboard with participant ranked 2 out of 7"""
+    # Generate fake participant names (P01-P07, excluding current participant)
+    all_participants = [f"P{i:02d}" for i in range(1, 8)]
     current_participant_label = participant_id if len(participant_id) <= 10 else participant_id[:10]
     
-    # Participant gets rank 1-5 (randomly determined, but ensure they're in top 5)
-    participant_rank = random.randint(1, 5)
+    # Participant is always ranked 2 out of 7
+    participant_rank = 2
+    total_players = 7
     
-    # Generate fake scores: create 9 other scores around the participant's score
-    # Ensure participant's score will be at their assigned rank after sorting
+    # Generate fake scores: create 6 other scores around the participant's score
+    # Ensure participant's score will be at rank 2 after sorting
     fake_scores = []
     
-    # Generate scores above participant (for ranks 1 to participant_rank-1)
-    # These must be strictly greater than total_points
-    for _ in range(participant_rank - 1):
-        fake_scores.append(total_points + random.uniform(0.1, 5.0))
+    # Generate 1 score above participant (for rank 1)
+    # This must be strictly greater than total_points
+    fake_scores.append(total_points + random.uniform(0.1, 5.0))
     
-    # Generate scores below participant (for ranks participant_rank+1 to 10)
+    # Generate 5 scores below participant (for ranks 3-7)
     # These must be strictly less than total_points
-    for _ in range(10 - participant_rank):
+    for _ in range(total_players - participant_rank):
         fake_scores.append(total_points - random.uniform(0.1, 15.0))
     
     # Combine all scores and sort
@@ -3736,7 +3736,7 @@ def show_leaderboard(participant_id, total_points):
     # Create leaderboard entries
     leaderboard_entries = []
     used_names = set()
-    for i, score in enumerate(all_scores[:10], 1):
+    for i, score in enumerate(all_scores[:total_players], 1):
         # At the participant's rank, always show their actual total_points
         if i == participant_rank:
             name = f"{current_participant_label} (you)"

@@ -311,8 +311,8 @@ All scoring is framed as "in-house curator" evaluations:
 ### Leaderboard
 
 - **Displayed at end of experiment**
-- Shows participant ranked 1-5 out of 10 (randomly assigned rank)
-- **Anonymized participant names**: P01-P10
+- Shows participant ranked 2 out of 7 (fixed rank)
+- **Anonymized participant names**: P01-P07
 - Participant shown as "[ID] (you)" at their rank
 - **No scores displayed** - only rank and participant names
 - Based on total points earned across all experimental blocks
