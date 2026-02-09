@@ -1060,14 +1060,14 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.35*0.6)
+        pos=(0, -0.45*0.6)  # Moved closer to bottom
     )
     continue_text = visual.TextStim(
         win,
         text=button_text,
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0, -0.35*0.6)
+        pos=(0, -0.45*0.6)  # Moved closer to bottom
     )
     
     def draw_screen():
@@ -1128,7 +1128,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                     except:
                         # Fallback to manual calculation
                         hit_margin = 0.02*0.75
-                        button_x, button_y = 0.0, -0.35*0.6
+                        button_x, button_y = 0.0, -0.45*0.6  # Updated to match new button position
                         button_width, button_height = 0.3*0.75, 0.1*0.75
                         if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
@@ -1189,7 +1189,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                         button_x = float(button_pos[0])
                         button_y = float(button_pos[1])
                     else:
-                        button_x, button_y = 0.0, -0.35*0.6
+                        button_x, button_y = 0.0, -0.45*0.6  # Updated to match new button position
                         continue_button.pos = (button_x, button_y)
                 except (TypeError, ValueError, IndexError):
                     button_x, button_y = 0.0, -0.35*0.6

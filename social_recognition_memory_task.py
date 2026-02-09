@@ -1267,14 +1267,14 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.35*0.6)
+        pos=(0, -0.45*0.6)  # Moved closer to bottom
     )
     continue_text = visual.TextStim(
         win,
         text=button_text,
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0, -0.35*0.6)
+        pos=(0, -0.45*0.6)  # Moved closer to bottom
     )
     
     # Draw initial screen once (button should be included in redraw_func)
@@ -1319,7 +1319,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.35*0.6
+                            button_x, button_y = 0.0, -0.45*0.6  # Updated to match new button position
                     except (TypeError, ValueError):
                         button_x, button_y = 0.0, -0.35*0.6
                     
@@ -1514,14 +1514,14 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
         height=0.1*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.35)
+        pos=(0, -0.45)  # Moved closer to bottom
     )
     continue_text = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05*1.35,
-        pos=(0, -0.35)
+        pos=(0, -0.45)  # Moved closer to bottom
     )
     
     # Draw function that includes button
@@ -1569,7 +1569,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.35
+                            button_x, button_y = 0.0, -0.45  # Updated to match new button position
                     except (TypeError, ValueError):
                         button_x, button_y = 0.0, -0.35
                     
@@ -1640,7 +1640,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
                     if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                         button_x, button_y = float(button_pos[0]), float(button_pos[1])
                     else:
-                        button_x, button_y = 0.0, -0.35  # Match actual button position
+                        button_x, button_y = 0.0, -0.45  # Updated to match new button position
                 except (TypeError, ValueError):
                     button_x, button_y = 0.0, -0.35  # Match actual button position
                 
@@ -3374,14 +3374,14 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.35*0.6)
+        pos=(0, -0.45*0.6)  # Moved closer to bottom
     )
     begin_text = visual.TextStim(
         win,
         text="BEGIN",
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0, -0.35*0.6)
+        pos=(0, -0.45*0.6)  # Moved closer to bottom
     )
     
     # Draw initial screen
@@ -3426,7 +3426,7 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.35*0.6
+                            button_x, button_y = 0.0, -0.45*0.6  # Updated to match new button position
                     except (TypeError, ValueError):
                         button_x, button_y = 0.0, -0.35*0.6
                     
@@ -3565,14 +3565,14 @@ def show_block_summary(block_num, total_points, max_points):
         height=0.1*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.35)
+        pos=(0, -0.45)  # Moved closer to bottom
     )
     continue_text = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05*1.35,
-        pos=(0, -0.35)
+        pos=(0, -0.45)  # Moved closer to bottom
     )
     
     # Draw initial screen
@@ -3617,7 +3617,7 @@ def show_block_summary(block_num, total_points, max_points):
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.35
+                            button_x, button_y = 0.0, -0.45  # Updated to match new button position
                     except (TypeError, ValueError):
                         button_x, button_y = 0.0, -0.35
                     
@@ -4439,14 +4439,14 @@ def run_experiment():
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0.4, -0.3)  # Bottom right, moved up slightly
+        pos=(0.4, -0.4)  # Bottom right, moved closer to bottom
     )
     continue_text_welcome = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0.4, -0.3)  # Bottom right, moved up slightly
+        pos=(0.4, -0.4)  # Bottom right, moved closer to bottom
     )
     
     def redraw_welcome_1():
@@ -5107,14 +5107,14 @@ def run_experiment():
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0.4, -0.3)  # Bottom right, moved up slightly
+        pos=(0.4, -0.4)  # Bottom right, moved closer to bottom
     )
     continue_text_amy_intro = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.05*0.75*1.35,
-        pos=(0.4, -0.3)  # Bottom right, moved up slightly
+        pos=(0.4, -0.4)  # Bottom right, moved closer to bottom
     )
     
     def redraw_amy_intro():
@@ -5323,14 +5323,14 @@ def run_experiment():
                             height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
-                            pos=(0.4, -0.3)  # Bottom right, moved up slightly
+                            pos=(0.4, -0.4)  # Bottom right, moved closer to bottom
                         )
                         continue_text_ben = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
                             height=0.05*0.75*1.35,
-                            pos=(0.4, -0.3)  # Bottom right, moved up slightly
+                            pos=(0.4, -0.4)  # Bottom right, moved closer to bottom
                         )
                         
                         def redraw_ben():
@@ -5572,14 +5572,14 @@ def run_experiment():
                             height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
-                            pos=(0.4, -0.3)  # Bottom right, moved up slightly
+                            pos=(0.4, -0.4)  # Bottom right, moved closer to bottom
                         )
                         continue_text_amy_return = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
                             height=0.05*0.75*1.35,
-                            pos=(0.4, -0.3)  # Bottom right, moved up slightly
+                            pos=(0.4, -0.4)  # Bottom right, moved closer to bottom
                         )
                         
                         def redraw_amy():
