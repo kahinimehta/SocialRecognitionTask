@@ -4376,7 +4376,7 @@ def run_experiment():
              "You've just joined a small photography studio.\n\n"
              "Amy, a professional photographer, is preparing images for an upcoming exhibition.\n\n"
              "She needs help sorting through large sets of images and deciding which ones truly belong. "
-             "At the end of each exhibition she ranks her employees on a leaderboard for a raise -- so you want to make sure you help as much as you can!",
+             "At the end of each exhibition she ranks her employees on a leaderboard for a raise — so you want to make sure you help as much as you can!",
         color='black',
         height=0.04*0.75,
         pos=(0, 0.2),  # Move text up
@@ -5308,7 +5308,7 @@ def run_experiment():
                         # Second switch to Ben - show short message
                         switch_text = visual.TextStim(
                             win,
-                            text="Amy has to step away again! You will work with Ben again for the last collection",
+                            text="Amy has to step away again! You will work with Ben again for the last collections.",
                             color='black',
                             height=0.04*0.75,
                             pos=(0, 0.2),  # Move text up
