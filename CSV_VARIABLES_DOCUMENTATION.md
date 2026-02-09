@@ -444,6 +444,9 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 **What is recorded**:
 - Image file path (`image_path`)
 - Presentation order (`trial`, 1-200)
+- Fixation onset time (`fixation_onset_time`, Unix timestamp)
+- Fixation offset time (`fixation_offset_time`, Unix timestamp)
+- Fixation duration (`fixation_duration`, jittered 0.25-0.75 seconds)
 - Image onset time (`image_onset_time`, Unix timestamp)
 - Image offset time (`image_offset_time`, Unix timestamp)
 - Question onset time (`question_onset_time`, Unix timestamp, for question trials only)
@@ -453,9 +456,12 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 - **Localizer question timeout**: 10.0 seconds (fixed)
 - **Main task timeouts**: 7.0 seconds for slider and switch/stay decisions
 
-**Stimulus presentation jittering**:
-- Inter-image intervals are jittered: **0.25-0.75 seconds** (uniform random distribution)
-- Each interval is independently drawn from `random.uniform(0.25, 0.75)`
+**Stimulus presentation timing**:
+- Starts with a **fixation cross** before the first image (jittered 0.25-0.75 seconds)
+- **Jittered fixation cross** appears between images: **0.25-0.75 seconds** (uniform random distribution)
+- Each fixation duration is independently drawn from `random.uniform(0.25, 0.75)`
+- Fixation appears before EVERY image, including the first image
+- Image presentation duration is **0.5 seconds** (fixed, no jitter)
 - This prevents predictable timing patterns and helps reduce anticipatory responses
 
 ### `participant_id`

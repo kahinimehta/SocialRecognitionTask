@@ -1863,10 +1863,28 @@ try:
         print(f"✓ Created localizer CSV file: {csv_file_path}")
 
     # Show images
+    # Start with a fixation cross before the first image
+    fixation_duration_first = random.uniform(0.25, 0.75)
+    fixation_onset_first = time.time()
+    show_fixation(fixation_duration_first)
+    fixation_offset_first = time.time()
+    
     for idx, stimulus in enumerate(all_stimuli, 1):
         # Record presentation time
         presentation_time = datetime.now()
         presentation_timestamp = presentation_time.strftime("%Y-%m-%d %H:%M:%S.%f")
+        
+        # Show jittered fixation between images (except before first image, which was already shown)
+        if idx > 1:
+            fixation_duration = random.uniform(0.25, 0.75)
+            fixation_onset = time.time()
+            show_fixation(fixation_duration)
+            fixation_offset = time.time()
+        else:
+            # First image uses the initial fixation
+            fixation_duration = fixation_duration_first
+            fixation_onset = fixation_onset_first
+            fixation_offset = fixation_offset_first
         
         # Load and display image
         try:
@@ -1877,8 +1895,8 @@ try:
             # Record image onset time
             image_onset_time = time.time()
             
-            # Show image for exactly 1 second
-            core.wait(1.0)
+            # Show image for exactly 0.5 seconds (fixed duration)
+            core.wait(0.5)
             
             # Record image offset time
             image_offset_time = time.time()
@@ -1955,6 +1973,9 @@ try:
                     'is_lure': stimulus['is_lure'],
                     'image_path': stimulus['path'],
                     'presentation_time': presentation_timestamp,
+                    'fixation_onset_time': fixation_onset,
+                    'fixation_offset_time': fixation_offset,
+                    'fixation_duration': fixation_duration,
                     'image_onset_time': image_onset_time,
                     'image_offset_time': image_offset_time,
                     'is_question_trial': False,
