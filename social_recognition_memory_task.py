@@ -2007,8 +2007,7 @@ SLIDER_Y_POS_ACTUAL = -0.42*0.6   # Slightly lower for actual task
 
 def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_num=None, max_trials=10, timeout=7.0):
     """Get slider response from participant using slider with submit button
-    Works with both touch screen and mouse input - click/tap anywhere on the slider line to set value
-    Mouse mode allows dragging the slider, touch screen uses tap-to-set"""
+    Works with both touch screen and mouse input - click/tap anywhere on the slider line to set value"""
     # Create slider visual elements; use lower position for actual task (trial_num set), higher for practice
     slider_y_pos = SLIDER_Y_POS_ACTUAL if trial_num is not None else SLIDER_Y_POS_PRACTICE
     slider_line = visual.Line(
@@ -4676,7 +4675,7 @@ def run_experiment():
     win.flip()
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1, participant_slider_decision_onset_time_t1, participant_slider_click_times_t1 = get_slider_response(
-        "Click on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
+        "CLICK ONCE on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
         "How close you are to either side indicates how CONFIDENT you are in your answer.",
         image_stim=green_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
