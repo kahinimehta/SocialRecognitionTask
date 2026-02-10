@@ -84,8 +84,9 @@ For now, simply memorize the shapes you're about to see. Click continue when you
 - SUBMIT button
 
 **What to say:**
-"Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the slider - click anywhere on the line to set your rating, then click SUBMIT."
+"Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the slider - CLICK anywhere on the line to set your rating, then click SUBMIT."
 
+**Note**: Make sure they know to CLICK, not DRAG the slider.
 ---
 
 ### Practice Phase - Recognition Trial 2
