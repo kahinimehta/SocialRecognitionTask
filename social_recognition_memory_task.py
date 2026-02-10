@@ -5223,6 +5223,9 @@ def run_experiment():
             if previous_partner_reliable is not None:
                 if previous_partner_reliable and not current_partner_reliable:
                     # Switched from Amy (reliable) to Ben (unreliable)
+                    # Partner intro image position: below text, above continue button (avoid overlap)
+                    BEN_INTRO_IMAGE_Y = -0.2
+                    BEN_INTRO_LABEL_Y = -0.28
                     # Check if this is the first switch (Block 4) or second switch (Block 8)
                     if block_num == 4:
                         # First switch to Ben - show long message
@@ -5243,9 +5246,9 @@ def run_experiment():
                         if os.path.exists(ben_path):
                             ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                             if hasattr(ben_image, 'setPos'):
-                                ben_image.setPos((0, -0.05))  # Closer to text
+                                ben_image.setPos((0, BEN_INTRO_IMAGE_Y))
                             elif hasattr(ben_image, 'pos'):
-                                ben_image.pos = (0, -0.05)  # Closer to text
+                                ben_image.pos = (0, BEN_INTRO_IMAGE_Y)
                         else:
                             ben_image = None
                             print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
@@ -5256,7 +5259,7 @@ def run_experiment():
                             text="Ben",
                             color='black',
                             height=0.04*0.75*1.35,
-                            pos=(0, -0.2)  # Below the image
+                            pos=(0, BEN_INTRO_LABEL_Y)
                         )
                         
                         # Create custom button for this screen (positioned bottom right to avoid icon overlap)
@@ -5280,6 +5283,8 @@ def run_experiment():
                             switch_text.draw()  # Draw text first
                             if ben_image:
                                 ben_image.draw()
+                            if ben_label is not None:
+                                ben_label.draw()
                             continue_button_ben.draw()
                             continue_text_ben.draw()
                         
@@ -5298,14 +5303,14 @@ def run_experiment():
                             wrapWidth=1.2
                         )
                         
-                        # Load and display Ben's picture (maintain aspect ratio)
+                        # Load and display Ben's picture (same low position as first intro so never over text)
                         ben_path = os.path.join(STIMULI_DIR, "Ben.png")
                         if os.path.exists(ben_path):
                             ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
                             if hasattr(ben_image, 'setPos'):
-                                ben_image.setPos((0, -0.05))  # Closer to text
+                                ben_image.setPos((0, BEN_INTRO_IMAGE_Y))
                             elif hasattr(ben_image, 'pos'):
-                                ben_image.pos = (0, -0.05)  # Closer to text
+                                ben_image.pos = (0, BEN_INTRO_IMAGE_Y)
                         else:
                             ben_image = None
                             print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
