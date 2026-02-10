@@ -213,6 +213,9 @@ Sometimes she goes first, sometimes you do."
 ## Troubleshooting
 
 - If a participant times out, the task will automatically select a random response and continue
+- If the participant accidentally minimizes the screen, navigate to the psychopy tab in the corner 
+- If there are any unexpected bugs, quit the terminal and restart the task again
+- If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
 - If there are technical issues, close the terminal window to exit
 - All data is saved automatically after each trial
 - Log files are saved to the `../LOG_FILES/` directory
