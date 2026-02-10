@@ -1240,16 +1240,15 @@ def is_test_participant(participant_id):
 #  HELPER FUNCTIONS
 # =========================
 def safe_wait(duration):
-    """Wrapper for core.wait() that handles macOS event dispatch errors"""
+    """Wrapper for core.wait() that handles macOS event dispatch errors (e.g. NSTrackingArea/NSConcreteNotification has no attribute 'type')"""
     try:
         core.wait(duration)
     except AttributeError as e:
-        # Handle macOS-specific pyglet event dispatch error
-        if "NSConcreteNotification" in str(e) and "type" in str(e):
-            # This is a known macOS/pyglet issue - just continue
+        err_str = str(e)
+        # Known macOS/pyglet Cocoa event dispatch issues - skip and continue
+        if ("type" in err_str and ("ObjCInstance" in err_str or "NSConcreteNotification" in err_str or "NSTrackingArea" in err_str)):
             pass
         else:
-            # Re-raise if it's a different AttributeError
             raise
     except Exception:
         # Ignore other non-critical wait errors
@@ -2039,8 +2038,8 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     text_height = 0.04*0.75*1.35  # Standardized text size
     prompt = visual.TextStim(win, text=prompt_text, color='black', height=text_height, pos=(0, 0.5*0.6), wrapWidth=1.4)  # Move higher to avoid overlap
     
-    # Submit button (positioned below slider, shorter to stay above dock)
-    submit_y = slider_y_pos - 0.12
+    # Submit button (positioned below slider; actual trials use smaller offset so button stays above dock)
+    submit_y = slider_y_pos - (0.08 if trial_num is not None else 0.12)
     submit_button = visual.Rect(
         win,
         width=0.25*0.75,
@@ -2741,16 +2740,17 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.04*0.75*1.35, pos=(0, 0.45))  # Move higher to avoid overlap with larger images
     
-    # Submit button (shorter, higher to stay above dock)
+    # Submit button (actual trials: higher to stay above dock)
+    submit_y = -0.28 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else -0.32
     submit_button = visual.Rect(
         win,
         width=0.25,
         height=0.06*1.35,  # Shorter
         fillColor='lightgreen',
         lineColor='black',
-        pos=(0, -0.32)
+        pos=(0, submit_y)
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.035*1.35, pos=(0, -0.32))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.035*1.35, pos=(0, submit_y))
     
     # Calculate target position
     target_x = -0.4*0.6 + (partner_value * 0.8*0.6)  # Target position
@@ -2908,7 +2908,9 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, slider_y_pos))
     
     # Labels below dots, vertical (90°), colored: "you" (green) and partner name (Amy/Ben) (blue)
-    label_y = slider_y_pos - 0.02  # Just below slider line, high enough to stay visible
+    # Actual trials: labels slightly higher so they stay visible and above dock
+    is_actual_scale = (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005)
+    label_y = slider_y_pos - (0.05 if is_actual_scale else 0.06)  # Below dots, not hidden
     p_label_text = visual.TextStim(
         win,
         text="you",
@@ -2972,8 +2974,9 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
         a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, slider_y_pos))
     
-    # Labels below arrows, vertical (90°), colored like arrows: "you" and partner name (Amy/Ben)
-    label_y = slider_y_pos - 0.02  # Just below slider line, high enough to stay visible
+    # Actual trials: smaller offsets so labels and buttons stay visible above dock
+    is_actual_scale = (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005)
+    label_y = slider_y_pos - (0.05 if is_actual_scale else 0.06)  # Below dots, not hidden
     if participant_value is not None and p_x_pos is not None:
         p_label_text = visual.TextStim(
             win,
@@ -2997,8 +3000,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
-    # Create buttons (positioned below slider, slightly up and shorter to stay above dock)
-    button_y_pos = slider_y_pos - 0.14
+    # Create buttons (actual trials: smaller offset so STAY/SWITCH stay above dock)
+    button_y_pos = slider_y_pos - (0.10 if is_actual_scale else 0.14)
     stay_button = visual.Rect(
         win,
         width=0.2*0.75,
@@ -3144,9 +3147,11 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     if hasattr(stay_pos, '__len__') and len(stay_pos) >= 2:
                         stay_x, stay_y = float(stay_pos[0]), float(stay_pos[1])
                     else:
-                        stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.14
+                        _by = 0.10 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else 0.14
+                        stay_x, stay_y = -0.25*0.6, slider_y_pos - _by
                 except (TypeError, ValueError, AttributeError):
-                    stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.14
+                    _by = 0.10 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else 0.14
+                    stay_x, stay_y = -0.25*0.6, slider_y_pos - _by
                 
                 try:
                     stay_width = float(stay_button.width) if stay_button.width else 0.2*0.75
@@ -3166,9 +3171,11 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     if hasattr(switch_pos, '__len__') and len(switch_pos) >= 2:
                         switch_x, switch_y = float(switch_pos[0]), float(switch_pos[1])
                     else:
-                        switch_x, switch_y = 0.28*0.6, slider_y_pos - 0.14
+                        _by = 0.10 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else 0.14
+                        switch_x, switch_y = 0.28*0.6, slider_y_pos - _by
                 except (TypeError, ValueError, AttributeError):
-                    switch_x, switch_y = 0.28*0.6, slider_y_pos - 0.14
+                    _by = 0.10 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else 0.14
+                    switch_x, switch_y = 0.28*0.6, slider_y_pos - _by
                 
                 try:
                     switch_width = float(switch_button.width) if switch_button.width else 0.2*0.75
@@ -3207,9 +3214,11 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 if hasattr(stay_pos, '__len__') and len(stay_pos) >= 2:
                     stay_x, stay_y = float(stay_pos[0]), float(stay_pos[1])
                 else:
-                    stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.14
+                    _by = 0.10 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else 0.14
+                    stay_x, stay_y = -0.25*0.6, slider_y_pos - _by
             except (TypeError, ValueError, AttributeError):
-                stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.14
+                _by = 0.10 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else 0.14
+                stay_x, stay_y = -0.25*0.6, slider_y_pos - _by
             
             try:
                 stay_width = float(stay_button.width) if stay_button.width else 0.2*0.75
@@ -3226,9 +3235,11 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 if hasattr(switch_pos, '__len__') and len(switch_pos) >= 2:
                     switch_x, switch_y = float(switch_pos[0]), float(switch_pos[1])
                 else:
-                    switch_x, switch_y = 0.28*0.6, slider_y_pos - 0.14
+                    _by = 0.10 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else 0.14
+                    switch_x, switch_y = 0.28*0.6, slider_y_pos - _by
             except (TypeError, ValueError, AttributeError):
-                switch_x, switch_y = 0.28*0.6, slider_y_pos - 0.14
+                _by = 0.10 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else 0.14
+                switch_x, switch_y = 0.28*0.6, slider_y_pos - _by
             
             try:
                 switch_width = float(switch_button.width) if switch_button.width else 0.2*0.75
@@ -3810,7 +3821,7 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
     participant_accuracy = euclidean_distance < 0.5
     
     if participant_accuracy:
-        outcome_text = "Correct!"
+        outcome_text = "Correct"
         color = 'green'
     else:
         outcome_text = "Incorrect"
@@ -4682,7 +4693,7 @@ def run_experiment():
     correctness_points_t1 = max(0.0, 1.0 - euclidean_distance_t1)
     participant_accuracy_t1 = euclidean_distance_t1 < 0.5
     
-    outcome_text_t1 = "Correct!" if participant_accuracy_t1 else "Incorrect"
+    outcome_text_t1 = "Correct" if participant_accuracy_t1 else "Incorrect"
     color_t1 = 'green' if participant_accuracy_t1 else 'red'
     # Skip in-house curator message in practice - just show correctness
     outcome_stim_t1 = visual.TextStim(win, text=outcome_text_t1, 
@@ -4793,7 +4804,7 @@ def run_experiment():
     correctness_points_t2 = max(0.0, 1.0 - euclidean_distance_t2)
     participant_accuracy_t2 = euclidean_distance_t2 < 0.5
     
-    outcome_text_t2 = "Correct!" if participant_accuracy_t2 else "Incorrect"
+    outcome_text_t2 = "Correct" if participant_accuracy_t2 else "Incorrect"
     color_t2 = 'green' if participant_accuracy_t2 else 'red'
     # Skip in-house curator message in practice - just show correctness
     outcome_stim_t2 = visual.TextStim(win, text=outcome_text_t2, 
@@ -4868,7 +4879,7 @@ def run_experiment():
         blue_square = visual.Rect(win, width=0.3, height=0.3*1.35, fillColor='blue', lineColor='black', pos=(0, 0))
         blue_square.draw()
     win.flip()
-    core.wait(1.0)
+    safe_wait(1.0)
     
     # Trial 3: Full trial with participant, AI, switch/stay
     # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3)
@@ -4917,9 +4928,9 @@ def run_experiment():
     # Show outcome with points for practice trial 3 (display rounded to 1 decimal place, full precision kept in logged data)
     correctness_points_rounded_t3 = round(correctness_points_t3, 1)
     if participant_accuracy_t3:
-        outcome_text_t3 = f"Correct! Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
+        outcome_text_t3 = f"Correct Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
     else:
-        outcome_text_t3 = f"Incorrect! Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
+        outcome_text_t3 = f"InCorrect Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
     color_t3 = 'green' if participant_accuracy_t3 else 'red'
     outcome_stim_t3 = visual.TextStim(win, text=outcome_text_t3, 
                                       color=color_t3, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
