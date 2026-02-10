@@ -2039,16 +2039,17 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     text_height = 0.04*0.75*1.35  # Standardized text size
     prompt = visual.TextStim(win, text=prompt_text, color='black', height=text_height, pos=(0, 0.5*0.6), wrapWidth=1.4)  # Move higher to avoid overlap
     
-    # Submit button (positioned below slider, larger to fit text)
+    # Submit button (positioned below slider, shorter to stay above dock)
+    submit_y = slider_y_pos - 0.12
     submit_button = visual.Rect(
         win,
-        width=0.25*0.75,  # Increased width to fit text
-        height=0.08*0.75*1.35,  # Increased height
+        width=0.25*0.75,
+        height=0.06*0.75*1.35,  # Shorter
         fillColor='lightgreen',
         lineColor='black',
-        pos=(0, slider_y_pos - 0.18)  # Moved further down for spacing from slider handle
+        pos=(0, submit_y)
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*0.75*1.35, pos=(0, slider_y_pos - 0.18))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.035*0.75*1.35, pos=(0, submit_y))
     
     mouse.setVisible(True)
     
@@ -2740,16 +2741,16 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.04*0.75*1.35, pos=(0, 0.45))  # Move higher to avoid overlap with larger images
     
-    # Submit button (larger to fit text)
+    # Submit button (shorter, higher to stay above dock)
     submit_button = visual.Rect(
         win,
-        width=0.25,  # Increased width to fit text
-        height=0.08*1.35,  # Increased height
+        width=0.25,
+        height=0.06*1.35,  # Shorter
         fillColor='lightgreen',
         lineColor='black',
-        pos=(0, -0.4)  # Moved down for spacing
+        pos=(0, -0.32)
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*1.35, pos=(0, -0.4))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.035*1.35, pos=(0, -0.32))
     
     # Calculate target position
     target_x = -0.4*0.6 + (partner_value * 0.8*0.6)  # Target position
@@ -2907,7 +2908,7 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, slider_y_pos))
     
     # Labels below dots, vertical (90°), colored: "you" (green) and partner name (Amy/Ben) (blue)
-    label_y = slider_y_pos - 0.04  # Just below slider line
+    label_y = slider_y_pos - 0.02  # Just below slider line, high enough to stay visible
     p_label_text = visual.TextStim(
         win,
         text="you",
@@ -2972,7 +2973,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, slider_y_pos))
     
     # Labels below arrows, vertical (90°), colored like arrows: "you" and partner name (Amy/Ben)
-    label_y = slider_y_pos - 0.04  # Just below slider line
+    label_y = slider_y_pos - 0.02  # Just below slider line, high enough to stay visible
     if participant_value is not None and p_x_pos is not None:
         p_label_text = visual.TextStim(
             win,
@@ -2996,27 +2997,27 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
-    # Create buttons (positioned below slider, away from edge and labels for better clickability)
-    button_y_pos = slider_y_pos - 0.2  # Moved further down to avoid overlap with labels
+    # Create buttons (positioned below slider, slightly up and shorter to stay above dock)
+    button_y_pos = slider_y_pos - 0.14
     stay_button = visual.Rect(
         win,
         width=0.2*0.75,
-        height=0.08*0.75*1.35,
+        height=0.06*0.75*1.35,  # Shorter
         fillColor='lightblue',
         lineColor='black',
-        pos=(-0.25*0.6, button_y_pos)  # Moved left to avoid overlap with OLD label
+        pos=(-0.25*0.6, button_y_pos)
     )
-    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.04*0.75*1.35, pos=(-0.25*0.6, button_y_pos))  # Reduced to fit within button
+    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.035*0.75*1.35, pos=(-0.25*0.6, button_y_pos))
     
     switch_button = visual.Rect(
         win,
         width=0.28*0.75,  # Wider SWITCH button
-        height=0.08*0.75*1.35,
+        height=0.06*0.75*1.35,  # Shorter
         fillColor='lightcoral',
         lineColor='black',
-        pos=(0.28*0.6, button_y_pos)  # Slightly right to center the wider button
+        pos=(0.28*0.6, button_y_pos)
     )
-    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.04*0.75*1.35, pos=(0.28*0.6, button_y_pos))  # Reduced to fit within button
+    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.035*0.75*1.35, pos=(0.28*0.6, button_y_pos))
     
     decision_prompt = visual.TextStim(
         win,
@@ -3143,13 +3144,13 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     if hasattr(stay_pos, '__len__') and len(stay_pos) >= 2:
                         stay_x, stay_y = float(stay_pos[0]), float(stay_pos[1])
                     else:
-                        stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.2
+                        stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.14
                 except (TypeError, ValueError, AttributeError):
-                    stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.2
+                    stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.14
                 
                 try:
                     stay_width = float(stay_button.width) if stay_button.width else 0.2*0.75
-                    stay_height = float(stay_button.height) if stay_button.height else 0.08*0.75
+                    stay_height = float(stay_button.height) if stay_button.height else 0.06*0.75
                 except (TypeError, ValueError, AttributeError):
                     stay_width, stay_height = 0.2*0.75, 0.08*0.75
                 
@@ -3165,13 +3166,13 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     if hasattr(switch_pos, '__len__') and len(switch_pos) >= 2:
                         switch_x, switch_y = float(switch_pos[0]), float(switch_pos[1])
                     else:
-                        switch_x, switch_y = 0.25*0.6, slider_y_pos - 0.2
+                        switch_x, switch_y = 0.28*0.6, slider_y_pos - 0.14
                 except (TypeError, ValueError, AttributeError):
-                    switch_x, switch_y = 0.25*0.6, slider_y_pos - 0.2
+                    switch_x, switch_y = 0.28*0.6, slider_y_pos - 0.14
                 
                 try:
                     switch_width = float(switch_button.width) if switch_button.width else 0.2*0.75
-                    switch_height = float(switch_button.height) if switch_button.height else 0.08*0.75
+                    switch_height = float(switch_button.height) if switch_button.height else 0.06*0.75
                 except (TypeError, ValueError, AttributeError):
                     switch_width, switch_height = 0.2*0.75, 0.08*0.75
                 
@@ -3206,13 +3207,13 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 if hasattr(stay_pos, '__len__') and len(stay_pos) >= 2:
                     stay_x, stay_y = float(stay_pos[0]), float(stay_pos[1])
                 else:
-                    stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.2
+                    stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.14
             except (TypeError, ValueError, AttributeError):
-                stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.2
+                stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.14
             
             try:
                 stay_width = float(stay_button.width) if stay_button.width else 0.2*0.75
-                stay_height = float(stay_button.height) if stay_button.height else 0.08*0.75
+                stay_height = float(stay_button.height) if stay_button.height else 0.06*0.75
             except (TypeError, ValueError, AttributeError):
                 stay_width, stay_height = 0.2*0.75, 0.08*0.75
             
@@ -3225,13 +3226,13 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 if hasattr(switch_pos, '__len__') and len(switch_pos) >= 2:
                     switch_x, switch_y = float(switch_pos[0]), float(switch_pos[1])
                 else:
-                    switch_x, switch_y = 0.25*0.6, slider_y_pos - 0.2
+                    switch_x, switch_y = 0.28*0.6, slider_y_pos - 0.14
             except (TypeError, ValueError, AttributeError):
-                switch_x, switch_y = 0.25*0.6, slider_y_pos - 0.2
+                switch_x, switch_y = 0.28*0.6, slider_y_pos - 0.14
             
             try:
                 switch_width = float(switch_button.width) if switch_button.width else 0.2*0.75
-                switch_height = float(switch_button.height) if switch_button.height else 0.08*0.75
+                switch_height = float(switch_button.height) if switch_button.height else 0.06*0.75
             except (TypeError, ValueError, AttributeError):
                 switch_width, switch_height = 0.2*0.75, 0.08*0.75
             
