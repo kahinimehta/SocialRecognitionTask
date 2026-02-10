@@ -3784,7 +3784,7 @@ def show_leaderboard(participant_id, total_points):
         text=leaderboard_text,
         color='black',
         height=0.04*1.35,
-        pos=(0, 0.3),  # Move higher to avoid overlap with larger images
+        pos=(0, 0.05),  # Lower so full board visible and not cut off at bottom
         wrapWidth=1.6,
         font='Courier New'  # Monospace font for alignment
     )
