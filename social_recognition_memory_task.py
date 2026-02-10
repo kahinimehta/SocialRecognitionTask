@@ -2037,16 +2037,16 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     text_height = 0.04*0.75*1.35 if len(prompt_text) > 100 else 0.05*0.75*1.35
     prompt = visual.TextStim(win, text=prompt_text, color='black', height=text_height, pos=(0, 0.5*0.6), wrapWidth=1.4)  # Move higher to avoid overlap
     
-    # Submit button (positioned below slider)
+    # Submit button (positioned below slider, larger to fit text)
     submit_button = visual.Rect(
         win,
-        width=0.15*0.75,
-        height=0.06*0.75*1.35,
-        fillColor='lightgray',
+        width=0.25*0.75,  # Increased width to fit text
+        height=0.08*0.75*1.35,  # Increased height
+        fillColor='lightgreen',
         lineColor='black',
-        pos=(0, slider_y_pos - 0.12)
+        pos=(0, slider_y_pos - 0.18)  # Moved further down for spacing from slider handle
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*0.75*1.35, pos=(0, slider_y_pos - 0.12))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*0.75*1.35, pos=(0, slider_y_pos - 0.18))
     
     mouse.setVisible(True)
     
@@ -2738,16 +2738,16 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.05*1.35, pos=(0, 0.45))  # Move higher to avoid overlap with larger images
     
-    # Submit button
+    # Submit button (larger to fit text)
     submit_button = visual.Rect(
         win,
-        width=0.15,
-        height=0.06*1.35,
-        fillColor='lightgray',
+        width=0.25,  # Increased width to fit text
+        height=0.08*1.35,  # Increased height
+        fillColor='lightgreen',
         lineColor='black',
-        pos=(0, -0.35)
+        pos=(0, -0.4)  # Moved down for spacing
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*1.35, pos=(0, -0.35))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.04*1.35, pos=(0, -0.4))
     
     # Calculate target position
     target_x = -0.4*0.6 + (partner_value * 0.8*0.6)  # Target position
@@ -2948,7 +2948,7 @@ def show_both_responses(participant_value, partner_value, participant_first, par
         text=f"{partner_name}'s choice",
         color='black',
         height=0.035*0.75*1.35,
-        pos=(a_x_pos, slider_y_pos - 0.12)  # Below partner arrow
+        pos=(a_x_pos, slider_y_pos - 0.18)  # Moved further down to avoid overlap with buttons
     )
     
     # Move labels farther from line to avoid overlap
@@ -3014,24 +3014,24 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
             text=f"{partner_name}'s choice",
             color='black',
             height=0.035*0.75*1.35,
-            pos=(a_x_pos, slider_y_pos - 0.12)  # Below partner arrow
+            pos=(a_x_pos, slider_y_pos - 0.18)  # Moved further down to avoid overlap with buttons
         )
     
     # Move labels farther from line to avoid overlap
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
-    # Create buttons (positioned below slider, away from edge for better clickability)
-    button_y_pos = slider_y_pos - 0.12  # Moved up slightly from edge
+    # Create buttons (positioned below slider, away from edge and labels for better clickability)
+    button_y_pos = slider_y_pos - 0.2  # Moved further down to avoid overlap with labels
     stay_button = visual.Rect(
         win,
         width=0.2*0.75,
         height=0.08*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(-0.3*0.6, button_y_pos)
+        pos=(-0.25*0.6, button_y_pos)  # Moved left to avoid overlap with OLD label
     )
-    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.04*0.75*1.35, pos=(-0.3*0.6, button_y_pos))  # Reduced to fit within button
+    stay_text = visual.TextStim(win, text="STAY", color='black', height=0.04*0.75*1.35, pos=(-0.25*0.6, button_y_pos))  # Reduced to fit within button
     
     switch_button = visual.Rect(
         win,
@@ -3039,9 +3039,9 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         height=0.08*0.75*1.35,
         fillColor='lightcoral',
         lineColor='black',
-        pos=(0.3*0.6, button_y_pos)
+        pos=(0.25*0.6, button_y_pos)  # Moved right to avoid overlap with NEW label
     )
-    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.04*0.75*1.35, pos=(0.3*0.6, button_y_pos))  # Reduced to fit within button
+    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.04*0.75*1.35, pos=(0.25*0.6, button_y_pos))  # Reduced to fit within button
     
     decision_prompt = visual.TextStim(
         win,
@@ -3168,9 +3168,9 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     if hasattr(stay_pos, '__len__') and len(stay_pos) >= 2:
                         stay_x, stay_y = float(stay_pos[0]), float(stay_pos[1])
                     else:
-                        stay_x, stay_y = -0.3*0.6, slider_y_pos - 0.15
+                        stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.2
                 except (TypeError, ValueError, AttributeError):
-                    stay_x, stay_y = -0.3*0.6, slider_y_pos - 0.15
+                    stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.2
                 
                 try:
                     stay_width = float(stay_button.width) if stay_button.width else 0.2*0.75
@@ -3190,9 +3190,9 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     if hasattr(switch_pos, '__len__') and len(switch_pos) >= 2:
                         switch_x, switch_y = float(switch_pos[0]), float(switch_pos[1])
                     else:
-                        switch_x, switch_y = 0.3*0.6, slider_y_pos - 0.15
+                        switch_x, switch_y = 0.25*0.6, slider_y_pos - 0.2
                 except (TypeError, ValueError, AttributeError):
-                    switch_x, switch_y = 0.3*0.6, slider_y_pos - 0.15
+                    switch_x, switch_y = 0.25*0.6, slider_y_pos - 0.2
                 
                 try:
                     switch_width = float(switch_button.width) if switch_button.width else 0.2*0.75
@@ -3231,9 +3231,9 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 if hasattr(stay_pos, '__len__') and len(stay_pos) >= 2:
                     stay_x, stay_y = float(stay_pos[0]), float(stay_pos[1])
                 else:
-                    stay_x, stay_y = -0.3*0.6, slider_y_pos - 0.15
+                    stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.2
             except (TypeError, ValueError, AttributeError):
-                stay_x, stay_y = -0.3*0.6, slider_y_pos - 0.15
+                stay_x, stay_y = -0.25*0.6, slider_y_pos - 0.2
             
             try:
                 stay_width = float(stay_button.width) if stay_button.width else 0.2*0.75
@@ -3250,9 +3250,9 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 if hasattr(switch_pos, '__len__') and len(switch_pos) >= 2:
                     switch_x, switch_y = float(switch_pos[0]), float(switch_pos[1])
                 else:
-                    switch_x, switch_y = 0.3*0.6, slider_y_pos - 0.15
+                    switch_x, switch_y = 0.25*0.6, slider_y_pos - 0.2
             except (TypeError, ValueError, AttributeError):
-                switch_x, switch_y = 0.3*0.6, slider_y_pos - 0.15
+                switch_x, switch_y = 0.25*0.6, slider_y_pos - 0.2
             
             try:
                 switch_width = float(switch_button.width) if switch_button.width else 0.2*0.75
@@ -4435,14 +4435,14 @@ def run_experiment():
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
+        pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
     )
     continue_text_welcome = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
-        pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
+        pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
     )
     
     def redraw_welcome_1():
@@ -4486,7 +4486,7 @@ def run_experiment():
                     draw_screen()
                 else:
                     # Position has changed - check if touch is within button using position calculation
-                    button_x, button_y = 0.4, -0.4  # Updated to match button position
+                    button_x, button_y = 0.4, -0.3  # Updated to match button position
                     button_width, button_height = 0.3*0.75, 0.1*0.75
                     hit_margin_x = max(button_width * 0.5, 0.08)
                     hit_margin_y = max(button_height * 0.5, 0.04)
@@ -4542,7 +4542,7 @@ def run_experiment():
                 except (TypeError, ValueError):
                     mouse_x, mouse_y = 0.0, 0.0
                 
-                button_x, button_y = 0.4, -0.4  # Updated to match button position
+                button_x, button_y = 0.4, -0.3  # Updated to match button position
                 button_width, button_height = 0.3*0.75, 0.1*0.75
                 
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
@@ -5044,10 +5044,10 @@ def run_experiment():
     amy_intro_text = visual.TextStim(
         win,
         text="Work with Amy to sort this collection.\n\n"
-             "Sometimes she goes first, sometimes you do. She's a bit overwhelmed, so do your best to help her!",
+             "Sometimes she goes first, sometimes you do.",
         color='black',
         height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
-        pos=(0, 0.25),  # Moved down for better spacing with image
+        pos=(0, 0.2),  # Adjusted position for better spacing
         wrapWidth=1.2
     )
     
@@ -5079,14 +5079,14 @@ def run_experiment():
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
+        pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
     )
     continue_text_amy_intro = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
-        pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
+        pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
     )
     
     def redraw_amy_intro():
@@ -5130,7 +5130,7 @@ def run_experiment():
                     draw_screen_amy_intro()
                 else:
                     # Position has changed - check if touch is within button using position calculation
-                    button_x_amy_intro, button_y_amy_intro = 0.4, -0.4  # Updated to match button position
+                    button_x_amy_intro, button_y_amy_intro = 0.4, -0.3  # Updated to match button position
                     button_width_amy_intro, button_height_amy_intro = 0.3*0.75, 0.1*0.75
                     hit_margin_amy_intro_x = max(button_width_amy_intro * 0.5, 0.08)
                     hit_margin_amy_intro_y = max(button_height_amy_intro * 0.5, 0.04)
@@ -5175,7 +5175,7 @@ def run_experiment():
                 except (TypeError, ValueError):
                     mouse_x_amy_intro, mouse_y_amy_intro = 0.0, 0.0
                 
-                button_x_amy_intro, button_y_amy_intro = 0.4, -0.4  # Updated to match button position
+                button_x_amy_intro, button_y_amy_intro = 0.4, -0.3  # Updated to match button position
                 button_width_amy_intro, button_height_amy_intro = 0.3*0.75, 0.1*0.75
                 
                 on_button_amy_intro = (button_x_amy_intro - button_width_amy_intro/2 <= mouse_x_amy_intro <= button_x_amy_intro + button_width_amy_intro/2 and
@@ -5293,14 +5293,14 @@ def run_experiment():
                             height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
-                            pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
+                            pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
                         continue_text_ben = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
                             height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
-                            pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
+                            pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
                         
                         def redraw_ben():
@@ -5310,7 +5310,7 @@ def run_experiment():
                             continue_button_ben.draw()
                             continue_text_ben.draw()
                         
-                        button_x, button_y = 0.4, -0.4  # Updated to match button position
+                        button_x, button_y = 0.4, -0.3  # Updated to match button position
                         continue_button = continue_button_ben
                         continue_text = continue_text_ben
                         
@@ -5347,14 +5347,14 @@ def run_experiment():
                             height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
-                            pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
+                            pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
                         continue_text_ben_continue = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
                             height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
-                            pos=(0.4, -0.4)  # Bottom right, moved up for better spacing
+                            pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
                         
                         def redraw_ben():
@@ -5364,7 +5364,7 @@ def run_experiment():
                             continue_button_ben_continue.draw()
                             continue_text_ben_continue.draw()
                         
-                        button_x, button_y = 0.4, -0.4
+                        button_x, button_y = 0.4, -0.3
                         continue_button = continue_button_ben_continue
                         continue_text = continue_text_ben_continue
                     else:
@@ -5541,14 +5541,14 @@ def run_experiment():
                             height=0.1*0.75*1.35,
                             fillColor='lightblue',
                             lineColor='black',
-                            pos=(0.4, -0.4)  # Bottom right, moved away from edge for better clickability
+                            pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
                         continue_text_amy_return = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
                             height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
-                            pos=(0.4, -0.4)  # Bottom right, moved away from edge for better clickability
+                            pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
                         
                         def redraw_amy():
@@ -5592,7 +5592,7 @@ def run_experiment():
                                         draw_screen_amy_return()
                                     else:
                                         # Position has changed - check if touch is within button using position calculation
-                                        button_x_amy_return, button_y_amy_return = 0.4, -0.4  # Updated to match button position
+                                        button_x_amy_return, button_y_amy_return = 0.4, -0.3  # Updated to match button position
                                         button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
                                         hit_margin_amy_return_x = max(button_width_amy_return * 0.5, 0.08)
                                         hit_margin_amy_return_y = max(button_height_amy_return * 0.5, 0.04)
@@ -5637,7 +5637,7 @@ def run_experiment():
                                     except (TypeError, ValueError):
                                         mouse_x_amy_return, mouse_y_amy_return = 0.0, 0.0
                                     
-                                    button_x_amy_return, button_y_amy_return = 0.4, -0.4  # Updated to match button position
+                                    button_x_amy_return, button_y_amy_return = 0.4, -0.3  # Updated to match button position
                                     button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
                                     
                                     on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 <= mouse_x_amy_return <= button_x_amy_return + button_width_amy_return/2 and
