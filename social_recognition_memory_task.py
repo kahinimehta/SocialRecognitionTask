@@ -2885,41 +2885,11 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     
     return slider_display_time, final_slider_display_time
 
-def create_arrow(x_pos, y_pos, color='black', arrow_length=0.08, arrow_width=0.02):
-    """Create a downward-pointing arrow at the specified position
-    Arrow points from above the slider down to the rating position on the slider
-    """
-    # Tip is at the slider position (y_pos) - this is where the rating is
-    tip_y = y_pos
-    tip_x = x_pos
-    # Arrow starts above slider (higher y value = higher on screen)
-    start_y = y_pos + arrow_length
-    start_x = x_pos
-    
-    # Create arrow using ShapeStim with vertices
-    # Arrow shape: vertical line with triangle tip pointing down
-    # In PsychoPy, positive y is up, so start_y > tip_y means start is above tip
-    arrow_vertices = [
-        (start_x, start_y),  # Top of arrow (start point, above slider)
-        (tip_x - arrow_width/2, tip_y + arrow_width),  # Left side of tip (just above tip)
-        (tip_x, tip_y),  # Tip point (at slider position)
-        (tip_x + arrow_width/2, tip_y + arrow_width),  # Right side of tip (just above tip)
-    ]
-    
-    arrow = visual.ShapeStim(
-        win,
-        vertices=arrow_vertices,
-        fillColor=color,
-        lineColor=color,
-        closeShape=True
-    )
-    return arrow
-
 def show_both_responses(participant_value, partner_value, participant_first, partner_name="Amy", slider_y_pos=None):
     """Show both participant and partner responses with sliders. slider_y_pos must match get_slider_response (use SLIDER_Y_POS_ACTUAL for actual task)."""
     if slider_y_pos is None:
         slider_y_pos = SLIDER_Y_POS_PRACTICE
-    # Create slider visualization for both (arrows on same height as scale)
+    # Create slider visualization for both (dots on same height as scale)
     slider_line = visual.Line(
         win,
         start=(-0.4*0.6, slider_y_pos),
@@ -2928,15 +2898,15 @@ def show_both_responses(participant_value, partner_value, participant_first, par
         lineWidth=3
     )
     
-    # Participant arrow (green) - on scale line
+    # Participant dot (black) - on scale line
     p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
-    p_arrow = create_arrow(p_x_pos, slider_y_pos, color='green', arrow_length=0.08, arrow_width=0.02)
+    p_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(p_x_pos, slider_y_pos))
     
-    # Partner arrow (blue) - on same scale line (same height as scale)
+    # Partner dot (black) - on same scale line
     a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
-    a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
+    a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, slider_y_pos))
     
-    # Labels below arrows, vertical (90°), colored like arrows: "you" and partner name (Amy/Ben)
+    # Labels below dots, vertical (90°), colored: "you" (green) and partner name (Amy/Ben) (blue)
     label_y = slider_y_pos - 0.04  # Just below slider line
     p_label_text = visual.TextStim(
         win,
@@ -2965,8 +2935,8 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     new_label.draw()
     p_label_text.draw()
     a_label_text.draw()
-    p_arrow.draw()
-    a_arrow.draw()
+    p_dot.draw()
+    a_dot.draw()
     win.flip()
 
 def get_switch_stay_decision(image_stim=None, participant_value=None, partner_value=None, timeout=7.0, partner_name="Amy", slider_y_pos=None):
@@ -2976,7 +2946,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     # Calculate euclidean distance
     euclidean_dist = abs(participant_value - partner_value) if (participant_value is not None and partner_value is not None) else None
     
-    # Create slider visualization (arrows on same height as scale)
+    # Create slider visualization (dots on same height as scale)
     slider_line = visual.Line(
         win,
         start=(-0.4*0.6, slider_y_pos),
@@ -2985,21 +2955,21 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         lineWidth=3
     )
     
-    # Participant arrow (green) - on scale line
-    p_arrow = None
+    # Participant dot (black) - on scale line
+    p_dot = None
     p_x_pos = None
     p_label_text = None
     a_x_pos = None  # Initialize for distance calculation
     if participant_value is not None:
         p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
-        p_arrow = create_arrow(p_x_pos, slider_y_pos, color='green', arrow_length=0.08, arrow_width=0.02)
+        p_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(p_x_pos, slider_y_pos))
     
-    # Partner arrow (blue) - on same scale line (same height as scale)
-    a_arrow = None
+    # Partner dot (black) - on same scale line
+    a_dot = None
     a_label_text = None
     if partner_value is not None:
         a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
-        a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
+        a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, slider_y_pos))
     
     # Labels below arrows, vertical (90°), colored like arrows: "you" and partner name (Amy/Ben)
     label_y = slider_y_pos - 0.04  # Just below slider line
@@ -3111,10 +3081,10 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     p_label_text.draw()
                 if partner_value is not None and a_label_text is not None:
                     a_label_text.draw()
-                if participant_value is not None and p_arrow is not None:
-                    p_arrow.draw()
-                if partner_value is not None and a_arrow is not None:
-                    a_arrow.draw()
+                if participant_value is not None and p_dot is not None:
+                    p_dot.draw()
+                if partner_value is not None and a_dot is not None:
+                    a_dot.draw()
                 timeout_alert.draw()
                 win.flip()
                 core.wait(1.5)
@@ -3318,10 +3288,10 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
             p_label_text.draw()
         if partner_value is not None and a_label_text is not None:
             a_label_text.draw()
-        if participant_value is not None and p_arrow is not None:
-            p_arrow.draw()
-        if partner_value is not None and a_arrow is not None:
-            a_arrow.draw()
+        if participant_value is not None and p_dot is not None:
+            p_dot.draw()
+        if partner_value is not None and a_dot is not None:
+            a_dot.draw()
         
         # Draw buttons below slider
         stay_button.draw()
