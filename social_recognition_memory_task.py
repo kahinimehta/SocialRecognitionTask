@@ -3033,7 +3033,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         color='black',
         height=0.04*0.75*1.35,
         wrapWidth=1.2,
-        pos=(0, 0.38 + SWITCH_STAY_CONTENT_OFFSET)  # Moved up with other content on this screen
+        pos=(0, 0.28)  # Below top of screen, closer to image so text stays visible
     )
     
     mouse.setVisible(True)
