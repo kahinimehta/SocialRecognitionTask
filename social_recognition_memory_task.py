@@ -1254,11 +1254,13 @@ def safe_wait(duration):
         # Ignore other non-critical wait errors
         pass
 
-def wait_for_button(redraw_func=None, button_text="CONTINUE"):
-    """Wait for button click/touch instead of space key - button should be included in redraw_func"""
+def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
+    """Wait for button click/touch instead of space key - button should be included in redraw_func. button_y: optional y position for button (default -0.4*0.6)."""
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
     
+    if button_y is None:
+        button_y = -0.4*0.6
     # Create continue button
     continue_button = visual.Rect(
         win,
@@ -1266,14 +1268,14 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
         height=0.1*0.75*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.4*0.6)  # Moved away from edge for better clickability
+        pos=(0, button_y)
     )
     continue_text = visual.TextStim(
         win,
         text=button_text,
         color='black',
         height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
-        pos=(0, -0.4*0.6)  # Moved away from edge for better clickability
+        pos=(0, button_y)
     )
     
     # Draw initial screen once (button should be included in redraw_func)
@@ -1318,9 +1320,9 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.4*0.6  # Updated to match new button position
+                            button_x, button_y = 0.0, button_y  # Use same y as button creation
                     except (TypeError, ValueError):
-                        button_x, button_y = 0.0, -0.35*0.6
+                        button_x, button_y = 0.0, button_y
                     
                     try:
                         button_width = float(continue_button.width)
@@ -1389,9 +1391,9 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE"):
                     if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                         button_x, button_y = float(button_pos[0]), float(button_pos[1])
                     else:
-                        button_x, button_y = 0.0, -0.35*0.6  # Match actual button position
+                        button_x, button_y = 0.0, button_y  # Use same y as button creation
                 except (TypeError, ValueError):
-                    button_x, button_y = 0.0, -0.35*0.6  # Match actual button position
+                    button_x, button_y = 0.0, button_y
                 
                 try:
                     button_width = float(continue_button.width)
@@ -3724,25 +3726,22 @@ def show_block_summary(block_num, total_points, max_points):
     event.clearEvents()
 
 def show_leaderboard(participant_id, total_points):
-    """Show a fake leaderboard with participant ranked 2 out of 7"""
-    # Generate fake participant names (P01-P07, excluding current participant)
-    all_participants = [f"P{i:02d}" for i in range(1, 8)]
+    """Show a fake leaderboard with participant ranked 2 out of 5"""
+    # Generate fake participant names (P01-P05, excluding current participant)
+    all_participants = [f"P{i:02d}" for i in range(1, 6)]
     current_participant_label = participant_id if len(participant_id) <= 10 else participant_id[:10]
     
-    # Participant is always ranked 2 out of 7
+    # Participant is always ranked 2 out of 5
     participant_rank = 2
-    total_players = 7
+    total_players = 5
     
-    # Generate fake scores: create 6 other scores around the participant's score
-    # Ensure participant's score will be at rank 2 after sorting
+    # Generate fake scores: 1 above participant (rank 1), rest below (ranks 3-5)
     fake_scores = []
     
     # Generate 1 score above participant (for rank 1)
-    # This must be strictly greater than total_points
     fake_scores.append(total_points + random.uniform(0.1, 5.0))
     
-    # Generate 5 scores below participant (for ranks 3-7)
-    # These must be strictly less than total_points
+    # Generate (total_players - participant_rank) scores below participant (ranks 3-5)
     for _ in range(total_players - participant_rank):
         fake_scores.append(total_points - random.uniform(0.1, 15.0))
     
@@ -3798,8 +3797,8 @@ def show_leaderboard(participant_id, total_points):
     leaderboard_stim.draw()
     win.flip()
     
-    # Use wait_for_button which will handle the continue button
-    wait_for_button(redraw_func=redraw)
+    # Use wait_for_button with lower button position to avoid overlap with leaderboard text
+    wait_for_button(redraw_func=redraw, button_y=-0.5)
 
 def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, total_points=0):
     """Show trial outcome with points based on euclidean distance"""
