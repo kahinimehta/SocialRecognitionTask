@@ -2248,7 +2248,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                     # Show message: "please select an answer first"
                     error_message = visual.TextStim(
                         win,
-                        text="Please select an answer first",
+                        text="Please select an answer first.",
                         color='red',
                         height=0.05*0.75*1.35,
                         pos=(0, slider_y_pos - 0.2)
@@ -5016,59 +5016,35 @@ def run_experiment():
     
     # Rules reminder before starting the actual game - split into 3 pages for better readability
     show_instructions(
-        "Amy's Collections:\n"
-        "You must remember each photo Amy wants in the collection carefully.\n\n"
-        "You'll see images of various objects, animals, and scenes.",
-        header_color='darkred',
-        body_color='black'
-    )
-    
-    show_instructions(
-        "Amy's Photos:\n"
-        "Following that, you'll be shown more images. These are all the photos Amy took recently.\n\n"
-        "• Rate your confidence on each photo if it belongs in the collection on the slider\n"
-        "• LEFT = OLD (should be part of the collection)\n"
-        "• RIGHT = NEW (I haven't seen these before, they are not part of the collection)\n"
-        "• Click anywhere on the slider line to set your rating, then click SUBMIT.",
+        "Task Overview:\n"
+        "Remember which photos belong in each collection.\n\n"
+        "Rate each image: OLD (belongs) or NEW (doesn't belong).\n"
+        "Click on the slider, then SUBMIT.",
         header_color='darkred',
         body_color='black'
     )
     
     show_instructions(
         "Working with Amy:\n"
-        "Amy will also rate each image, but may not always be correct. She's super busy!\n\n"
-        "• You can STAY with your answer\n"
-        "• Or SWITCH to your partner Amy's answer\n"
-        "• Even if you both agree (OLD or NEW), you can switch to match your partner Amy's confidence level.",
+        "Amy will also rate each photo. You can STAY with your answer or SWITCH to hers.\n\n"
+        "You can switch even if you both agree, to match her confidence level.",
         header_color='darkred',
         body_color='black'
     )
 
     show_instructions(
-        "Exhibition Scoring:\n"
-        "Remember, confidence matters! An in-house curator will score your collection before the exhibition.\n\n"
-        "• If you are confident and wrong (e.g., you click ALL the way to the left/OLD on an image that shouldn't be part of the collection), "
-        "the curator will penalize you more heavily\n"
-        "• If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit.",
+        "Scoring:\n"
+        "Confidence matters. An in-house curator scores based on accuracy and confidence.\n\n"
+        "10 collections, 10 images each. Time limit per decision.",
         header_color='darkred',
-        body_color='black'
-    )
-
-    show_instructions(
-        "Important Information for New Employees!\n"
-        "We have 10 collections with 10 images each to get through.\n\n"
-        "Because the exhibition is so soon, you will have a time limit on each image decision!\n\n"
-        "You will receive 0-1 points for each image.",
-        header_color='black',
         body_color='black'
     )
 
     # Show Amy's introduction before the first collection
     amy_intro_text = visual.TextStim(
         win,
-        text="Remember: you'll be working with Amy to sort through this collection.\n\n"
-             "She'll provide her judgments as you work through each collection, but is distracted with other tasks.\n\n"
-             "Sometimes she will go first, other times you will go first.",
+        text="Work with Amy to sort this collection.\n\n"
+             "Sometimes she goes first, sometimes you do. She's a bit overwhelmed, so do your best to help her!",
         color='black',
         height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.25),  # Moved down for better spacing with image
@@ -5282,8 +5258,7 @@ def run_experiment():
                             text="A quick update.\n\n"
                                  "Amy has stepped away to prepare for her exhibition.\n\n"
                                  "While she's gone, you'll be working with Ben—another assistant in the studio.\n\n"
-                                 "Ben is helping sort the same set of images, but he has trained differently than you.\n\n"
-                                 "As always, focus on making the best judgment you can. Click CONTINUE to start sorting!",
+                                 "Click CONTINUE to start sorting!",
                             color='black',
                             height=0.04*0.75*1.35,
                             pos=(0, 0.25),  # Moved down for better spacing with image
@@ -5540,8 +5515,7 @@ def run_experiment():
                         switch_text = visual.TextStim(
                             win,
                             text="Amy is back for a day!\n\n"
-                                 "She's returning to help with exhibition preparation.\n\n"
-                                 "You'll once again see her judgments as you work through these collections.",
+                                 "She's returning to help you with exhibition preparation.\n\n",
                             color='black',
                             height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
                             pos=(0, 0.25),  # Moved down for better spacing with image

@@ -20,7 +20,7 @@
 
 ### Initial Screen
 **Display says:**
-"Hello & welcome to the social memory game! Pay careful attention to the text on the screen"
+"Hello & welcome to the social memory game! Pay careful attention to the text on the screen."
 
 **What to say:**
 "Welcome! You'll see a welcome message on the screen. Please read it carefully and click CONTINUE when you're ready."
@@ -141,85 +141,52 @@ For now, simply memorize the shapes you're about to see. Click continue when you
 Now we'll begin the actual work."
 
 **What to say:**
-"Great! The practice is done. Now we'll start the actual task. There will be more detailed instructions coming up."
+"Great! The practice is done. Now we'll start the actual task. There will be brief instructions coming up."
 
 ---
 
-### Instructions - Amy's Collections
+### Instructions - Task Overview
 **Display says:**
-"Amy's Collections:
-You must remember each photo Amy wants in the collection carefully.
+"Task Overview:
+Remember which images belong in each collection.
 
-You'll see images of various objects, animals, and scenes."
+Rate each image: OLD (belongs) or NEW (doesn't belong).
+Click on the slider, then SUBMIT."
 
 **What to say:**
-"Read these instructions carefully. You'll need to remember which images belong in each collection."
-
----
-
-### Instructions - Amy's Photos
-**Display says:**
-"Amy's Photos:
-Following that, you'll be shown more images. These are all the photos Amy took recently.
-
-• Rate your confidence on each photo if it belongs in the collection on the slider
-• LEFT = OLD (should be part of the collection)
-• RIGHT = NEW (I haven't seen these before, they are not part of the collection)
-• Click anywhere on the slider line to set your rating, then click SUBMIT"
-
-**What to say:**
-"Use the slider to rate each image. LEFT means OLD - you've seen it before and it belongs in the collection. RIGHT means NEW - you haven't seen it before. Click on the slider line to set your rating, then click SUBMIT."
+"Read these instructions carefully. You'll need to remember which images belong in each collection. Use the slider to rate each image - OLD means it belongs, NEW means it doesn't. Click on the slider line to set your rating, then click SUBMIT."
 
 ---
 
 ### Instructions - Working with Amy
 **Display says:**
 "Working with Amy:
-Amy will also rate each image, but may not always be correct. She's super busy!
+Amy will also rate each image. You can STAY with your answer or SWITCH to hers.
 
-• You can STAY with your answer
-• Or SWITCH to your partner Amy's answer
-• Even if you both agree (OLD or NEW) you can switch to match your partner Amy's confidence level"
+You can switch even if you both agree, to match her confidence level."
 
 **What to say:**
-"Amy will rate each image too, but she might not always be right. After you both rate, you can STAY with your answer or SWITCH to Amy's answer. You can switch even if you both agree, to match her confidence level."
+"Amy will rate each image too. After you both rate, you can STAY with your answer or SWITCH to Amy's answer. You can switch even if you both agree, to match her confidence level."
 
 ---
 
-### Instructions - Exhibition Scoring
+### Instructions - Scoring
 **Display says:**
-"Exhibition Scoring:
-Remember, confidence matters! An in-house curator will score your collection before the exhibition.
+"Scoring:
+Confidence matters. A curator scores based on accuracy and confidence.
 
-• If you are confident and wrong (e.g., you click ALL the way to the left/OLD on an image that shouldn't be part of the collection), the curator will penalize you more heavily
-• If you are not confident but you're right, the curator will still sense your hesitation and mark you down a bit"
+10 collections, 10 images each. Time limit per decision."
 
 **What to say:**
-"The scoring system considers both accuracy and confidence. Being very confident but wrong will cost you more points. Being hesitant even when right will also reduce your score slightly."
-
----
-
-### Instructions - Important Information
-**Display says:**
-"Important Information for New Employees!
-We have 10 collections with 10 images each to get through.
-
-Because the exhibition is so soon, you will have a time limit on each image decision!
-
-You will receive 0-1 points for each image."
-
-**What to say:**
-"There are 10 collections total, with 10 images in each. You'll have a time limit for each decision. You can earn 0-1 points per image."
+"The scoring system considers both accuracy and confidence. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision."
 
 ---
 
 ### Amy Introduction Before Collections
 **Display shows:**
-"Remember: you'll be working with Amy to sort through this collection.
+"Work with Amy to sort this collection.
 
-She'll provide her judgments as you work through each collection, but is distracted with other tasks.
-
-Sometimes she will go first, other times you will go first."
+Sometimes she goes first, sometimes you do."
 
 [Image of Amy appears]
 
