@@ -714,7 +714,7 @@ try:
     print("Testing window with simple draw...")
     sys.stdout.flush()
     try:
-        test_text = visual.TextStim(win, text=" ", color='black', height=0.05*0.75*1.35, pos=(0, 0))
+        test_text = visual.TextStim(win, text=" ", color='black', height=0.04*0.75*1.35, pos=(0, 0))
         test_text.draw()
         win.flip()
         print("Window draw test successful")
@@ -1161,7 +1161,7 @@ try:
     fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     print("fixation created")
     print("Creating feedback_txt...")
-    feedback_txt = visual.TextStim(win, text="", color='black', height=0.05*0.75*1.35, pos=(0, 0))
+    feedback_txt = visual.TextStim(win, text="", color='black', height=0.04*0.75*1.35, pos=(0, 0))
     print("feedback_txt created")
     print("Creating mouse...")
     mouse = event.Mouse(win=win)
@@ -1507,21 +1507,21 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
         wrapWidth=1.5
     )
     
-    # Create continue button - position lower to avoid overlap
+    # Create continue button - positioned higher for better balance with text
     continue_button = visual.Rect(
         win,
         width=0.3,
         height=0.1*1.35,
         fillColor='lightblue',
         lineColor='black',
-        pos=(0, -0.4)  # Moved away from edge for better clickability
+        pos=(0, -0.25)
     )
     continue_text = visual.TextStim(
         win,
         text="CONTINUE",
         color='black',
         height=0.04*1.35,  # Reduced to ensure text fits within button
-        pos=(0, -0.4)  # Moved away from edge for better clickability
+        pos=(0, -0.25)
     )
     
     # Draw function that includes button
@@ -1569,9 +1569,9 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
                             button_x, button_y = float(button_pos[0]), float(button_pos[1])
                         else:
-                            button_x, button_y = 0.0, -0.4  # Updated to match new button position
+                            button_x, button_y = 0.0, -0.25  # Fallback to match button position
                     except (TypeError, ValueError):
-                        button_x, button_y = 0.0, -0.35
+                        button_x, button_y = 0.0, -0.25
                     
                     try:
                         button_width = float(continue_button.width)
@@ -2003,13 +2003,15 @@ def load_image_stimulus(image_path, maintain_aspect_ratio=False):
 # =========================
 #  SLIDER FOR OLD-NEW RATING
 # =========================
+SLIDER_Y_POS_PRACTICE = -0.35*0.6
+SLIDER_Y_POS_ACTUAL = -0.42*0.6   # Slightly lower for actual task
+
 def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_num=None, max_trials=10, timeout=7.0):
     """Get slider response from participant using slider with submit button
     Works with both touch screen and mouse input - click/tap anywhere on the slider line to set value
     Mouse mode allows dragging the slider, touch screen uses tap-to-set"""
-    # Create slider visual elements
-    # Move slider lower on screen
-    slider_y_pos = -0.3*0.6  # Lower than before (-0.2*0.6)
+    # Create slider visual elements; use lower position for actual task (trial_num set), higher for practice
+    slider_y_pos = SLIDER_Y_POS_ACTUAL if trial_num is not None else SLIDER_Y_POS_PRACTICE
     slider_line = visual.Line(
         win,
         start=(-0.4*0.6, slider_y_pos),
@@ -2030,11 +2032,11 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     
     # Image number display
     if trial_num is not None:
-        trial_text = visual.TextStim(win, text=f"Image {trial_num} of {max_trials}", color='gray', height=0.03*0.75*1.35, pos=(0, 0.55*0.6))  # Move higher to avoid overlap
+        trial_text = visual.TextStim(win, text=f"Image {trial_num} of {max_trials}", color='gray', height=0.04*0.75*1.35, pos=(0, 0.65*0.6))  # Moved higher
     
     # Use smaller text height for longer instructions (practice trials)
     # Images are now 35% bigger (0.3*1.35 = 0.405 height), so move text higher to avoid overlap
-    text_height = 0.04*0.75*1.35 if len(prompt_text) > 100 else 0.05*0.75*1.35
+    text_height = 0.04*0.75*1.35  # Standardized text size
     prompt = visual.TextStim(win, text=prompt_text, color='black', height=text_height, pos=(0, 0.5*0.6), wrapWidth=1.4)  # Move higher to avoid overlap
     
     # Submit button (positioned below slider, larger to fit text)
@@ -2170,7 +2172,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                             win,
                             text="Please select an answer first.",
                             color='red',
-                            height=0.05*0.75*1.35,
+                            height=0.04*0.75*1.35,
                             pos=(0, slider_y_pos - 0.2)
                         )
                         # Draw everything with error message
@@ -2250,7 +2252,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                         win,
                         text="Please select an answer first.",
                         color='red',
-                        height=0.05*0.75*1.35,
+                        height=0.04*0.75*1.35,
                         pos=(0, slider_y_pos - 0.2)
                     )
                     # Draw everything with error message
@@ -2551,17 +2553,17 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         
         # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
-        ai_slider_display_time, ai_final_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name)
+        ai_slider_display_time, ai_final_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
         
-        # Show both responses
-        show_both_responses(participant_value, ai_confidence, participant_first=True, partner_name=partner_name)
+        # Show both responses (arrows at same height as scale)
+        show_both_responses(participant_value, ai_confidence, participant_first=True, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
         
         # Wait a bit to see both responses
         core.wait(2.0)
         
         # Switch/Stay decision (keep image on screen, show euclidean distance)
         switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time = get_switch_stay_decision(
-            image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name
+            image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL
         )
         
         # Determine final answer
@@ -2630,20 +2632,20 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         
         # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
-        ai_slider_display_time, ai_final_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name)
+        ai_slider_display_time, ai_final_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
         
         # P1: Participant responds (image stays on screen)
         participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time, participant_slider_decision_onset_time, participant_slider_click_times = get_slider_response(
             "Rate your memory: OLD or NEW?", image_stim=img_stim, trial_num=trial_num, max_trials=max_trials, timeout=7.0
         )
         
-        # Show both responses
-        show_both_responses(participant_value, ai_confidence, participant_first=False, partner_name=partner_name)
+        # Show both responses (arrows at same height as scale)
+        show_both_responses(participant_value, ai_confidence, participant_first=False, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
         core.wait(2.0)
         
         # Switch/Stay decision (keep image on screen, show euclidean distance)
         switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time = get_switch_stay_decision(
-            image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name
+            image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL
         )
         
         # Determine final answer
@@ -2715,10 +2717,10 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     
     return trial_data, points_earned
 
-def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, partner_name="Amy"):
-    """Animate partner's slider tapping (not sliding) and clicking submit"""
-    # Use same slider positioning as get_slider_response
-    slider_y_pos = -0.3*0.6  # Match get_slider_response positioning
+def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, partner_name="Amy", slider_y_pos=None):
+    """Animate partner's slider tapping (not sliding) and clicking submit. slider_y_pos must match get_slider_response (use SLIDER_Y_POS_ACTUAL for actual task)."""
+    if slider_y_pos is None:
+        slider_y_pos = SLIDER_Y_POS_PRACTICE
     # Create slider visualization
     slider_line = visual.Line(
         win,
@@ -2736,7 +2738,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     )
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
-    partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.05*1.35, pos=(0, 0.45))  # Move higher to avoid overlap with larger images
+    partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.04*0.75*1.35, pos=(0, 0.45))  # Move higher to avoid overlap with larger images
     
     # Submit button (larger to fit text)
     submit_button = visual.Rect(
@@ -2913,11 +2915,11 @@ def create_arrow(x_pos, y_pos, color='black', arrow_length=0.08, arrow_width=0.0
     )
     return arrow
 
-def show_both_responses(participant_value, partner_value, participant_first, partner_name="Amy"):
-    """Show both participant and partner responses with sliders"""
-    # Use consistent slider positioning (lower, matching get_slider_response)
-    slider_y_pos = -0.3*0.6
-    # Create slider visualization for both
+def show_both_responses(participant_value, partner_value, participant_first, partner_name="Amy", slider_y_pos=None):
+    """Show both participant and partner responses with sliders. slider_y_pos must match get_slider_response (use SLIDER_Y_POS_ACTUAL for actual task)."""
+    if slider_y_pos is None:
+        slider_y_pos = SLIDER_Y_POS_PRACTICE
+    # Create slider visualization for both (arrows on same height as scale)
     slider_line = visual.Line(
         win,
         start=(-0.4*0.6, slider_y_pos),
@@ -2926,29 +2928,32 @@ def show_both_responses(participant_value, partner_value, participant_first, par
         lineWidth=3
     )
     
-    # Participant arrow (green) - pointing to rating position
+    # Participant arrow (green) - on scale line
     p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
     p_arrow = create_arrow(p_x_pos, slider_y_pos, color='green', arrow_length=0.08, arrow_width=0.02)
     
-    # Partner arrow (blue) - pointing to rating position
+    # Partner arrow (blue) - on same scale line (same height as scale)
     a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
     a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
     
-    # Labels: "Your choice" on top, partner's choice on bottom
+    # Labels below arrows, vertical (90°), colored like arrows: "you" and partner name (Amy/Ben)
+    label_y = slider_y_pos - 0.04  # Just below slider line
     p_label_text = visual.TextStim(
         win,
-        text="Your choice",
-        color='black',
-        height=0.035*0.75*1.35,
-        pos=(p_x_pos, slider_y_pos + 0.12)  # Above participant arrow
+        text="you",
+        color='green',
+        height=0.032*0.75*1.35,
+        pos=(p_x_pos, label_y),
+        ori=90
     )
     
     a_label_text = visual.TextStim(
         win,
-        text=f"{partner_name}'s choice",
-        color='black',
-        height=0.035*0.75*1.35,
-        pos=(a_x_pos, slider_y_pos - 0.18)  # Moved further down to avoid overlap with buttons
+        text=partner_name,  # "Amy" or "Ben"
+        color='blue',
+        height=0.032*0.75*1.35,
+        pos=(a_x_pos, label_y),
+        ori=90
     )
     
     # Move labels farther from line to avoid overlap
@@ -2964,14 +2969,14 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     a_arrow.draw()
     win.flip()
 
-def get_switch_stay_decision(image_stim=None, participant_value=None, partner_value=None, timeout=7.0, partner_name="Amy"):
-    """Get switch/stay decision from participant using clickable buttons"""
+def get_switch_stay_decision(image_stim=None, participant_value=None, partner_value=None, timeout=7.0, partner_name="Amy", slider_y_pos=None):
+    """Get switch/stay decision from participant using clickable buttons. slider_y_pos must match get_slider_response (use SLIDER_Y_POS_ACTUAL for actual task)."""
+    if slider_y_pos is None:
+        slider_y_pos = SLIDER_Y_POS_PRACTICE
     # Calculate euclidean distance
     euclidean_dist = abs(participant_value - partner_value) if (participant_value is not None and partner_value is not None) else None
     
-    # Create slider visualization showing both choices (like show_both_responses)
-    # Use consistent slider positioning (lower, matching get_slider_response)
-    slider_y_pos = -0.3*0.6
+    # Create slider visualization (arrows on same height as scale)
     slider_line = visual.Line(
         win,
         start=(-0.4*0.6, slider_y_pos),
@@ -2980,7 +2985,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         lineWidth=3
     )
     
-    # Participant arrow (green) - pointing to rating position
+    # Participant arrow (green) - on scale line
     p_arrow = None
     p_x_pos = None
     p_label_text = None
@@ -2989,35 +2994,35 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
         p_arrow = create_arrow(p_x_pos, slider_y_pos, color='green', arrow_length=0.08, arrow_width=0.02)
     
-    # Partner arrow (blue) - pointing to rating position
+    # Partner arrow (blue) - on same scale line (same height as scale)
     a_arrow = None
     a_label_text = None
     if partner_value is not None:
         a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
         a_arrow = create_arrow(a_x_pos, slider_y_pos, color='blue', arrow_length=0.08, arrow_width=0.02)
     
-    # Labels: "Your choice" on top, partner's choice on bottom
+    # Labels below arrows, vertical (90°), colored like arrows: "you" and partner name (Amy/Ben)
+    label_y = slider_y_pos - 0.04  # Just below slider line
     if participant_value is not None and p_x_pos is not None:
-        # Label above participant arrow
         p_label_text = visual.TextStim(
             win,
-            text="Your choice",
-            color='black',
-            height=0.035*0.75*1.35,
-            pos=(p_x_pos, slider_y_pos + 0.12)  # Above participant arrow
+            text="you",
+            color='green',
+            height=0.032*0.75*1.35,
+            pos=(p_x_pos, label_y),
+            ori=90
         )
     
     if partner_value is not None and a_x_pos is not None:
-        # Label below partner arrow
         a_label_text = visual.TextStim(
             win,
-            text=f"{partner_name}'s choice",
-            color='black',
-            height=0.035*0.75*1.35,
-            pos=(a_x_pos, slider_y_pos - 0.18)  # Moved further down to avoid overlap with buttons
+            text=partner_name,  # "Amy" or "Ben"
+            color='blue',
+            height=0.032*0.75*1.35,
+            pos=(a_x_pos, label_y),
+            ori=90
         )
     
-    # Move labels farther from line to avoid overlap
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
@@ -3035,21 +3040,21 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     
     switch_button = visual.Rect(
         win,
-        width=0.2*0.75,
+        width=0.28*0.75,  # Wider SWITCH button
         height=0.08*0.75*1.35,
         fillColor='lightcoral',
         lineColor='black',
-        pos=(0.25*0.6, button_y_pos)  # Moved right to avoid overlap with NEW label
+        pos=(0.28*0.6, button_y_pos)  # Slightly right to center the wider button
     )
-    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.04*0.75*1.35, pos=(0.25*0.6, button_y_pos))  # Reduced to fit within button
+    switch_text = visual.TextStim(win, text="SWITCH", color='black', height=0.04*0.75*1.35, pos=(0.28*0.6, button_y_pos))  # Reduced to fit within button
     
     decision_prompt = visual.TextStim(
         win,
         text=f"Do you want to STAY with your answer or SWITCH to {partner_name}'s answer?",
         color='black',
-        height=0.05*0.75*1.35,
+        height=0.04*0.75*1.35,
         wrapWidth=1.2,
-        pos=(0, 0.45)  # Higher to avoid overlap with larger images
+        pos=(0, 0.38)  # Moved down slightly from top
     )
     
     mouse.setVisible(True)
@@ -3549,7 +3554,7 @@ def show_block_summary(block_num, total_points, max_points):
         text=f"Collection {block_num} Complete!\n\n"
              f"The in-house curator scored this collection {total_points_rounded:.1f} points out of a total of {int(max_points)} points!",
         color='black',
-        height=0.05*1.35,
+        height=0.04*0.75*1.35,
         pos=(0, 0.1),
         wrapWidth=1.2
     )
@@ -4169,7 +4174,7 @@ def run_experiment():
         win,
         text="Hello & welcome to the social memory game! Pay careful attention to the text on the screen.",
         color='black',
-        height=0.05*0.75*1.35,  # Reduced to ensure buttons are visually larger
+        height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.4*0.6),  # Moved higher to avoid overlap with button
         wrapWidth=1.4*0.75
     )
@@ -4186,7 +4191,7 @@ def run_experiment():
         win,
         text="BEGIN",
         color='black',
-        height=0.05*0.75*1.35,
+        height=0.04*0.75*1.35,
         pos=(0, -0.45*0.6)  # Match button position
     )
     
@@ -4414,7 +4419,7 @@ def run_experiment():
              "She needs help sorting through large sets of images and deciding which ones truly belong. "
              "Will you be her employee of the month?",
         color='black',
-        height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
+        height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.25),  # Moved down for better spacing with image
         wrapWidth=1.2
     )
@@ -4424,7 +4429,7 @@ def run_experiment():
         win,
         text="Amy",
         color='black',
-        height=0.05*0.75*1.35,
+        height=0.04*0.75*1.35,
         pos=(0, -0.25)  # Below image
     )
     
@@ -4588,7 +4593,7 @@ def run_experiment():
         text="Before you begin the real work, you'll complete a short training round to get familiar with the process.\n\n"
              "For now, simply memorize the shapes you're about to see. Click CONTINUE when you're ready to get started!",
         color='black',
-        height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
+        height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.0),
         wrapWidth=1.2
     )
@@ -4777,7 +4782,7 @@ def run_experiment():
     # Trial 2: Show message first, then AI rates (all the way OLD), then participant rates
     # Show message that partner is confident (Amy in practice)
     partner_message = visual.TextStim(win, text="Amy is confident she's seen this before!", 
-                                      color='blue', height=0.05*0.75*1.35, pos=(0, 0.4))
+                                      color='blue', height=0.04*0.75*1.35, pos=(0, 0.4))
     # Show message with red circle (use default positioning - no manual pos/size)
     partner_message.draw()
     red_circle.draw()
@@ -5046,7 +5051,7 @@ def run_experiment():
         text="Work with Amy to sort this collection.\n\n"
              "Sometimes she goes first, sometimes you do.",
         color='black',
-        height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
+        height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.2),  # Adjusted position for better spacing
         wrapWidth=1.2
     )
@@ -5068,7 +5073,7 @@ def run_experiment():
         win,
         text="Amy",
         color='black',
-        height=0.05*0.75*1.35,
+        height=0.04*0.75*1.35,
         pos=(0, -0.2)  # Below the image
     )
     
@@ -5198,12 +5203,6 @@ def run_experiment():
     mouse_amy_intro.setVisible(False)
     event.clearEvents()
     
-    show_instructions(
-        "Let's get started on collection 1!",
-        header_color='darkgreen',
-        body_color='black'
-    )
-    
     # Experimental blocks (10 blocks, 10 trials each)
     all_study_data = []
     all_trial_data = []
@@ -5282,7 +5281,7 @@ def run_experiment():
                             win,
                             text="Ben",
                             color='black',
-                            height=0.05*0.75*1.35,
+                            height=0.04*0.75*1.35,
                             pos=(0, -0.2)  # Below the image
                         )
                         
@@ -5320,7 +5319,7 @@ def run_experiment():
                             win,
                             text="Amy has to step away again! You will work with Ben again for the last collections.",
                             color='black',
-                            height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
+                            height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
                             pos=(0, 0.25),  # Moved down for better spacing with image
                             wrapWidth=1.2
                         )
@@ -5517,7 +5516,7 @@ def run_experiment():
                             text="Amy is back for a day!\n\n"
                                  "She's returning to help you with exhibition preparation.\n\n",
                             color='black',
-                            height=0.035*0.75*1.35,  # Reduced to ensure buttons are visually larger
+                            height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
                             pos=(0, 0.25),  # Moved down for better spacing with image
                             wrapWidth=1.2
                         )
@@ -5734,7 +5733,7 @@ def run_experiment():
         win,
         text=f"The in-house curator scored all your collections {total_experiment_points_rounded:.1f} points out of a total of {int(max_possible_total)} points!",
         color='black',
-        height=0.05*1.35,
+        height=0.04*0.75*1.35,
         pos=(0, 0),
         wrapWidth=1.2
     )
