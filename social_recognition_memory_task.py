@@ -2337,13 +2337,13 @@ class AICollaborator:
         self.accuracy_rate = accuracy_rate
         self.num_trials = num_trials
         
-        # Pre-generate randomized sequence of correct/incorrect trials
+        # Pre-generate randomized sequence of correct/Incorrect trials
         # This ensures deterministic accuracy while randomizing the order
         num_correct = int(round(accuracy_rate * num_trials))
-        num_incorrect = num_trials - num_correct
+        num_Incorrect = num_trials - num_correct
         
-        # Create list: True for correct, False for incorrect
-        self.correctness_sequence = [True] * num_correct + [False] * num_incorrect
+        # Create list: True for correct, False for Incorrect
+        self.correctness_sequence = [True] * num_correct + [False] * num_Incorrect
         random.shuffle(self.correctness_sequence)  # Randomize the order
         
         # Track current trial index
@@ -2359,12 +2359,12 @@ class AICollaborator:
     
     def generate_confidence(self, is_studied, ground_truth_correct):
         """Generate AI confidence from Gaussian distribution"""
-        # If correct, higher confidence; if incorrect, lower confidence
+        # If correct, higher confidence; if Incorrect, lower confidence
         if ground_truth_correct:
             mean = 0.7  # Higher confidence when correct
             std = 0.15
         else:
-            mean = 0.3  # Lower confidence when incorrect
+            mean = 0.3  # Lower confidence when Incorrect
             std = 0.15
         
         confidence = np.random.normal(mean, std)
@@ -2377,13 +2377,13 @@ class AICollaborator:
             if ground_truth_correct:
                 confidence = confidence * 0.5  # OLD side
             else:
-                confidence = 0.5 + (confidence * 0.5)  # NEW side (incorrect)
+                confidence = 0.5 + (confidence * 0.5)  # NEW side (Incorrect)
         else:
             # Bias toward NEW (higher values)
             if ground_truth_correct:
                 confidence = 0.5 + (confidence * 0.5)  # NEW side
             else:
-                confidence = confidence * 0.5  # OLD side (incorrect)
+                confidence = confidence * 0.5  # OLD side (Incorrect)
         
         return confidence
     
@@ -2394,7 +2394,7 @@ class AICollaborator:
         trial_type: "studied" or "lure"
         
         Uses pre-generated randomized sequence to ensure exactly the target accuracy rate
-        while randomizing which trials are correct/incorrect:
+        while randomizing which trials are correct/Incorrect:
         - 75% accuracy: approximately 7-8 out of 10 trials correct (randomized order)
         - 25% accuracy: approximately 2-3 out of 10 trials correct (randomized order)
         """
@@ -2740,17 +2740,17 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.04*0.75*1.35, pos=(0, 0.45))  # Move higher to avoid overlap with larger images
     
-    # Submit button (actual trials: higher to stay above dock)
+    # Submit button: same size as main task (not oversized); position higher for actual trials
     submit_y = -0.28 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else -0.32
     submit_button = visual.Rect(
         win,
-        width=0.25,
-        height=0.06*1.35,  # Shorter
+        width=0.25*0.75,
+        height=0.06*0.75*1.35,
         fillColor='lightgreen',
         lineColor='black',
         pos=(0, submit_y)
     )
-    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.035*1.35, pos=(0, submit_y))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.035*0.75*1.35, pos=(0, submit_y))
     
     # Calculate target position
     target_x = -0.4*0.6 + (partner_value * 0.8*0.6)  # Target position
@@ -2942,18 +2942,23 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     a_dot.draw()
     win.flip()
 
+# On switch/stay screen only: move content up to avoid overlap with labels/buttons; STAY/SWITCH buttons stay put
+SWITCH_STAY_CONTENT_OFFSET = 0.10
+
 def get_switch_stay_decision(image_stim=None, participant_value=None, partner_value=None, timeout=7.0, partner_name="Amy", slider_y_pos=None):
     """Get switch/stay decision from participant using clickable buttons. slider_y_pos must match get_slider_response (use SLIDER_Y_POS_ACTUAL for actual task)."""
     if slider_y_pos is None:
         slider_y_pos = SLIDER_Y_POS_PRACTICE
+    # Move scale/labels/image up on this screen only; buttons stay at slider_y_pos - offset
+    line_y = slider_y_pos + SWITCH_STAY_CONTENT_OFFSET
     # Calculate euclidean distance
     euclidean_dist = abs(participant_value - partner_value) if (participant_value is not None and partner_value is not None) else None
     
-    # Create slider visualization (dots on same height as scale)
+    # Create slider visualization (dots on scale line; line moved up)
     slider_line = visual.Line(
         win,
-        start=(-0.4*0.6, slider_y_pos),
-        end=(0.4*0.6, slider_y_pos),
+        start=(-0.4*0.6, line_y),
+        end=(0.4*0.6, line_y),
         lineColor='black',
         lineWidth=3
     )
@@ -2965,18 +2970,18 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     a_x_pos = None  # Initialize for distance calculation
     if participant_value is not None:
         p_x_pos = -0.4*0.6 + (participant_value * 0.8*0.6)
-        p_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(p_x_pos, slider_y_pos))
+        p_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(p_x_pos, line_y))
     
     # Partner dot (black) - on same scale line
     a_dot = None
     a_label_text = None
     if partner_value is not None:
         a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
-        a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, slider_y_pos))
+        a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, line_y))
     
-    # Actual trials: smaller offsets so labels and buttons stay visible above dock
+    # Actual trials: smaller offsets so labels stay visible
     is_actual_scale = (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005)
-    label_y = slider_y_pos - (0.05 if is_actual_scale else 0.06)  # Below dots, not hidden
+    label_y = line_y - (0.05 if is_actual_scale else 0.06)  # Below dots, not hidden
     if participant_value is not None and p_x_pos is not None:
         p_label_text = visual.TextStim(
             win,
@@ -2997,10 +3002,10 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
             ori=90
         )
     
-    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
-    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
+    old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, line_y - 0.08))
+    new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, line_y - 0.08))
     
-    # Create buttons (actual trials: smaller offset so STAY/SWITCH stay above dock)
+    # Buttons stay at original offset from slider (not moved up)
     button_y_pos = slider_y_pos - (0.10 if is_actual_scale else 0.14)
     stay_button = visual.Rect(
         win,
@@ -3028,7 +3033,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         color='black',
         height=0.04*0.75*1.35,
         wrapWidth=1.2,
-        pos=(0, 0.38)  # Moved down slightly from top
+        pos=(0, 0.38 + SWITCH_STAY_CONTENT_OFFSET)  # Moved up with other content on this screen
     )
     
     mouse.setVisible(True)
@@ -3072,10 +3077,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 )
                 decision_prompt.draw()
                 if image_stim:
-                    # Position image above slider
-                    # Images are 35% bigger now, so position slightly lower to avoid overlap
-                    image_stim.pos = (0, 0.0)
-                    # Don't override size - use default (0.3, 0.3) from load_image_stimulus
+                    # Position image higher on switch/stay screen to avoid overlap
+                    image_stim.pos = (0, SWITCH_STAY_CONTENT_OFFSET)
                     image_stim.draw()
                 slider_line.draw()
                 old_label.draw()
@@ -3283,12 +3286,9 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         # Draw everything in correct order
         decision_prompt.draw()
         
-        # Draw image above slider (centered)
+        # Draw image above slider (moved up on this screen to avoid overlap)
         if image_stim:
-            # Position image above slider, between ratings text and slider
-            # Images are 35% bigger now, so position lower to avoid overlap with text above
-            image_stim.pos = (0, 0.0)  # Centered vertically, text is now higher
-            # Don't override size - use default (0.3, 0.3) from load_image_stimulus
+            image_stim.pos = (0, SWITCH_STAY_CONTENT_OFFSET)
             image_stim.draw()
         
         # Draw slider visualization below image (with arrows showing both ratings)
@@ -4887,10 +4887,10 @@ def run_experiment():
         "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
-    # AI rates (selects OLD but not very confident - euclidean distance of 0.4 from left) - it's actually NEW (square), so AI is incorrect (Amy in practice)
+    # AI rates (selects OLD but not very confident - euclidean distance of 0.4 from left) - it's actually NEW (square), so AI is Incorrect (Amy in practice)
     ai_confidence_t3 = 0.4  # Selects OLD (closer to 0.0) but not very confident - euclidean distance of 0.4 from left (0.0)
     ai_rt_t3 = 2.0
-    ai_correct_t3 = False  # It's actually NEW (square), but Amy rates it as OLD (0.4), so AI is incorrect
+    ai_correct_t3 = False  # It's actually NEW (square), but Amy rates it as OLD (0.4), so AI is Incorrect
     ground_truth_t3 = 1.0  # NEW
     try:
         ai_slider_display_time_t3, ai_final_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Amy")
@@ -4928,9 +4928,9 @@ def run_experiment():
     # Show outcome with points for practice trial 3 (display rounded to 1 decimal place, full precision kept in logged data)
     correctness_points_rounded_t3 = round(correctness_points_t3, 1)
     if participant_accuracy_t3:
-        outcome_text_t3 = f"Correct Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
+        outcome_text_t3 = f"Correct. Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
     else:
-        outcome_text_t3 = f"InCorrect Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
+        outcome_text_t3 = f"Incorrect. Based off your answer and confidence, your points are {correctness_points_rounded_t3:.1f}"
     color_t3 = 'green' if participant_accuracy_t3 else 'red'
     outcome_stim_t3 = visual.TextStim(win, text=outcome_text_t3, 
                                       color=color_t3, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
