@@ -219,8 +219,8 @@ The localizer task generates one CSV file:
 ### `ai_reliability`
 - **Type**: Float (0.0 to 1.0)
 - **Description**: AI's accuracy rate/reliability for this trial
-  - `0.75` = Reliable partner (Amy in blocks 1-2 and 7-8) - exactly 75% accurate using deterministic threshold
-  - `0.25` = Unreliable partner (Ben in blocks 3-6 and 9-10) - exactly 25% accurate using deterministic threshold
+  - `0.75` = Reliable partner (Amy in blocks 1-3 and 6-7) - exactly 75% accurate using deterministic threshold
+  - `0.25` = Unreliable partner (Ben in blocks 4-5 and 8-10) - exactly 25% accurate using deterministic threshold
   - `0.5` = Practice block (50% reliability)
 - **Note**: Accuracy rates are deterministic, not probabilistic. Reliable blocks use a hard threshold ensuring exactly 3 out of every 4 trials are correct. Unreliable blocks ensure exactly 1 out of every 4 trials is correct.
 - **Example**: `0.75`, `0.25`, `0.5`
@@ -254,7 +254,7 @@ The localizer task generates one CSV file:
 
 ### `decision_onset_time`
 - **Type**: Float (Unix timestamp) or None
-- **Description**: Time when the switch/stay decision screen appeared with all information (logged for both touchscreen and click/mouse input modes)
+- **Description**: Time of the first flip when the full switch/stay screen was shown (question, image, scale, markers, and STAY/SWITCH buttons). Logged for both touchscreen and click/mouse input modes.
 - **Note**: `None` for practice trials 1 and 2 (no switch/stay decision screen shown)
 - **Example**: `1764818203.4`, `None`
 

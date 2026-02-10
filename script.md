@@ -117,15 +117,15 @@ For now, simply memorize the shapes you're about to see. Click continue when you
 ### Decision Screen (Switch/Stay)
 **Display shows:**
 - Image
-- Slider with both arrows showing:
-  - Green arrow pointing to participant's choice (labeled "Your choice" above)
-  - Blue arrow pointing to Amy's choice (labeled "Amy's choice" below)
-- Text: "Do you want to STAY with your answer or SWITCH to Amy's answer?"
+- Slider with markers (dots) showing each rating:
+  - Green marker for participant's choice (labeled "you" below the scale)
+  - Blue marker for partner's choice (labeled "Amy" or "Ben" below the scale)
+- Text: "Do you want to STAY with your answer or SWITCH to Amy's answer?" (or Ben's)
 - STAY button (light blue)
 - SWITCH button (light coral)
 
 **What to say:**
-"You can see both your rating and Amy's rating on the slider. The green arrow shows your choice, and the blue arrow shows Amy's choice. You can STAY with your answer or SWITCH to Amy's answer. Even if you both agree on OLD or NEW, you can still switch to match Amy's confidence level."
+"You can see both your rating and your partner's rating on the slider. The green marker shows your choice, and the blue marker shows your partner's choice. You can STAY with your answer or SWITCH to your partner's answer. Even if you both agree on OLD or NEW, you can still switch to match their confidence level."
 
 ---
 
@@ -205,7 +205,8 @@ Sometimes she goes first, sometimes you do."
 - **Touch Screen Mode**: If using a touch screen, participants tap or drag on the slider line to set their rating
 - **Mouse Mode**: If using a mouse, participants can click or drag the slider
 - **Button Positions**: All buttons are positioned away from screen edges for better clickability
-- **Arrow Labels**: On the decision screen, "Your choice" appears above the green arrow, and "Amy's choice" or "Ben's choice" appears below the blue arrow
+- **Decision screen labels**: On the switch/stay screen, "you" (green) and the partner name "Amy" or "Ben" (blue) appear below the scale next to the markers
+- **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; continue button is placed lower to avoid overlap with text
 - **Practice vs. Real**: The practice block uses simple shapes (green circle, red circle, blue square). The real experiment uses photographs from the THINGS dataset
 
 ---
