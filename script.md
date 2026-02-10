@@ -212,8 +212,9 @@ Sometimes she goes first, sometimes you do."
 
 ## Troubleshooting
 
+- The task should not quit if they accidentally turn the Surface Pro off but be sure to log this if it happens. 
 - If a participant times out, the task will automatically select a random response and continue
-- If the participant accidentally minimizes the screen, navigate to the psychopy tab in the corner 
+- If the participant accidentally minimizes the screen, navigate to the psychopy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
 - If there are any unexpected bugs, quit the terminal and restart the task again
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
 - If there are technical issues, close the terminal window to exit
