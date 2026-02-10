@@ -2555,12 +2555,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         ai_decision_time = time.time()
         ai_slider_display_time, ai_final_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
         
-        # Show both responses (arrows at same height as scale)
-        show_both_responses(participant_value, ai_confidence, participant_first=True, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
-        
-        # Wait a bit to see both responses
-        core.wait(2.0)
-        
+        # Go straight to switch/stay screen (question + image + scores + buttons all at once)
         # Switch/Stay decision (keep image on screen, show euclidean distance)
         switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time = get_switch_stay_decision(
             image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL
@@ -2639,10 +2634,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "Rate your memory: OLD or NEW?", image_stim=img_stim, trial_num=trial_num, max_trials=max_trials, timeout=7.0
         )
         
-        # Show both responses (arrows at same height as scale)
-        show_both_responses(participant_value, ai_confidence, participant_first=False, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
-        core.wait(2.0)
-        
+        # Go straight to switch/stay screen (question + image + scores + buttons all at once)
         # Switch/Stay decision (keep image on screen, show euclidean distance)
         switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time = get_switch_stay_decision(
             image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL
@@ -2740,8 +2732,8 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.04*0.75*1.35, pos=(0, 0.45))  # Move higher to avoid overlap with larger images
     
-    # Submit button: same size as main task (not oversized); position higher for actual trials
-    submit_y = -0.28 if (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005) else -0.32
+    # Submit button: same size and same relative position as main task (below slider, never covering it)
+    submit_y = slider_y_pos - 0.12
     submit_button = visual.Rect(
         win,
         width=0.25*0.75,
@@ -2886,8 +2878,8 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     
     return slider_display_time, final_slider_display_time
 
-def show_both_responses(participant_value, partner_value, participant_first, partner_name="Amy", slider_y_pos=None):
-    """Show both participant and partner responses with sliders. slider_y_pos must match get_slider_response (use SLIDER_Y_POS_ACTUAL for actual task)."""
+def show_both_responses(participant_value, partner_value, participant_first, partner_name="Amy", slider_y_pos=None, image_stim=None):
+    """Show both participant and partner responses with sliders. slider_y_pos must match get_slider_response (use SLIDER_Y_POS_ACTUAL for actual task). Draws image if provided so scores don't appear before the image."""
     if slider_y_pos is None:
         slider_y_pos = SLIDER_Y_POS_PRACTICE
     # Create slider visualization for both (dots on same height as scale)
@@ -2933,6 +2925,9 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
     
+    # Draw image first (so it appears with the scores, not after)
+    if image_stim is not None:
+        image_stim.draw()
     slider_line.draw()
     old_label.draw()
     new_label.draw()
@@ -3032,8 +3027,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         text=f"Do you want to STAY with your answer or SWITCH to {partner_name}'s answer?",
         color='black',
         height=0.04*0.75*1.35,
-        wrapWidth=1.2,
-        pos=(0, 0.28)  # Below top of screen, closer to image so text stays visible
+        wrapWidth=2.5,  # Wide so text stays on one line
+        pos=(0, 0.35)   # Slightly higher
     )
     
     mouse.setVisible(True)
@@ -4902,10 +4897,7 @@ def run_experiment():
         ai_slider_display_time_t3 = time.time()
         ai_final_slider_display_time_t3 = time.time()
     
-    # Show both responses
-    show_both_responses(participant_value_t3, ai_confidence_t3, participant_first=True)
-    core.wait(2.0)
-    
+    # Go straight to switch/stay screen (question + image + scores + buttons all at once)
     # Switch/Stay decision (Amy in practice)
     switch_decision_t3, switch_rt_t3, switch_commit_time_t3, switch_timeout_t3, decision_onset_time_t3 = get_switch_stay_decision(
         image_stim=blue_square, participant_value=participant_value_t3, partner_value=ai_confidence_t3, timeout=999999.0, partner_name="Amy"  # No timeout in practice
