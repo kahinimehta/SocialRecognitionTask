@@ -133,12 +133,7 @@ Summary of experiment time
 
 #### **`localizer_*.csv`**
 Localizer task data.  
-- **File naming**: `localizer_[participant_id]_[timestamp].csv`
-- **Example**: `localizer_kini_20260130_232131.csv`
-- **Structure**: Each row = one image presentation (200 total: 100 Image + 100 Lure)
-- **Question trials**: Every 10th trial (trials 10, 20, 30, ..., 200) includes category question data
-- **Variables**: Includes stimulus metadata (number, object name, category, stimulus type), presentation timestamps, and question responses (for question trials)
-- **See `CSV_VARIABLES_DOCUMENTATION.md` for complete variable definitions**
+
 
 ---
 
