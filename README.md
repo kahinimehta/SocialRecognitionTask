@@ -108,7 +108,7 @@ Short screen recording from early version demonstrating:
 
 ---
 
-### 4. Example Data Outputs (needs to be updated)
+### 4. Example Data Outputs
 
 These are example CSVs produced by running the task with test parameters. Your real participants' files will follow identical formats.
 
