@@ -95,7 +95,7 @@ The script is organized by screen/phase, showing exactly what participants will 
 ---
 
 
-### 3. Demo / Media (needs to be updated)
+### 3. Demo / Media 
 
 #### **`Demo.mp4`**
 Short screen recording from early version demonstrating:
