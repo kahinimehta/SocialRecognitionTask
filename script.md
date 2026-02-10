@@ -5,14 +5,16 @@
 ### For Running the Main Experiment:
 1. Open terminal
 2. Type `n` when prompted to confirm you want to run the localizer (this skips the localizer)
-3. Type `experiment` when prompted
+3. Type `experiment` if you are trying to run the experiment
 4. Say `y` to:
    - Running the experiment
-   - Uploading the log files
+   - Uploading the log files (after the experiment completes)
 
 ### For Participants Running the Localizer:
 1. Open terminal
 2. Enter `y` when prompted
+
+This will run the localizer and upload the log files. 
 
 ---
 
@@ -154,7 +156,7 @@ Rate each image: OLD (belongs) or NEW (doesn't belong).
 Click on the slider, then SUBMIT."
 
 **What to say:**
-"Read these instructions carefully. You'll need to remember which images belong in each collection. Use the slider to rate each image - OLD means it belongs, NEW means it doesn't. Click on the slider line to set your rating, then click SUBMIT."
+"Read these instructions carefully. You'll need to remember which photos belong in each collection. These will be more complex images -- like animals, objects, etc. Use the slider to rate each image - OLD means it belongs, NEW means it doesn't. Click on the slider line to set your rating, then click SUBMIT."
 
 ---
 
@@ -178,7 +180,7 @@ Confidence matters. A curator scores based on accuracy and confidence.
 10 collections, 10 images each. Time limit per decision."
 
 **What to say:**
-"The scoring system considers both accuracy and confidence. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision."
+"The scoring system considers both accuracy and confidence. If you are confident but wrong, you lose more points than if you are not confident and wrong. If you are right but not confident, you will not get as many points as if you were both right and confident. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision."
 
 ---
 
@@ -195,160 +197,10 @@ Sometimes she goes first, sometimes you do."
 
 ---
 
-### Collection Start Screen
-**Display says:**
-"Let's get started on collection 1!"
-
-**What to say:**
-"Here we go! Collection 1 is starting."
-
----
-
-### Ready to Start Screen (Before Each Block)
-**Display shows:**
-"Ready to start sorting?
-
-[X] collections remaining"
-
-[BEGIN button]
-
-**What to say:**
-"You'll see how many collections are left. Click BEGIN when you're ready to start this collection."
-
----
-
-### Study Phase
-**Display shows:**
-- Fixation cross (+)
-- Image appears for 1.5 seconds
-- Repeats for 10 images
-
-**What to say:**
-"Watch carefully. You'll see 10 images one at a time. Memorize which images belong in this collection."
-
----
-
-### Transition Screen (Study to Recognition)
-**Display says:**
-"STUDYING COLLECTION IMAGES COMPLETE!
-
-Now switching to the sorting phase.
-
-You will see MORE images again and rate them with [Amy/Ben]."
-
-**What to say:**
-"Great! You've finished studying. Now you'll see more images and rate them together with your partner."
-
----
-
-### Recognition Phase - Participant Goes First
-**Display shows:**
-- Image
-- Slider (OLD left, NEW right)
-- SUBMIT button
-
-**What to say:**
-"Now rate this image. Is it OLD (part of the collection) or NEW (not part of the collection)? Click on the slider to set your rating, then click SUBMIT."
-
----
-
-### Recognition Phase - Amy Goes First
-**Display shows:**
-- Message: "Amy is rating..."
-- Image
-- Amy's slider animation (she taps and submits)
-- Then participant's slider appears
-
-**What to say:**
-"Amy is rating first. Watch what she does, then it will be your turn."
-
----
-
-### Collection Complete Screen
-**Display says:**
-"Collection [X] Complete!
-
-The in-house curator scored this collection [X.X] points out of a total of [X] points!"
-
-**What to say:**
-"Great job! You've completed this collection. The curator has scored it. Click CONTINUE to move on."
-
----
-
-### Partner Switch Screen (Block 4)
-**Display shows:**
-"A quick update.
-
-Amy has stepped away to prepare for her exhibition.
-
-While she's gone, you'll be working with Ben—another assistant in the studio.
-
-Ben is helping sort the same set of images, but he has trained differently than you.
-
-As always, focus on making the best judgment you can. Click to start sorting!"
-
-[Image of Ben appears]
-
-**What to say:**
-"Amy has stepped away, and now you'll be working with Ben. He's another assistant who may have different training. Just continue making your best judgments. Click CONTINUE when ready."
-
----
-
-### Partner Switch Screen (Block 6)
-**Display shows:**
-"Amy is back!
-
-You'll be working with Amy again for the next collections.
-
-Click to start sorting!"
-
-[Image of Amy appears]
-
-**What to say:**
-"Amy is back! You'll be working with her again. Click CONTINUE when ready."
-
----
-
-### Partner Switch Screen (Block 8)
-**Display shows:**
-"Amy has stepped away again.
-
-You'll be working with Ben for the remaining collections.
-
-Click to start sorting!"
-
-[Image of Ben appears]
-
-**What to say:**
-"Amy has stepped away again. You'll finish with Ben. Click CONTINUE when ready."
-
----
-
-### Final Summary Screen
-**Display shows:**
-"The in-house curator scored all your collections [X.X] points out of a total of [X] points!"
-
-**What to say:**
-"Excellent work! You've completed all 10 collections. The curator has scored everything. Click CONTINUE to see the leaderboard."
-
----
-
-### Leaderboard Screen
-**Display shows:**
-A leaderboard showing:
-- Rank 1: [Fake participant name]
-- Rank 2: [Your participant ID] (you)
-- Rank 3-7: [Other fake participant names]
-
-**What to say:**
-"Here's how you ranked compared to other participants. You're ranked [X] out of 7. Click CONTINUE to finish."
-
----
-
 ## Notes for Experimenters
 
 - **Timing**: Participants have 7 seconds to respond to each slider and switch/stay decision
-- **Touch Screen Mode**: If using a touch screen, participants tap on the slider line to set their rating
+- **Touch Screen Mode**: If using a touch screen, participants tap or drag on the slider line to set their rating
 - **Mouse Mode**: If using a mouse, participants can click or drag the slider
 - **Button Positions**: All buttons are positioned away from screen edges for better clickability
 - **Arrow Labels**: On the decision screen, "Your choice" appears above the green arrow, and "Amy's choice" or "Ben's choice" appears below the blue arrow
@@ -359,6 +211,7 @@ A leaderboard showing:
 ## Troubleshooting
 
 - If a participant times out, the task will automatically select a random response and continue
-- If there are technical issues, press ESCAPE to exit
+- If there are technical issues, close the terminal window to exit
 - All data is saved automatically after each trial
 - Log files are saved to the `../LOG_FILES/` directory
+- Email kahinimehta@hotmail.com for any issues
