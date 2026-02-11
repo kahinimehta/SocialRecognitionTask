@@ -20,12 +20,39 @@ This will run the localizer and upload the log files.
 
 ## Full Experiment Script
 
+### Input Method Screen (first)
+**Display says:**
+"What input method are you using?
+
+Touch or click the button below:"
+
+**Display shows:** Two buttons: "TOUCH SCREEN (Double tap with finger)" and "MOUSE/TRACKPAD (Click)"
+
+**What to say:**
+"First, choose how you'll respond—touch screen or mouse/trackpad. Touch or click the matching button."
+
+---
+
 ### Initial Screen
 **Display says:**
 "Hello & welcome to the social memory game! Pay careful attention to the text on the screen."
 
+**Display shows:** A BEGIN button (light blue).
+
 **What to say:**
-"Welcome! You'll see a welcome message on the screen. Please read it carefully and click CONTINUE when you're ready."
+"Welcome! You'll see a welcome message on the screen. Please read it carefully and click BEGIN when you're ready."
+
+---
+
+### Participant ID Screen
+**Display says:**
+"Enter your first name and last initial with no spaces/capitals:"
+(Mouse/trackpad: "Hit Enter when done." also shown.)
+
+**Display shows:** Text field for typing; BACKSPACE and CONTINUE buttons (touch) or type and press Enter (mouse).
+
+**What to say:**
+"Enter your first name and last initial, no spaces or capitals. When you're done, click CONTINUE [or press Enter]."
 
 ---
 
@@ -39,7 +66,7 @@ Amy, a professional photographer, is preparing images for an upcoming exhibition
 
 She needs help sorting through large sets of images and deciding which ones truly belong. Will you be her employee of the month?"
 
-[Image of Amy appears below]
+**Display shows:** Image of Amy below the text, "Amy" label under the image, CONTINUE button (bottom right).
 
 **What to say:**
 "This is Amy, your partner for this task. You'll be helping her sort through images for an exhibition. Click CONTINUE when you're ready."
@@ -50,10 +77,12 @@ She needs help sorting through large sets of images and deciding which ones trul
 **Display says:**
 "Before you begin the real work, you'll complete a short training round to get familiar with the process.
 
-For now, simply memorize the shapes you're about to see. Click continue when you're ready to get started!"
+For now, simply memorize the shapes you're about to see. Click CONTINUE when you're ready to get started!"
+
+**Display shows:** CONTINUE button.
 
 **What to say:**
-"You'll start with a practice round to learn how the task works. First, you'll see some shapes - just memorize them. Click CONTINUE when ready."
+"You'll start with a practice round to learn how the task works. First, you'll see some shapes—just memorize them. Click CONTINUE when ready."
 
 ---
 
@@ -71,6 +100,8 @@ For now, simply memorize the shapes you're about to see. Click continue when you
 ### Transition Screen (Before Recognition Phase)
 **Display says:**
 "Now let's see how well you recall the shapes you've seen!"
+
+**Display shows:** No button—this screen advances automatically after 2 seconds.
 
 **What to say:**
 "Now we'll test your memory. You'll see shapes and decide if you've seen them before or if they're new."
@@ -120,7 +151,7 @@ For now, simply memorize the shapes you're about to see. Click continue when you
 - Slider with markers (dots) showing each rating:
   - Green marker for participant's choice (labeled "you" below the scale)
   - Blue marker for partner's choice (labeled "Amy" or "Ben" below the scale)
-- Text: "Do you want to STAY with your answer or SWITCH to Amy's answer?" (or Ben's)
+- Text: "Do you want to STAY with your answer or SWITCH to Amy's answer?" (or "Ben's answer" when with Ben)
 - STAY button (light blue)
 - SWITCH button (light coral)
 
@@ -131,7 +162,9 @@ For now, simply memorize the shapes you're about to see. Click continue when you
 
 ### Outcome Screen
 **Display shows:**
-- Feedback about the score (e.g., "The in-house curator scored this image: X points")
+- "Correct." or "Incorrect." (green or red)
+- "The in-house curator scored this image: X points based on image & your confidence."
+- Screen advances automatically after ~1.5 seconds.
 
 **What to say:**
 "You'll see how the curator scored your decision. The scoring takes into account both whether you were correct and how confident you were."
@@ -152,22 +185,26 @@ Now we'll begin the actual work."
 ### Instructions - Task Overview
 **Display says:**
 "Task Overview:
-Remember which images belong in each collection.
+Remember which photos belong in each collection.
 
 Rate each image: OLD (belongs) or NEW (doesn't belong).
 Click on the slider, then SUBMIT."
 
+**Display shows:** CONTINUE button.
+
 **What to say:**
-"Read these instructions carefully. You'll need to remember which photos belong in each collection. These will be more complex images -- like animals, objects, etc. Use the slider to rate each image - OLD means it belongs, NEW means it doesn't. Click on the slider line to set your rating, then click SUBMIT."
+"Read these instructions carefully. You'll need to remember which photos belong in each collection. These will be more complex images—like animals, objects, etc. Use the slider to rate each image—OLD means it belongs, NEW means it doesn't. Click on the slider line to set your rating, then click SUBMIT."
 
 ---
 
 ### Instructions - Working with Amy
 **Display says:**
 "Working with Amy:
-Amy will also rate each image. You can STAY with your answer or SWITCH to hers.
+Amy will also rate each photo. You can STAY with your answer or SWITCH to hers.
 
 You can switch even if you both agree, to match her confidence level."
+
+**Display shows:** CONTINUE button.
 
 **What to say:**
 "Amy will rate each image too. After you both rate, you can STAY with your answer or SWITCH to Amy's answer. You can switch even if you both agree, to match her confidence level."
@@ -177,9 +214,11 @@ You can switch even if you both agree, to match her confidence level."
 ### Instructions - Scoring
 **Display says:**
 "Scoring:
-Confidence matters. A curator scores based on accuracy and confidence.
+Confidence matters. An in-house curator scores based on accuracy and confidence.
 
 10 collections, 10 images each. Time limit per decision."
+
+**Display shows:** CONTINUE button.
 
 **What to say:**
 "The scoring system considers both accuracy and confidence. If you are confident but wrong, you lose more points than if you are not confident and wrong. If you are right but not confident, you will not get as many points as if you were both right and confident. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision."
@@ -187,10 +226,92 @@ Confidence matters. A curator scores based on accuracy and confidence.
 ---
 
 ### Amy Introduction Before Collections
-**Display shows:**
+**Display says:**
 "Work with Amy to sort this collection.
 
 Sometimes she goes first, sometimes you do."
+
+**Display shows:** Image of Amy, "Amy" label below the image, CONTINUE button (bottom right).
+
+**What to say:**
+"Work with Amy to sort this collection. Sometimes she'll rate first, sometimes you will. Click CONTINUE when ready."
+
+---
+
+### Ready to Start (Before Each Block)
+**Display says:**
+"Ready to start sorting?
+
+X collection(s) remaining"
+
+**Display shows:** BEGIN button. (Number of collections remaining updates each block.)
+
+**What to say:**
+"When you see this screen, click BEGIN when you're ready to start the next collection."
+
+---
+
+### Partner Switch Screens
+
+**First time switching to Ben (before Block 4):**
+"A quick update.
+
+Amy has stepped away to prepare for her exhibition.
+
+While she's gone, you'll be working with Ben—another assistant in the studio.
+
+Click CONTINUE to start sorting!"
+(Image of Ben appears; no label. CONTINUE button.)
+
+**Second time with Ben (before Block 8):**
+"Amy has to step away again! You will work with Ben again for the last collections."
+(Image of Ben, CONTINUE button.)
+
+**Switching back to Amy (before Block 6):**
+"Amy is back for a day!
+
+She's returning to help you with exhibition preparation."
+(Image of Amy, CONTINUE button.)
+
+**What to say:**
+"Sometimes your partner will change. You'll work with Amy for some collections and Ben for others. Read the message and click CONTINUE."
+
+---
+
+### After All Blocks – Cumulative Score
+**Display says:**
+"The in-house curator scored all your collections X points out of a total of 100 points!"
+
+**Display shows:** CONTINUE button.
+
+**What to say:**
+"This is your total score across all collections. Click CONTINUE to see the leaderboard."
+
+---
+
+### Leaderboard
+**Display shows:**
+"AMY'S EMPLOYEE RANKING & LEADERSHIP BOARD"
+
+A table with Rank and Participant (P01–P05); participant is shown as "[ID] (you)" at rank 2. No scores shown. CONTINUE button (positioned lower to avoid overlap with text).
+
+**What to say:**
+"Here’s how you compare to other participants. Click CONTINUE when you’re done looking."
+
+---
+
+### Final Screen
+**Display says:**
+"COLLECTION SORTING COMPLETE!
+
+Total time: X minutes (Y seconds)
+
+Amy thanks you for helping sort the collection!"
+
+**Display shows:** CONTINUE button. After clicking, the task closes.
+
+**What to say:**
+"Great job! That’s the end of the task. Click CONTINUE to finish."
 
 ---
 ***Important:***
