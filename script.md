@@ -192,12 +192,9 @@ Confidence matters. A curator scores based on accuracy and confidence.
 
 Sometimes she goes first, sometimes you do."
 
-[Image of Amy appears]
-
-**What to say:**
-"This is Amy again. Remember, sometimes she'll rate first, sometimes you will. Click CONTINUE when ready."
-
 ---
+***Important:***
+Make sure participants get all the way to the end of the task. If they do, there should be no more buttons and the screen should close on its own. If this does not happen, the data will not get pushed.
 
 ## Notes for Experimenters
 
