@@ -41,7 +41,7 @@ Localizer task script for category verification.
   - **Note**: This differs from the main task, which uses 7.0 second timeouts for slider and switch/stay decisions
 - Records participant responses (YES/NO) and accuracy
 - Saves data to CSV file: `localizer_[participant_id]_[timestamp].csv`
-- **Example filename**: `localizer_kini_20260130_232131.csv`
+- **Example filename**: `localizer_P1_20260130_232131.csv`
 - Supports both touch screen and click/mouse input modes
 - Skips file saving if "test" is in participant name
 - **See `CSV_VARIABLES_DOCUMENTATION.md` for complete variable definitions**
