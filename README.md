@@ -4,7 +4,7 @@ This repository contains the full PsychoPy implementation, documentation, and ex
 
 ## Narrative Context
 
-The experiment is framed as a photography studio collaboration task. Participants join a small photography studio where **Amy**, a professional photographer, is preparing images for an upcoming exhibition. Participants help sort through large sets of images and decide which ones truly belong in the collection. During the experiment, participants may work with **Amy** (reliable partner) or **Ben** (another assistant who may rely on different cues, unreliable partner). The task is framed as helping an "in-house curator" score the images, with scoring feedback presented as "The in-house curator scored this image: X points" rather than direct point earnings.
+The experiment is framed as a photography studio collaboration task. Participants join a small photography studio where **Amy**, a professional photographer, is preparing images for an upcoming exhibition. Participants help sort through large sets of images and decide which ones truly belong in the collection. During the experiment, participants may work with **Amy** (reliable partner) or **Ben** (another assistant who may rely on different cues, unreliable partner). The task is framed as helping Amy sort through the images, with an "in-house curator" who scores the images. Scoring feedback presented as "The in-house curator scored this image: X points" rather than direct point earnings.
 
 ## Repository Contents
 
@@ -19,7 +19,7 @@ Main PsychoPy script for the entire experiment.
   - 10 experimental blocks (10 trials each)  
   - Study phase → Recognition phase → Switch/Stay decision → Outcome feedback  
   - AI turn-taking (randomized within blocks: AI goes first on 5 random trials out of 10 per block)  
-  - AI accuracy manipulation (reliable exactly 75% vs. unreliable exactly 25% using deterministic thresholds)  
+  - AI accuracy manipulation (reliable exactly 70 or 80% vs. unreliable exactly 20 or 30% using deterministic thresholds)  
   - Leaderboard screen (5 players, participant ranked 2 out of 5; continue button positioned to avoid overlap with text)
 - Saves trial-level and block-level data as CSV files.
 
@@ -41,7 +41,7 @@ Localizer task script for category verification.
   - **Note**: This differs from the main task, which uses 7.0 second timeouts for slider and switch/stay decisions
 - Records participant responses (YES/NO) and accuracy
 - Saves data to CSV file: `localizer_[participant_id]_[timestamp].csv`
-- **Example filename**: `localizer_kini_20260130_232131.csv`
+- **Example filename**: `localizer_P1_20260130_232131.csv`
 - Supports both touch screen and click/mouse input modes
 - Skips file saving if "test" is in participant name
 - **See `CSV_VARIABLES_DOCUMENTATION.md` for complete variable definitions**
