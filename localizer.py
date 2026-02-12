@@ -1845,7 +1845,7 @@ try:
              "You will see 200 images one at a time.\n\n"
              "Every few images, you will be asked a question\n"
              "about the previous image.\n\n"
-             "Please pay attention to each image.",
+             "Please pay attention to each image. Not every question has an objectively correct answer, but do your best. ",
         color='black',
         height=0.05*0.75*1.35,
         pos=(0, 0),

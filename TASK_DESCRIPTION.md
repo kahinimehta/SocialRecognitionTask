@@ -321,7 +321,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Transition Screens
 
-- **Initial screen**: "Hello & welcome to the social memory game! Pay careful attention to the text on the screen"
+- **Initial screen**: "Hello & welcome to the social memory game! Pay careful attention to the text on the screen. Some images will be very deceptively similar."
 - **Before practice**: Welcome message—Amy's studio; Carly (her assistant) will walk through practice (same image as Amy)
 - **After practice**: Transition message explaining the real work begins with Amy organizing photographs
 - **Before each block**: "Ready to start sorting?" screen showing collections remaining count with BEGIN button

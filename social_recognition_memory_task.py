@@ -4147,7 +4147,7 @@ def run_experiment():
     # Initial click-to-start screen with button
     start_screen = visual.TextStim(
         win,
-        text="Hello & welcome to the social memory game! Pay careful attention to the text on the screen.",
+        text="Hello & welcome to the social memory game! Pay careful attention to the text on the screen. Some images will be very deceptively similar.",
         color='black',
         height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.4*0.6),  # Moved higher to avoid overlap with button

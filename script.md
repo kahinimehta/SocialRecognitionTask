@@ -35,7 +35,7 @@ Touch or click the button below:"
 
 ### Initial Screen
 **Display says:**
-"Hello & welcome to the social memory game! Pay careful attention to the text on the screen."
+"Hello & welcome to the social memory game! Pay careful attention to the text on the screen. Some images will be very deceptively similar."
 
 **Display shows:** A BEGIN button (light blue).
 
