@@ -62,7 +62,7 @@ def get_input_method():
             size=(1400, 900),
             color='lightgray',
             units='height',
-            fullscr=False,
+            fullscr=True,
             allowGUI=True,
             waitBlanking=False,  # Prevent blocking on display sync
             useFBO=False  # Disable framebuffer objects to prevent hangs
@@ -1554,14 +1554,14 @@ try:
         # Ensure events are cleared before window creation
         event.clearEvents()
         
-        print("DEBUG: Calling visual.Window(size=(1400, 900), fullscr=False)...", file=sys.stderr)
+        print("DEBUG: Calling visual.Window(size=(1400, 900), fullscr=True)...", file=sys.stderr)
         sys.stderr.flush()
         
         win = visual.Window(
             size=(1400, 900), 
             color='lightgray', 
             units='height',
-            fullscr=False,
+            fullscr=True,
             waitBlanking=False,  # Prevent blocking on display sync
             allowGUI=True,  # Ensure GUI is available
             useFBO=False  # Disable framebuffer objects to prevent hangs

@@ -451,8 +451,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 
 ### Window and Display
 
-- **Window size**: 1280×720 pixels
-- **Fullscreen**: Disabled during development
+- **Window**: Fullscreen on both laptop and touch screen (uses full display resolution)
 - **Window focus**: Automatically activated on macOS
 - **Initial screen**: "Click anywhere to begin" ensures window focus
 
