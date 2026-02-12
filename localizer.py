@@ -72,7 +72,8 @@ def get_input_method():
         prompt_text = visual.TextStim(
             temp_win,
             text="What input method are you using?\n\n"
-                 "Touch or click the button below:",
+                 "Touch or click the button below:\n\n"
+                 "(Press ESC or tap Exit to leave fullscreen)",
             color='black',
             height=30/720*0.75,
             pos=(0, 200/720*0.6),
@@ -120,6 +121,19 @@ def get_input_method():
             units='height'
         )
         
+        # Exit button (top-right): for touch screen to leave fullscreen; ESC works on laptop
+        exit_btn = visual.Rect(
+            temp_win,
+            width=0.12,
+            height=0.04,
+            fillColor=[0.95, 0.85, 0.85],
+            lineColor='darkred',
+            pos=(0.45, 0.47),
+            lineWidth=1,
+            units='height'
+        )
+        exit_text = visual.TextStim(temp_win, text="Exit", color='darkred', height=0.025, pos=(0.45, 0.47), units='height')
+        
         mouse_temp = event.Mouse(win=temp_win)
         mouse_temp.setVisible(True)
         
@@ -129,6 +143,8 @@ def get_input_method():
             button1_text.draw()
             button2.draw()
             button2_text.draw()
+            exit_btn.draw()
+            exit_text.draw()
             temp_win.flip()
         
         draw_selection_screen()
@@ -157,7 +173,14 @@ def get_input_method():
                 
                 # Check for button release (was pressed, now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    # Button was released - check if it was over a button
+                    # Button was released - check if it was over Exit button first
+                    try:
+                        if exit_btn.contains(mouseloc):
+                            return None, None
+                    except Exception:
+                        mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
+                        if 0.39 <= mouseloc_x <= 0.51 and 0.45 <= mouseloc_y <= 0.49:
+                            return None, None
                     # Check button 1 (TOUCH SCREEN)
                     try:
                         if button1.contains(mouseloc):
@@ -1027,6 +1050,10 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         pos=(0, -0.5*0.6)  # Moved even closer to bottom
     )
     
+    # Exit button (top-right): tap to leave fullscreen on touch screen; ESC on laptop
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=(0.45, 0.47), lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=(0.45, 0.47), units='height')
+    
     def draw_screen():
         # Draw additional stimuli first (e.g., instructions)
         if additional_stimuli:
@@ -1034,6 +1061,8 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                 stim.draw()
         continue_button.draw()
         continue_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
         win.flip()
     
     draw_screen()
@@ -1053,6 +1082,14 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         clock.reset()
         
         while not clicked:
+            # Check for escape key
+            try:
+                keys = event.getKeys(keyList=['escape'], timeStamped=False)
+                if keys and 'escape' in keys:
+                    core.quit()
+            except (AttributeError, RuntimeError):
+                pass
+            
             try:
                 mouseloc = mouse.getPos()
                 try:
@@ -1069,7 +1106,9 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                 else:
                     # Position has changed - check if touch is within button
                     try:
-                        if continue_button.contains(mouseloc):
+                        if exit_btn.contains(mouseloc) and t > minRT:
+                            core.quit()
+                        elif continue_button.contains(mouseloc):
                             if t > minRT:
                                 continue_button.fillColor = 'lightgreen'
                                 draw_screen()
@@ -1112,7 +1151,13 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
             
             # Check keys AFTER processing touch, BEFORE clearing events
             try:
-                keys = event.getKeys(keyList=['space'], timeStamped=False)  # escape already checked at start
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if keys:
+                    if 'escape' in keys:
+                        core.quit()
+                    elif 'space' in keys:
+                        clicked = True
+                        break
                 if keys and 'space' in keys:
                     clicked = True
                     break
@@ -1163,9 +1208,12 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                 
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
                             button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                on_exit = (0.39 <= mouse_x <= 0.51 and 0.45 <= mouse_y <= 0.49)  # Exit button bounds
                 
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_button:
+                    if on_exit:
+                        core.quit()
+                    elif on_button:
                         continue_button.fillColor = 'lightgreen'
                         draw_screen()
                         core.wait(0.2)
@@ -1256,6 +1304,9 @@ def ask_object_question(object_name, timeout=10.0):
         pos=(0.3*0.6, -0.2*0.6)
     )
     
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=(0.45, 0.47), lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=(0.45, 0.47), units='height')
+    
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
     
@@ -1265,6 +1316,8 @@ def ask_object_question(object_name, timeout=10.0):
         yes_text.draw()
         no_button.draw()
         no_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
         win.flip()
     
     draw_question()
@@ -1312,8 +1365,10 @@ def ask_object_question(object_name, timeout=10.0):
                 else:
                     # Position has changed - check if touch is within buttons
                     try:
+                        if exit_btn.contains(mouseloc) and t > minRT:
+                            core.quit()
                         # Check YES button
-                        if yes_button.contains(mouseloc):
+                        elif yes_button.contains(mouseloc):
                             if t > minRT:
                                 answer = True
                                 response_time = clock.getTime()
@@ -1392,11 +1447,13 @@ def ask_object_question(object_name, timeout=10.0):
                 # Log specific errors instead of silently ignoring
                 print(f"Warning: Error in ask_category_question touch screen loop: {e}", file=sys.stderr)
             
-            # Check keys AFTER processing touch, BEFORE clearing events (escape already checked at start)
+            # Check keys AFTER processing touch, BEFORE clearing events
             try:
-                keys = event.getKeys(keyList=['y', 'n'], timeStamped=False)
+                keys = event.getKeys(keyList=['y', 'n', 'escape'], timeStamped=False)
                 if keys:
-                    if 'y' in keys:
+                    if 'escape' in keys:
+                        core.quit()
+                    elif 'y' in keys:
                         answer = True
                         response_time = clock.getTime()
                         answer_click_time = time.time()  # Record absolute timestamp
@@ -1449,9 +1506,12 @@ def ask_object_question(object_name, timeout=10.0):
                 no_width, no_height = 0.25*0.75, 0.1*0.75
                 on_no = (no_x - no_width/2 <= mouse_x <= no_x + no_width/2 and
                         no_y - no_height/2 <= mouse_y <= no_y + no_height/2)
+                on_exit = (0.39 <= mouse_x <= 0.51 and 0.45 <= mouse_y <= 0.49)
                 
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_yes:
+                    if on_exit:
+                        core.quit()
+                    elif on_yes:
                         answer = True
                         response_time = clock.getTime()
                         answer_click_time = time.time()  # Record absolute timestamp

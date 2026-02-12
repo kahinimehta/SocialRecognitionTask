@@ -43,6 +43,7 @@ Localizer task script for object verification.
 - Saves data to CSV file: `localizer_[participant_id]_[timestamp].csv`
 - **Example filename**: `localizer_P1_20260130_232131.csv`
 - Supports both touch screen and click/mouse input modes
+- **Exit fullscreen:** Laptop: press ESC; Touch screen: tap the Exit button (top-right corner)
 - Skips file saving if "test" is in participant name
 - **See `CSV_VARIABLES_DOCUMENTATION.md` for complete variable definitions**
 
