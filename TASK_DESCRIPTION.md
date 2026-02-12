@@ -124,7 +124,9 @@ Each of the 10 trials follows this structure:
 
 - AI partner also rates each image on the same slider
 - **AI Response Time (RT)**: Drawn from a log-normal distribution (jittered)
-- **AI Confidence**: Random, but definitely higher when correct (0.65–0.95) and definitely lower when incorrect (0.05–0.35)
+- **AI Confidence**:
+  - **Amy (reliable blocks)**: Higher when correct (0.65–0.95), lower when incorrect (0.05–0.35)—confidence is informative about accuracy
+  - **Ben (unreliable blocks)**: Totally random (uniform 0–1)—confidence is uninformative and unrelated to correctness
 - **AI Accuracy**: Varies by block (see below)
 - Animation shows AI's slider clicking (handle appears at chosen position) and clicking submit
 
@@ -137,19 +139,17 @@ Each of the 10 trials follows this structure:
 
 ### AI Accuracy Manipulation
 
-- **Reliable blocks**: Exactly 75% correct (Blocks 1-3 and 6-7, Amy)
-  - Uses deterministic threshold: exactly 3 out of every 4 trials are correct
-  - In a 10-trial block, exactly 7-8 trials will be correct (rounded)
-- **Unreliable blocks**: Exactly 25% correct (Blocks 4-5 and 8-10, Ben)
-  - Uses deterministic threshold: exactly 1 out of every 4 trials is correct
-  - In a 10-trial block, exactly 2-3 trials will be correct (rounded)
+- **Reliable blocks**: 70–80% correct (Blocks 1-3 and 6-7, Amy)
+  - In a 10-trial block, 7–8 trials will be correct
+- **Unreliable blocks**: 20–30% correct (Blocks 4-5 and 8-10, Ben)
+  - In a 10-trial block, 2–3 trials will be correct
 - **Block structure**:
-  - Blocks 1-3: Reliable (0.75, Amy), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 4-5: Unreliable (0.25, Ben), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 6-7: Reliable (0.75, Amy), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 8-10: Unreliable (0.25, Ben), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 1-3: Reliable (Amy, 70–80%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 4-5: Unreliable (Ben, 20–30%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 6-7: Reliable (Amy, 70–80%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 8-10: Unreliable (Ben, 20–30%), turn order randomized within block (AI first on 5 random trials)
 
-**Implementation details**: The AI collaborator uses a hard threshold system to ensure deterministic accuracy rates. For reliable blocks (75% accuracy), trials are correct in positions 1, 2, and 3 of each group of 4 trials. For unreliable blocks (25% accuracy), only position 1 of each group of 4 trials is correct. This ensures consistent, predictable accuracy across all blocks.
+**Implementation details**: The AI collaborator uses a pre-generated randomized sequence to target 70–80% (reliable) or 20–30% (unreliable) accuracy per block. With 10 trials per block, reliable blocks yield 7–8 correct, unreliable blocks yield 2–3 correct.
 
 ### Collaboration Decision (STAY/SWITCH)
 
@@ -349,7 +349,7 @@ All scoring is framed as "in-house curator" evaluations:
 ### Block Counterbalancing
 
 - **Turn-taking**: Randomized within each block - AI goes first on 5 random trials out of 10 per block
-- **AI Accuracy**: Fixed order - Blocks 1-3, 6-7 reliable (Amy, ~75%); Blocks 4-5, 8-10 unreliable (Ben, ~25%)
+- **AI Accuracy**: Fixed order - Blocks 1-3, 6-7 reliable (Amy, 70–80%); Blocks 4-5, 8-10 unreliable (Ben, 20–30%)
 - **Structure**: 
   - Blocks 1-3: Reliable (Amy), randomized turn order (AI first on 5 random trials)
   - Blocks 4-5: Unreliable (Ben), randomized turn order (AI first on 5 random trials)
@@ -363,7 +363,7 @@ All scoring is framed as "in-house curator" evaluations:
   - When correct: 0.65–0.95 (definitely on higher side)
   - When incorrect: 0.05–0.35 (definitely on lower side)
   - Biased toward OLD/NEW side based on ground truth
-- **AI Accuracy**: Controlled at block level (0.75 or 0.25)
+- **AI Accuracy**: Controlled at block level (70–80% reliable or 20–30% unreliable)
 
 ---
 
@@ -473,7 +473,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 ### Manipulations
 
 1. **Turn-Taking**: Who responds first (participant vs. AI)
-2. **AI Accuracy**: High (~75%) vs. Low (~25%) accuracy blocks
+2. **AI Accuracy**: High (70–80%) vs. Low (20–30%) accuracy blocks
 
 ### Research Questions
 
