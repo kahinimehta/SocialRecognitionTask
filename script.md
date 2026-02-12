@@ -206,7 +206,7 @@ Click on the slider, then SUBMIT."
 **Display shows:** CONTINUE button.
 
 **What to say:**
-"Read these instructions carefully. You'll need to remember which photos belong in each collection. These will be more complex images—like animals, objects, etc. Use the slider to rate each image—OLD means it belongs, NEW means it doesn't. Click on the slider line to set your rating, then click SUBMIT."
+"Read these instructions carefully. You'll need to remember which photos belong in each collection. Important: For each collection, you will only be sorting the 10 images you just saw for that collection—nothing from prior collections. These will be more complex images—like animals, objects, etc. Use the slider to rate each image—OLD means it belongs, NEW means it doesn't. Click on the slider line to set your rating, then click SUBMIT."
 
 ---
 
@@ -275,7 +275,9 @@ Make sure participants get all the way to the end of the task. If they do, there
 - **Decision screen labels**: On the switch/stay screen, "you" (green) and the partner name "Amy" or "Ben" (blue) appear below the scale next to the markers
 - **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; continue button is placed lower to avoid overlap with text
 - **Practice vs. Real**: The practice block uses Carly (Amy's assistant; same image as Amy) and 4 simple shapes: green circle, red circle, blue circle (study phase), and blue square (trial 3 recognition—the NEW item). Carly only appears in practice. The real experiment uses Amy or Ben as partners and photographs from the THINGS dataset
-- **Amy vs. Ben confidence**: Amy (reliable blocks): When correct, high confidence (0.75–1.0 on correct side); when wrong, moderate confidence (0.5–0.75 or 0.25–0.5 depending on which wrong side). Ben (unreliable blocks): Confidence is random (0–1) and unrelated to correctness—participants cannot infer accuracy from Ben's confidence.
+- **Amy vs. Ben accuracy**: Amy (reliable blocks): 70–80% accuracy (7–8 correct per 10-trial block). Ben (unreliable blocks): 20–30% accuracy (2–3 correct per 10-trial block).
+- **Amy vs. Ben confidence**: Amy (reliable blocks): Confidence correlated with correctness—when correct, high confidence (0.75–1.0 on correct side); when wrong, moderate confidence (0.5–0.75 or 0.25–0.5 depending on which wrong side). Ben (unreliable blocks): Totally random (0–1), unrelated to correctness—participants cannot infer accuracy from Ben's confidence.
+- **Partner rating text**: When Amy, Ben, or Carly is rating, "[Partner name] is rating..." appears below the slider bar and above the SUBMIT button (in blue).
 - **Exit instructions (tell participants before task)**: Laptop users can press ESC anytime to exit. Touch screen users: the Exit button only appears when you need to tap a button or make a decision—not during image display, fixation, or outcome screens. Exit when you see it.
 
 ---

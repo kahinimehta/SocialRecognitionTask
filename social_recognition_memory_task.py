@@ -2402,7 +2402,7 @@ class AICollaborator:
     def __init__(self, accuracy_rate=0.5, num_trials=20):
         """
         AI collaborator for recognition memory task
-        accuracy_rate: Overall accuracy (0.5 = 50%, 0.75 = 70–80%, 0.25 = 20–30%)
+        accuracy_rate: Overall accuracy (0.5 = 50% practice, 0.75 = 70-80% Amy, 0.25 = 20-30% Ben)
         num_trials: Number of trials in the block (default 20)
         """
         self.accuracy_rate = accuracy_rate
@@ -2463,8 +2463,8 @@ class AICollaborator:
         
         Uses pre-generated randomized sequence to ensure target accuracy rate
         while randomizing which trials are correct/Incorrect:
-        - 70-80% accuracy: approximately 7-8 out of 10 trials correct (randomized order)
-        - 20-30% accuracy: approximately 2-3 out of 10 trials correct (randomized order)
+        - 70-80% accuracy (Amy): 7-8 out of 10 trials correct (randomized order)
+        - 20-30% accuracy (Ben): 2-3 out of 10 trials correct (randomized order)
         """
         # Ground truth: studied items should be rated OLD, lures should be rated NEW
         if is_studied:
@@ -2798,7 +2798,8 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     )
     old_label = visual.TextStim(win, text='OLD', color='black', height=0.04*0.75*1.35, pos=(-0.5*0.6, slider_y_pos - 0.08))
     new_label = visual.TextStim(win, text='NEW', color='black', height=0.04*0.75*1.35, pos=(0.5*0.6, slider_y_pos - 0.08))
-    partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.04*0.75*1.35, pos=(0, 0.45))  # Move higher to avoid overlap with larger images
+    # Position text below slider bar, above submit button
+    partner_text = visual.TextStim(win, text=f"{partner_name} is rating...", color='blue', height=0.04*0.75*1.35, pos=(0, slider_y_pos - 0.06))
     
     # Submit button: same size and same relative position as main task (below slider, never covering it)
     submit_y = slider_y_pos - 0.12
@@ -3890,7 +3891,7 @@ def show_leaderboard(participant_id, total_points):
     win.flip()
     
     # Use wait_for_button with lower button position to avoid overlap with leaderboard text
-    wait_for_button(redraw_func=redraw, button_y=-0.5)
+    wait_for_button(redraw_func=redraw, button_y=-0.4)
 
 def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, total_points=0):
     """Show trial outcome with points based on euclidean distance"""

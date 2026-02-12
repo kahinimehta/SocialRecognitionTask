@@ -125,7 +125,7 @@ Each of the 10 trials follows this structure:
 - AI partner also rates each image on the same slider
 - **AI Response Time (RT)**: Drawn from a log-normal distribution (jittered)
 - **AI Confidence**:
-  - **Amy (reliable blocks)**: When correct, high confidence—0.75–1.0 on the correct side (uniform random). When wrong, moderate confidence—0.5–0.75 if she said NEW (but correct was OLD), or 0.25–0.5 if she said OLD (but correct was NEW). Confidence is informative about accuracy.
+  - **Amy (reliable blocks)**: Confidence correlated with correctness. When correct, high confidence—0.75–1.0 on the correct side (uniform random). When wrong, moderate confidence—0.5–0.75 if she said NEW (but correct was OLD), or 0.25–0.5 if she said OLD (but correct was NEW). Confidence is informative about accuracy.
   - **Ben (unreliable blocks)**: Totally random (uniform 0–1)—confidence is uninformative and unrelated to correctness
 - **AI Accuracy**: Varies by block (see below)
 - Animation shows AI's slider clicking (handle appears at chosen position) and clicking submit
@@ -139,17 +139,15 @@ Each of the 10 trials follows this structure:
 
 ### AI Accuracy Manipulation
 
-- **Reliable blocks**: 70–80% correct (Blocks 1-3 and 6-7, Amy)
-  - In a 10-trial block, 7–8 trials will be correct
-- **Unreliable blocks**: 20–30% correct (Blocks 4-5 and 8-10, Ben)
-  - In a 10-trial block, 2–3 trials will be correct
+- **Reliable blocks**: 70–80% accuracy (Blocks 1-3 and 6-7, Amy)—7–8 correct per 10-trial block
+- **Unreliable blocks**: 20–30% accuracy (Blocks 4-5 and 8-10, Ben)—2–3 correct per 10-trial block
 - **Block structure**:
   - Blocks 1-3: Reliable (Amy, 70–80%), turn order randomized within block (AI first on 5 random trials)
   - Blocks 4-5: Unreliable (Ben, 20–30%), turn order randomized within block (AI first on 5 random trials)
   - Blocks 6-7: Reliable (Amy, 70–80%), turn order randomized within block (AI first on 5 random trials)
   - Blocks 8-10: Unreliable (Ben, 20–30%), turn order randomized within block (AI first on 5 random trials)
 
-**Implementation details**: The AI collaborator uses a pre-generated randomized sequence to target 70–80% (reliable) or 20–30% (unreliable) accuracy per block. With 10 trials per block, reliable blocks yield 7–8 correct, unreliable blocks yield 2–3 correct.
+**Implementation details**: The AI collaborator uses a pre-generated randomized sequence to target 70–80% (reliable/Amy) or 20–30% (unreliable/Ben) accuracy per block. Reliable blocks yield 7–8 correct, unreliable blocks yield 2–3 correct.
 
 ### Collaboration Decision (STAY/SWITCH)
 
@@ -362,7 +360,7 @@ All scoring is framed as "in-house curator" evaluations:
 - **AI Confidence** (Amy only): Uniform random within range
   - When correct: 0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0)
   - When incorrect: 0.5–0.75 if said NEW (correct was OLD), or 0.25–0.5 if said OLD (correct was NEW)
-  - Ben: uniform 0–1, unrelated to correctness
+  - Ben: uniform 0–1, totally random, unrelated to correctness
 - **AI Accuracy**: Controlled at block level (70–80% reliable or 20–30% unreliable)
 
 ---

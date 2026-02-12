@@ -195,7 +195,7 @@ The localizer task generates one CSV file:
   - Values closer to 0.0 = OLD (studied)
   - Values closer to 1.0 = NEW (lure)
   - `None` for practice trial 1 (no AI response)
-  - **Amy (reliable)**: When correct—0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0); when wrong—0.5–0.75 or 0.25–0.5 depending on wrong side. Uniform random within ranges.
+  - **Amy (reliable)**: Confidence correlated with correctness. When correct—0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0); when wrong—0.5–0.75 or 0.25–0.5 depending on wrong side. Uniform random within ranges.
   - **Ben (unreliable)**: Uniform 0–1, unrelated to correctness
 - **Example**: `0.6569413750565093`, `0.3563797294608513`, `None`
 
@@ -429,7 +429,6 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
   **AI Accuracy Implementation**: With 10 trials per block:
   - **Reliable blocks (Amy)**: 70–80% accuracy (7–8 correct per 10-trial block)
   - **Unreliable blocks (Ben)**: 20–30% accuracy (2–3 correct per 10-trial block)
-  - In a 10-trial block, reliable blocks have 7–8 correct (70–80%), unreliable blocks have 2–3 correct (20–30%)
 - **Turn-taking**: 
   - Turn order is randomized within each block: AI goes first on a **random 5 out of 10 trials** in each block
   - The 5 trials where AI goes first are randomly selected for each block (different randomization per block)
