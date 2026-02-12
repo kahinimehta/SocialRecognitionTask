@@ -38,6 +38,7 @@ Touch or click the button below:
 **What to say:**
 "First, double-tap the touch-screen button."
 
+
 **Exit fullscreen:** **ESC** (laptop) or tap **Exit** (top-right). Same on all screens with CONTINUE/instruction buttons.
 
 ---
