@@ -219,10 +219,10 @@ The localizer task generates one CSV file:
 ### `ai_reliability`
 - **Type**: Float (0.0 to 1.0)
 - **Description**: AI's accuracy rate/reliability for this trial
-  - `0.75` = Reliable partner (Amy in blocks 1-3 and 6-7) - exactly 75% accurate using deterministic threshold
-  - `0.25` = Unreliable partner (Ben in blocks 4-5 and 8-10) - exactly 25% accurate using deterministic threshold
+  - `0.75` = Reliable partner (Amy in blocks 1-3 and 6-7) - 70–80% accurate per block (7–8/10 trials)
+  - `0.25` = Unreliable partner (Ben in blocks 4-5 and 8-10) - 20–30% accurate per block (2–3/10 trials)
   - `0.5` = Practice block (50% reliability)
-- **Note**: Accuracy rates are deterministic, not probabilistic. Reliable blocks use a hard threshold ensuring exactly 3 out of every 4 trials are correct. Unreliable blocks ensure exactly 1 out of every 4 trials is correct.
+- **Note**: With 10 trials per block, reliable blocks yield 7–8 correct (70–80%), unreliable blocks yield 2–3 correct (20–30%).
 - **Example**: `0.75`, `0.25`, `0.5`
 
 ---
@@ -400,15 +400,15 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
     - Trial 3: Full trial with participant, AI, and switch/stay decision. `ai_reliability` is `0.5` (50% for practice block). Partner shown as Carly (Amy's assistant).
   - All practice trials have `block_start_time`, `block_end_time`, `block_duration_seconds`, and `block_duration_minutes` set to `None` (practice block timing not tracked)
 - **Block structure**:
-  - Blocks 1-3: Reliable (exactly 0.75 accuracy, deterministic, Amy)
-  - Blocks 4-5: Unreliable (exactly 0.25 accuracy, deterministic, Ben)
-  - Blocks 6-7: Reliable (exactly 0.75 accuracy, deterministic, Amy)
-  - Blocks 8-10: Unreliable (exactly 0.25 accuracy, deterministic, Ben)
+  - Blocks 1-3: Reliable (Amy, 70–80% = 7–8/10 correct)
+  - Blocks 4-5: Unreliable (Ben, 20–30% = 2–3/10 correct)
+  - Blocks 6-7: Reliable (Amy, 70–80% = 7–8/10 correct)
+  - Blocks 8-10: Unreliable (Ben, 20–30% = 2–3/10 correct)
   
-  **AI Accuracy Implementation**: The AI collaborator uses deterministic thresholds to ensure exact accuracy rates:
-  - **75% accuracy (Reliable blocks)**: Exactly 3 out of every 4 trials are correct (positions 1, 2, 3 in each group of 4)
-  - **25% accuracy (Unreliable blocks)**: Exactly 1 out of every 4 trials is correct (position 1 in each group of 4)
-  - In a 10-trial block, reliable blocks will have approximately 7-8 correct trials, unreliable blocks will have approximately 2-3 correct trials
+  **AI Accuracy Implementation**: With 10 trials per block:
+  - **Reliable blocks (Amy)**: 70–80% accuracy (7–8 correct per 10-trial block)
+  - **Unreliable blocks (Ben)**: 20–30% accuracy (2–3 correct per 10-trial block)
+  - In a 10-trial block, reliable blocks have 7–8 correct (70–80%), unreliable blocks have 2–3 correct (20–30%)
 - **Turn-taking**: 
   - Turn order is randomized within each block: AI goes first on a **random 5 out of 10 trials** in each block
   - The 5 trials where AI goes first are randomly selected for each block (different randomization per block)

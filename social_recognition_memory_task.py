@@ -2402,7 +2402,7 @@ class AICollaborator:
     def __init__(self, accuracy_rate=0.5, num_trials=20):
         """
         AI collaborator for recognition memory task
-        accuracy_rate: Overall accuracy (0.5 = 50%, 0.75 = 75%, 0.25 = 25%)
+        accuracy_rate: Overall accuracy (0.5 = 50%, 0.75 = 70–80%, 0.25 = 20–30%)
         num_trials: Number of trials in the block (default 20)
         """
         self.accuracy_rate = accuracy_rate
@@ -2429,27 +2429,31 @@ class AICollaborator:
         return min(rt, 5.0)  # Cap at 5 seconds
     
     def generate_confidence(self, is_studied, ground_truth_correct):
-        """Generate AI confidence: random but definitely high when correct, definitely low when incorrect"""
-        # When correct: random in higher range (0.65-0.95)
-        # When incorrect: random in lower range (0.05-0.35)
-        if ground_truth_correct:
-            confidence = np.random.uniform(0.65, 0.95)
-        else:
-            confidence = np.random.uniform(0.05, 0.35)
-        
-        # If studied item, bias toward OLD; if lure, bias toward NEW
-        if is_studied:
-            # Bias toward OLD (lower values)
+        """Generate AI confidence.
+        Amy (reliable, 0.75): High when correct (0.65-0.95), low when incorrect (0.05-0.35).
+        Ben (unreliable, 0.25): Totally random (0-1), unrelated to correctness.
+        """
+        if self.accuracy_rate >= 0.5:
+            # Amy (reliable): confidence matches correctness - high when correct, low when incorrect
             if ground_truth_correct:
-                confidence = confidence * 0.5  # OLD side
+                confidence = np.random.uniform(0.65, 0.95)
             else:
-                confidence = 0.5 + (confidence * 0.5)  # NEW side (Incorrect)
+                confidence = np.random.uniform(0.05, 0.35)
+            
+            # If studied item, bias toward OLD; if lure, bias toward NEW
+            if is_studied:
+                if ground_truth_correct:
+                    confidence = confidence * 0.5  # OLD side
+                else:
+                    confidence = 0.5 + (confidence * 0.5)  # NEW side (Incorrect)
+            else:
+                if ground_truth_correct:
+                    confidence = 0.5 + (confidence * 0.5)  # NEW side
+                else:
+                    confidence = confidence * 0.5  # OLD side (Incorrect)
         else:
-            # Bias toward NEW (higher values)
-            if ground_truth_correct:
-                confidence = 0.5 + (confidence * 0.5)  # NEW side
-            else:
-                confidence = confidence * 0.5  # OLD side (Incorrect)
+            # Ben (unreliable): totally random confidence, unrelated to correctness
+            confidence = np.random.uniform(0.0, 1.0)
         
         return confidence
     
