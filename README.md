@@ -138,7 +138,7 @@ Localizer task data.
 ---
 
 #### **`STIMULI`**
-Stimuli used in the task. From the THINGS dataset. Also included with STIMULI: `ImagevsLure.pdf` to visualize all stimuli. Lures were AI generated via OpenAI, and aimed to keep difficulty at a medium level across all images. 
+Stimuli used in the task. From the THINGS dataset. Also included with STIMULI: `ImagevsLure.pdf` to visualize all stimuli & manual ratings of stimulus similarity: `Image_Similarity_Rater.csv`. Lures were AI generated via OpenAI, and aimed to keep difficulty at a medium level across all images as far as possible, but a mix of high/low/medium similarity was obtained. 
 
 
 
