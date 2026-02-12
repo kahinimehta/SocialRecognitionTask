@@ -235,7 +235,7 @@ You can switch even if you both agree, to match her confidence level."
 "Scoring:
 Confidence matters. An in-house curator scores based on accuracy and confidence.
 
-10 collections, 10 images each. Time limit per decision. *Remember, you are only responsible for remembering the last 10 images you saw before sorting. You will not be asked to recall images from previous collections while sorting images. Each collection has a different set of images*"
+10 collections, 10 images each. Time limit per decision."
 
 **Display shows:** CONTINUE button.
 
@@ -253,9 +253,10 @@ Sometimes she goes first, sometimes you do."
 **Display shows:** Image of Amy, "Amy" label below the image, CONTINUE button (bottom right).
 
 **What to say:**
-"Work with Amy to sort this collection. Sometimes she'll rate first, sometimes you will. Click CONTINUE when ready."
+"Work with Amy to sort this collection. Sometimes she'll rate first, sometimes you will.*Remember, you are only responsible for remembering the last 10 images you saw before sorting. You will not be asked to recall images from previous collections while sorting images. Each collection has a different set of images*. Click CONTINUE when ready to get started."
 
 ---
+
 
 ### Ready to Start (Before Each Block)
 **Display says:**
