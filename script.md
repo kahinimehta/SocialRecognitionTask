@@ -16,6 +16,12 @@
 
 This will run the localizer and upload the log files. 
 
+### For Pushing Log Files:
+If you only want to push the log files without running anything else, you may open a new *Anconda PowerShell Prompt Terminal* and enter "n" and enter when prompted to run the localizer. 
+
+### Updating the repo
+The code should automatically update everytime you open the terminal or run the experiment. If this is not the case, reach out to kahinimehta@hotmail.com
+
 **To exit fullscreen (main experiment):** 
 - **Laptop**: Press **ESC** — ESC always works to exit.
 - **Touch screen**: Tap the **Exit** button (top-right corner) — the Exit button is only shown sometimes, when you have to make a decision or click a button (e.g., input method, instructions, CONTINUE, slider/SUBMIT, STAY/SWITCH, name entry). It is not shown during fixation crosses, image display, or outcome screens. So on touch screens, you can only exit when the Exit button is visible.
@@ -229,12 +235,12 @@ You can switch even if you both agree, to match her confidence level."
 "Scoring:
 Confidence matters. An in-house curator scores based on accuracy and confidence.
 
-10 collections, 10 images each. Time limit per decision."
+10 collections, 10 images each. Time limit per decision. *Remember, you are only responsible for remembering the last 10 images you saw before sorting. You will not be asked to recall images from previous collections while sorting images. Each collection has a different set of images*"
 
 **Display shows:** CONTINUE button.
 
 **What to say:**
-"The scoring system considers both accuracy and confidence. If you are confident but wrong, you lose more points than if you are not confident and wrong. If you are right but not confident, you will not get as many points as if you were both right and confident. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision."
+"The scoring system considers both accuracy and confidence. If you are confident but wrong, you lose more points than if you are not confident and wrong. If you are right but not confident, you will not get as many points as if you were both right and confident. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision. *You will see how you compared against other anonymouse players at the end via a leaderboard!*"
 
 ---
 
@@ -287,7 +293,7 @@ Make sure participants get all the way to the end of the task. If they do, there
 - The task should not quit if they accidentally turn the Surface Pro off but be sure to log this if it happens. 
 - If a participant times out, the task will automatically select a random response and continue
 - If the participant accidentally minimizes the screen, navigate to the psychopy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
-- If there are any unexpected bugs, quit the terminal and restart the task again
+- If there are any unexpected bugs, quit the terminal and restart the task again. Sometimes (only on the computer version) the task lags and gets stuck on "begin". For Windows, you should be able to navigate away. For Mac, hit cmd+opt+esc for 3 seconds to force quit. After you restart, it should work normally again. 
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
 - **To exit the task**: Laptop users press **ESC** (always works). Touch screen users tap the **Exit** button (top-right) when it appears—it is only shown on interactive/decision screens, not during fixation, image display, or outcome screens. If needed, close the terminal window to force quit.
 - All data is saved automatically after each trial
