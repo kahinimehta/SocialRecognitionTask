@@ -2431,7 +2431,8 @@ class AICollaborator:
     def generate_confidence(self, is_studied, ground_truth_correct):
         """Generate AI confidence.
         Amy (reliable, 0.75): When correct, 0.75–1.0 (on correct side). When wrong, 0.5–0.75 or 0.25–0.5 (depending on which wrong side).
-        Ben (unreliable, 0.25): Totally random (0-1), unrelated to correctness.
+        Ben (unreliable, 0.25): Categorical accuracy 20–30% (from correctness_sequence). Confidence is random *within* the chosen category
+        (0–0.25 for OLD, 0.75–1.0 for NEW)—uninformative about correctness.
         """
         if self.accuracy_rate >= 0.5:
             # Amy (reliable): high confidence (0.75–1) when correct, moderate confidence (0.5–0.75 or 0.25–0.5) when wrong
@@ -2450,8 +2451,19 @@ class AICollaborator:
                     # Correct was NEW, AI said OLD: confidence 0.25–0.5
                     confidence = np.random.uniform(0.25, 0.5)
         else:
-            # Ben (unreliable): totally random confidence, unrelated to correctness
-            confidence = np.random.uniform(0.0, 1.0)
+            # Ben (unreliable): categorical accuracy from correctness_sequence (20–30%). Confidence random *within* chosen category.
+            if ground_truth_correct:
+                # Correct: random within correct side
+                if is_studied:
+                    confidence = np.random.uniform(0.0, 0.25)   # OLD: random within OLD range
+                else:
+                    confidence = np.random.uniform(0.75, 1.0)   # NEW: random within NEW range
+            else:
+                # Wrong: random within wrong side
+                if is_studied:
+                    confidence = np.random.uniform(0.75, 1.0)   # Correct was OLD, Ben says NEW
+                else:
+                    confidence = np.random.uniform(0.0, 0.25)   # Correct was NEW, Ben says OLD
         
         return confidence
     

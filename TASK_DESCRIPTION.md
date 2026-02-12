@@ -126,7 +126,7 @@ Each of the 10 trials follows this structure:
 - **AI Response Time (RT)**: Drawn from a log-normal distribution (jittered)
 - **AI Confidence**:
   - **Amy (reliable blocks)**: Confidence correlated with correctness. When correct, high confidence—0.75–1.0 on the correct side (uniform random). When wrong, moderate confidence—0.5–0.75 if she said NEW (but correct was OLD), or 0.25–0.5 if she said OLD (but correct was NEW). Confidence is informative about accuracy.
-  - **Ben (unreliable blocks)**: Totally random (uniform 0–1)—confidence is uninformative and unrelated to correctness
+  - **Ben (unreliable blocks)**: Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—confidence is uninformative about correctness
 - **AI Accuracy**: Varies by block (see below)
 - Animation shows AI's slider clicking (handle appears at chosen position) and clicking submit
 
@@ -357,10 +357,9 @@ All scoring is framed as "in-house curator" evaluations:
 ### AI Behavior Randomization
 
 - **AI RT**: Log-normal distribution (mu=0.5, sigma=0.3, capped at 5.0s)
-- **AI Confidence** (Amy only): Uniform random within range
-  - When correct: 0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0)
-  - When incorrect: 0.5–0.75 if said NEW (correct was OLD), or 0.25–0.5 if said OLD (correct was NEW)
-  - Ben: uniform 0–1, totally random, unrelated to correctness
+- **AI Confidence**:
+  - Amy (reliable): When correct, 0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0); when incorrect, 0.5–0.75 or 0.25–0.5 on wrong side (depending on which side)
+  - Ben (unreliable): Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW). Categorical accuracy 20–30% via pre-generated sequence; confidence uninformative about correctness.
 - **AI Accuracy**: Controlled at block level (70–80% reliable or 20–30% unreliable)
 
 ---
