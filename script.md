@@ -29,7 +29,7 @@ Touch or click the button below:"
 **Display shows:** Two buttons: "TOUCH SCREEN (Double tap with finger)" and "MOUSE/TRACKPAD (Click)"
 
 **What to say:**
-"First, choose how you'll respond—touch screen or mouse/trackpad. Touch or click the matching button."
+"First, double-tap the touch-screen button."
 
 ---
 
@@ -52,7 +52,7 @@ Touch or click the button below:"
 **Display shows:** Text field for typing; BACKSPACE and CONTINUE buttons (touch) or type and press Enter (mouse).
 
 **What to say:**
-"Enter your first name and last initial, no spaces or capitals. When you're done, click CONTINUE [or press Enter]."
+"Enter your first name and last initial, no spaces or capitals. When you're done, click CONTINUE."
 
 ---
 
@@ -115,7 +115,7 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 **What to say:**
 
 ***Make sure they know to CLICK, not DRAG the slider.***
-"Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the slider - CLICK anywhere on the line to set your rating, then click SUBMIT."
+"Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the slider - CLICK, not slide, anywhere on the line to set your rating, then click SUBMIT."
 
 ---
 
@@ -246,70 +246,6 @@ X collection(s) remaining"
 
 **What to say:**
 "When you see this screen, click BEGIN when you're ready to start the next collection."
-
----
-
-### Partner Switch Screens
-
-**First time switching to Ben (before Block 4):**
-"A quick update.
-
-Amy has stepped away to prepare for her exhibition.
-
-While she's gone, you'll be working with Ben—another assistant in the studio.
-
-Click CONTINUE to start sorting!"
-(Image of Ben appears; no label. CONTINUE button.)
-
-**Second time with Ben (before Block 8):**
-"Amy has to step away again! You will work with Ben again for the last collections."
-(Image of Ben, CONTINUE button.)
-
-**Switching back to Amy (before Block 6):**
-"Amy is back for a day!
-
-She's returning to help you with exhibition preparation."
-(Image of Amy, CONTINUE button.)
-
-**What to say:**
-"Sometimes your partner will change. You'll work with Amy for some collections and Ben for others. Read the message and click CONTINUE."
-
----
-
-### After All Blocks – Cumulative Score
-**Display says:**
-"The in-house curator scored all your collections X points out of a total of 100 points!"
-
-**Display shows:** CONTINUE button.
-
-**What to say:**
-"This is your total score across all collections. Click CONTINUE to see the leaderboard."
-
----
-
-### Leaderboard
-**Display shows:**
-"AMY'S EMPLOYEE RANKING & LEADERSHIP BOARD"
-
-A table with Rank and Participant (P01–P05); participant is shown as "[ID] (you)" at rank 2. No scores shown. CONTINUE button (positioned lower to avoid overlap with text).
-
-**What to say:**
-"Here’s how you compare to other participants. Click CONTINUE when you’re done looking."
-
----
-
-### Final Screen
-**Display says:**
-"COLLECTION SORTING COMPLETE!
-
-Total time: X minutes (Y seconds)
-
-Amy thanks you for helping sort the collection!"
-
-**Display shows:** CONTINUE button. After clicking, the task closes.
-
-**What to say:**
-"Great job! That’s the end of the task. Click CONTINUE to finish."
 
 ---
 ***Important:***
