@@ -138,8 +138,7 @@ Localizer task data.
 ---
 
 #### **`STIMULI`**
-Stimuli used in the task. From the THINGS dataset. Also included with STIMULI: `ImagevsLure.pdf` to visualize all stimuli & manual ratings `Image_Similarity_Rater.csv` of how visually similar the images are.
-
+Stimuli used in the task. From the THINGS dataset. Also included with STIMULI: `ImagevsLure.pdf` to visualize all stimuli. Lures were AI generated via ChatGPT and Gemini, and aimed to keep difficulty at a medium level across all images. 
 
 
 
