@@ -418,6 +418,7 @@ All scoring is framed as "in-house curator" evaluations:
 - **Question timing**: 10.0 second timeout (fixed)
   - **Note**: This differs from the main task, which uses 7.0 second timeouts
   - Questions asked at trials 10, 20, 30, ..., 200 (every 10th trial)
+- **Feedback**: No per-trial feedback. Accuracy summary shown at the very end of the task only.
 - **Total task duration**: Approximately 3-5 minutes (varies due to fixation jitter and question response times)
 
 #### AI Response Timing

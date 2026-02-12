@@ -553,63 +553,20 @@ def get_category_for_stimulus(stimulus_num):
             return category
     return None
 
-def category_to_question(category_name):
-    """Convert category name to question text
+def object_to_question(object_name):
+    """Convert object name to question text.
     
-    Handles multiple formats:
-    - BIG_ANIMAL -> "big animal"
-    - biganimal -> "big animal" (splits camelCase-like names)
-    - BIRD -> "bird"
+    E.g., 'Giraffe' -> "Was the last object a giraffe?"
+    E.g., 'Elephant' -> "Was the last object an elephant?"
     """
-    # First, map back to standard format if needed (for display purposes)
-    # The category_name might be the mapped folder name or the original category name
-    category_mapping_reverse = {
-        "biganimal": "BIG_ANIMAL",
-        "bigobject": "BIG_OBJECT",
-        "smallanimal": "SMALL_ANIMAL",
-        "smallobject": "SMALL_OBJECT",
-    }
-    
-    # If it's a mapped folder name, convert to standard format
-    if category_name.lower() in category_mapping_reverse:
-        category_name = category_mapping_reverse[category_name.lower()]
-    
-    # Convert to lowercase and split on underscore
-    words = category_name.lower().split('_')
-    
-    # If no underscore, try to split camelCase-like names (e.g., "smallobject" -> "small object")
-    if len(words) == 1 and len(words[0]) > 0:
-        # Try to detect word boundaries in camelCase-like names
-        text = words[0]
-        # Insert space before capital letters (if any) or before common word boundaries
-        # For names like "smallobject", we need to detect where "small" ends and "object" begins
-        # Simple heuristic: look for common word patterns
-        common_words = ['big', 'small', 'animal', 'object', 'bird', 'food', 'fruit', 
-                       'insect', 'vegetable', 'vehicle']
-        result_words = []
-        remaining = text
-        while remaining:
-            found = False
-            for word in common_words:
-                if remaining.lower().startswith(word):
-                    result_words.append(word)
-                    remaining = remaining[len(word):]
-                    found = True
-                    break
-            if not found:
-                # If no match, take the whole thing
-                result_words.append(remaining)
-                break
-        if len(result_words) > 1:
-            words = result_words
-    
-    category_text = ' '.join(words)
-    
-    # Check if category starts with a vowel sound
+    if not object_name:
+        return "Was the last object shown?"
+    obj_lower = object_name.lower().strip()
+    if not obj_lower:
+        return "Was the last object shown?"
     vowels = ['a', 'e', 'i', 'o', 'u']
-    article = "an" if category_text[0] in vowels else "a"
-    
-    return f"Was the last object {article} {category_text}?"
+    article = "an" if obj_lower[0] in vowels else "a"
+    return f"Was the last object {article} {obj_lower}?"
 
 def get_log_directory():
     """Get the directory for log files - always saves to ../LOG_FILES"""
@@ -1244,18 +1201,17 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     mouse.setVisible(False)
     event.clearEvents()
 
-def ask_category_question(category_name, last_object_name, timeout=10.0):
-    """Ask category question and return (answer, timed_out, response_time, answer_click_time) tuple
+def ask_object_question(object_name, timeout=10.0):
+    """Ask object question and return (answer, timed_out, response_time, answer_click_time) tuple
     
     Args:
-        category_name: Category name for the question
-        last_object_name: Name of the last object shown
+        object_name: Object name for the question (e.g., "Giraffe", "Elephant")
         timeout: Timeout in seconds (default 10.0)
     
     Returns:
         tuple: (answer: bool or None, timed_out: bool, response_time: float, answer_click_time: float or None)
     """
-    question_text = category_to_question(category_name)
+    question_text = object_to_question(object_name)
     
     # Create question display
     question_stim = visual.TextStim(
@@ -1830,7 +1786,10 @@ try:
     # Randomize order
     random.shuffle(all_stimuli)
 
-    # Pre-generate randomized sequence for question categories (exactly 50% correct, 50% random)
+    # Build list of all unique object names (for wrong-object questions)
+    all_object_names = sorted(set(s['object_name'] for s in all_stimuli))
+
+    # Pre-generate randomized sequence for question objects (exactly 50% correct, 50% random)
     # There are 20 questions total (every 10th trial out of 200 trials)
     num_questions = 20
     num_correct_questions = num_questions // 2  # Exactly 10 correct, 10 random
@@ -1875,9 +1834,8 @@ try:
             'stimulus_type', 'is_lure', 'image_path', 'presentation_time', 
             'fixation_onset_time', 'fixation_offset_time', 'fixation_duration',
             'image_onset_time', 'image_offset_time', 'is_question_trial', 
-            'question_category', 'question_text', 'question_onset_time', 
-            'answer', 'correct_answer', 'correct', 'timed_out', 'response_time', 'answer_click_time',
-            'feedback_onset_time', 'feedback_offset_time', 'feedback_duration'
+            'question_object', 'question_text', 'question_onset_time', 
+            'answer', 'correct_answer', 'correct', 'timed_out', 'response_time', 'answer_click_time'
         ]
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
@@ -1930,72 +1888,30 @@ try:
             question_onset_time = None
             
             if is_question_trial:
-                # Ask category question about the image we just showed (the 10th, 20th, 30th, etc.)
+                # Ask object question about the image we just showed (the 10th, 20th, 30th, etc.)
                 current_stimulus = stimulus
-                correct_category = current_stimulus['category']
+                correct_object = current_stimulus['object_name']
                 
                 # Use pre-generated randomized sequence to ensure exactly 50% correct, 50% random
-                # (but in randomized order)
                 if question_index < len(question_sequence):
                     ask_about_correct = question_sequence[question_index]
                     question_index += 1
                 else:
-                    # Fallback if we exceed sequence (shouldn't happen, but safety check)
                     ask_about_correct = random.choice([True, False])
                 
                 if ask_about_correct:
-                    # Ask about the actual category of the last object
-                    question_category = correct_category
+                    question_object = correct_object
                     correct_answer = True
                 else:
-                    # Ask about a random category (different from the actual category)
-                    all_categories = list(CATEGORY_MAPPING.keys())
-                    # Remove the correct category from options
-                    wrong_categories = [c for c in all_categories if c != correct_category]
-                    question_category = random.choice(wrong_categories)
+                    wrong_objects = [o for o in all_object_names if o != correct_object]
+                    question_object = random.choice(wrong_objects) if wrong_objects else correct_object
                     correct_answer = False
                 
-                # Record question onset time
                 question_onset_time = time.time()
-                
-                # Ask the question
-                answer, timed_out, response_time, answer_click_time = ask_category_question(question_category, current_stimulus['object_name'])
-                
-                # Calculate correct only if not timed out
+                answer, timed_out, response_time, answer_click_time = ask_object_question(question_object, timeout=10.0)
                 is_correct = (answer == correct_answer) if not timed_out else None
                 
-                # Show feedback (correct/incorrect) after answering
-                feedback_onset_time = None
-                feedback_offset_time = None
-                feedback_duration = None
-                
-                if not timed_out:
-                    # Show feedback for 1.5 seconds
-                    feedback_onset_time = time.time()
-                    
-                    if is_correct:
-                        feedback_text = "Correct!"
-                        feedback_color = 'green'
-                    else:
-                        feedback_text = "Incorrect."
-                        feedback_color = 'red'
-                    
-                    feedback_stim = visual.TextStim(
-                        win,
-                        text=feedback_text,
-                        color=feedback_color,
-                        height=0.08*0.75*1.35,
-                        pos=(0, 0),
-                        wrapWidth=1.4*0.75
-                    )
-                    feedback_stim.draw()
-                    win.flip()
-                    core.wait(1.5)  # Show feedback for 1.5 seconds
-                    
-                    feedback_offset_time = time.time()
-                    feedback_duration = feedback_offset_time - feedback_onset_time
-                
-                # Record data with question fields
+                # No per-trial feedback; feedback shown at end only
                 trial_data = {
                     'participant_id': participant_id,
                     'trial': idx,
@@ -2012,21 +1928,17 @@ try:
                     'image_onset_time': image_onset_time,
                     'image_offset_time': image_offset_time,
                     'is_question_trial': True,
-                    'question_category': question_category,
-                    'question_text': category_to_question(question_category),
+                    'question_object': question_object,
+                    'question_text': object_to_question(question_object),
                     'question_onset_time': question_onset_time,
                     'answer': answer if not timed_out else 'TIMEOUT',
                     'correct_answer': correct_answer,
                     'correct': is_correct,
                     'timed_out': timed_out,
                     'response_time': response_time if response_time is not None else None,
-                    'answer_click_time': answer_click_time,
-                    'feedback_onset_time': feedback_onset_time,
-                    'feedback_offset_time': feedback_offset_time,
-                    'feedback_duration': feedback_duration
+                    'answer_click_time': answer_click_time
                 }
             else:
-                # Record data for non-question trials
                 trial_data = {
                     'participant_id': participant_id,
                     'trial': idx,
@@ -2043,7 +1955,7 @@ try:
                     'image_onset_time': image_onset_time,
                     'image_offset_time': image_offset_time,
                     'is_question_trial': False,
-                    'question_category': None,
+                    'question_object': None,
                     'question_text': None,
                     'question_onset_time': None,
                     'answer': None,
@@ -2051,10 +1963,7 @@ try:
                     'correct': None,
                     'timed_out': None,
                     'response_time': None,
-                    'answer_click_time': None,
-                    'feedback_onset_time': None,
-                    'feedback_offset_time': None,
-                    'feedback_duration': None
+                    'answer_click_time': None
                 }
             
             localizer_data.append(trial_data)
