@@ -180,6 +180,8 @@ The localizer task generates one CSV file:
   - Values closer to 0.0 = OLD (studied)
   - Values closer to 1.0 = NEW (lure)
   - `None` for practice trial 1 (no AI response)
+  - **Amy (reliable)**: When correct—0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0); when wrong—0.5–0.75 or 0.25–0.5 depending on wrong side. Uniform random within ranges.
+  - **Ben (unreliable)**: Uniform 0–1, unrelated to correctness
 - **Example**: `0.6569413750565093`, `0.3563797294608513`, `None`
 
 ### `ai_rt`
@@ -631,6 +633,7 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
   - **Timeout**: 10.0 seconds - if participant doesn't respond within 10 seconds, the question times out and the task continues to the next image
   - Question appears immediately after the image is shown
 - **Feedback**: No per-trial feedback. Accuracy summary ("Your accuracy: X/20 (Y%)") is shown at the very end of the task only.
+- **Exit availability**: Exit/quit is only available at interactive screens (input method, instructions, question screens). Participants cannot exit during fixation crosses or image presentation.
 - **Question design** (50/50 split, randomized order):
   - **50% correct questions (10 trials)**: Ask about the actual object shown (e.g., "Was the last object a giraffe?") (correct answer = True)
   - **50% incorrect questions (10 trials)**: Ask about a **random incorrect object** drawn from all other objects in the stimulus set (correct answer = False). The incorrect object is randomly selected each trial.
