@@ -1803,7 +1803,7 @@ try:
         text="LOCALIZER TASK\n\n"
              "You will see 200 images one at a time.\n"
              "Every few images, you will be asked a question about the previous image.\n"
-             "Please pay attention to each image. Not every question has an objectively correct answer, but do your best. ",
+             "Your total score will be shown at the end of the task.\n",
         color='black',
         height=0.05*0.75*1.35,
         pos=(0, 0),
@@ -1903,6 +1903,7 @@ try:
                     question_object = correct_object
                     correct_answer = True
                 else:
+                    # 50% of trials: ask about a random incorrect object (from all other objects)
                     wrong_objects = [o for o in all_object_names if o != correct_object]
                     question_object = random.choice(wrong_objects) if wrong_objects else correct_object
                     correct_answer = False
