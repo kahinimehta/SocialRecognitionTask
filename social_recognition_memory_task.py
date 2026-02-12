@@ -120,7 +120,7 @@ def get_input_method():
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
             size=(1400, 900),
-            color='lighgit tgray',
+            color='lightgray',
             units='height',
             fullscr=True,
             allowGUI=True,
