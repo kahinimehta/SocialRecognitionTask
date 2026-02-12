@@ -553,7 +553,7 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 ### `question_object`
 - **Type**: String or None
 - **Description**: The object name that was asked about in the question (e.g., "Giraffe", "Elephant")
-- **Question design**: Exactly 50% of questions ask about the correct object (matches `object_name` field), exactly 50% ask about a random incorrect object (different from `object_name`). Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions in randomized order.
+- **Question design**: 50% of trials ask about the correct object (matches `object_name`); 50% ask about a **random incorrect object** selected from all other objects in the stimulus set. Pre-generated sequence ensures exactly 10 correct and 10 incorrect questions in randomized order.
 - **Example**: `"Giraffe"`, `"Elephant"`, `"Apple"` (may or may not match the actual `object_name` of the image)
 
 ### `question_text`
@@ -635,10 +635,10 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
   - **Timeout**: 10.0 seconds - if participant doesn't respond within 10 seconds, the question times out and the task continues to the next image
   - Question appears immediately after the image is shown
 - **Feedback**: No per-trial feedback. Accuracy summary ("Your accuracy: X/20 (Y%)") is shown at the very end of the task only.
-- **Question design**:
-  - **Exactly 50% correct questions**: Ask about the actual object shown (e.g., "Was the last object a giraffe?") (correct answer = True)
-  - **Exactly 50% incorrect questions**: Ask about a random different object (correct answer = False)
-  - Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions (out of 20 total) in randomized order
+- **Question design** (50/50 split, randomized order):
+  - **50% correct questions (10 trials)**: Ask about the actual object shown (e.g., "Was the last object a giraffe?") (correct answer = True)
+  - **50% incorrect questions (10 trials)**: Ask about a **random incorrect object** drawn from all other objects in the stimulus set (correct answer = False). The incorrect object is randomly selected each trial.
+  - Uses pre-generated sequence of exactly 10 True + 10 False, shuffled, to guarantee the 50/50 split
 - **Object question format**: "Was the last object a [object]?" or "Was the last object an [object]?" (object name in lowercase, article "a"/"an" based on vowel)
 - **File saving**: 
   - Skipped if "test" (case-insensitive) is in the participant name

@@ -35,7 +35,7 @@ Localizer task script for object verification.
   - Fixation appears before EVERY image, including the first image
   - Questions asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (every 10th trial)
 - At every 10th trial, asks an **object** question: "Was the last object a [object]?" (e.g., "Was the last object a giraffe?")
-- **Question design**: Exactly 50% of questions ask about the correct object (the object shown), exactly 50% ask about a random incorrect object. Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions (out of 20 total) in randomized order.
+- **Question design (50/50 split)**: 50% of trials ask about the correct object shown; 50% ask about a **random incorrect object** drawn from all other objects in the stimulus set. Pre-generated sequence ensures exactly 10 correct and 10 incorrect questions in randomized order.
 - **Feedback**: No per-trial feedback. Accuracy summary shown at the very end of the task only.
 - **Question timing**: **10.0 second timeout** - if participant doesn't respond within 10 seconds, the question times out and the task continues
   - **Note**: This differs from the main task, which uses 7.0 second timeouts for slider and switch/stay decisions
