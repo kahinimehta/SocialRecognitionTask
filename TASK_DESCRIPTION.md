@@ -404,22 +404,23 @@ All scoring is framed as "in-house curator" evaluations:
   - Decision screen remains visible until timeout or button click
   - Random decision (STAY or SWITCH) selected if timeout
 
-#### Localizer Task Timing
-- **Fixation cross**: 
-  - Starts with a fixation cross before the first image (jittered 0.25-0.75 seconds)
-  - Jittered fixation appears between images: 0.25-0.75 seconds (uniform random distribution)
-  - Distribution: `random.uniform(0.25, 0.75)` - each fixation independently drawn
-  - Fixation appears before EVERY image, including the first image
-  - 200 fixations total (before each of the 200 images)
-- **Image duration**: 0.5 seconds per image (fixed, no jitter)
-- **Total images**: 200 (100 Image + 100 Lure versions)
-- **Total image presentation time**: 200 images × 0.5 seconds = 100 seconds (~1.7 minutes)
-- **Total fixation time**: ~50-150 seconds (varies due to randomization)
-- **Question timing**: 10.0 second timeout (fixed)
-  - **Note**: This differs from the main task, which uses 7.0 second timeouts
-  - Questions asked at trials 10, 20, 30, ..., 200 (every 10th trial)
-- **Feedback**: No per-trial feedback. Accuracy summary shown at the very end of the task only.
-- **Total task duration**: Approximately 3-5 minutes (varies due to fixation jitter and question response times)
+#### Localizer Task
+
+Separate task for object verification. Participants view 200 images (100 Image + 100 Lure) in random order.
+
+- **Object questions** (not category): At every 10th trial, asks "Was the last object a [object]?" (e.g., "Was the last object a giraffe?")
+- **Question design (50/50 split)**: 
+  - 50% of trials (10 questions): Ask about the correct object shown (correct answer = YES)
+  - 50% of trials (10 questions): Ask about a **random incorrect object** drawn from all other objects in the stimulus set (correct answer = NO)
+  - Pre-generated sequence ensures exactly 10 correct and 10 incorrect questions in randomized order
+- **Feedback**: No per-trial feedback. Accuracy summary ("Your accuracy: X/20 (Y%)") shown at the very end only.
+- **Question timeout**: 10.0 seconds (differs from main task's 7.0 second timeouts)
+
+**Timing**:
+- **Fixation cross**: Jittered 0.25-0.75 seconds before each image (`random.uniform(0.25, 0.75)`), 200 fixations total
+- **Image duration**: 0.5 seconds per image (fixed)
+- **Question timing**: Asked at trials 10, 20, 30, ..., 200 (20 questions total)
+- **Total duration**: Approximately 3-5 minutes
 
 #### AI Response Timing
 - **AI RT distribution**: Log-normal

@@ -132,7 +132,7 @@ Summary of experiment time
 ---
 
 #### **`localizer_*.csv`**
-Localizer task data.  
+Localizer task data (object questions every 10th trial, 50/50 correct/random incorrect object, feedback at end only).  
 
 
 ---

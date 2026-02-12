@@ -445,15 +445,11 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 **File structure**: Each row represents one image presentation, logged in presentation order (trial 1 = first image shown, trial 2 = second image shown, etc.). All 200 images are logged sequentially, with question response data included for question trials (every 10th trial). CSV no longer includes per-trial feedback timing fields; feedback is given at task end only.
 
 **What is recorded**:
-- Image file path (`image_path`)
-- Presentation order (`trial`, 1-200)
-- Fixation onset time (`fixation_onset_time`, Unix timestamp)
-- Fixation offset time (`fixation_offset_time`, Unix timestamp)
-- Fixation duration (`fixation_duration`, jittered 0.25-0.75 seconds)
-- Image onset time (`image_onset_time`, Unix timestamp)
-- Image offset time (`image_offset_time`, Unix timestamp)
-- Question onset time (`question_onset_time`, Unix timestamp, for question trials only)
-- Whether question was correct (`correct`, True/False/None)
+- Image metadata: `image_path`, `object_name`, `category`, `stimulus_type`, `stimulus_number`
+- Presentation order: `trial` (1-200)
+- Fixation timing: `fixation_onset_time`, `fixation_offset_time`, `fixation_duration` (jittered 0.25-0.75 s)
+- Image timing: `image_onset_time`, `image_offset_time`
+- Question trials (every 10th): `question_object`, `question_text`, `question_onset_time`, `answer`, `correct_answer`, `correct`, `timed_out`, `response_time`, `answer_click_time`
 
 **Important**: The localizer task has different timeout settings than the main task:
 - **Localizer question timeout**: 10.0 seconds (fixed)
