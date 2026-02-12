@@ -16,13 +16,13 @@
 
 This will run the localizer and upload the log files. 
 
-**To exit fullscreen:** 
-- **Laptop**: Press **ESC**
-- **Touch screen**: Tap the **Exit** button (top-right corner)
-- Exit button appears on: input method screen, instruction/CONTINUE screens, and question screens (localizer YES/NO).
-- **Important**: In the localizer, exit/quit is only available when images are *not* being displayed—i.e., at interactive screens (input method, instructions, question screens). Participants cannot exit during fixation crosses or during image presentation.
+**To exit fullscreen (main experiment):** 
+- **Laptop**: Press **ESC** — ESC always works to exit.
+- **Touch screen**: Tap the **Exit** button (top-right corner) — the Exit button is only shown sometimes, when you have to make a decision or click a button (e.g., input method, instructions, CONTINUE, slider/SUBMIT, STAY/SWITCH, name entry). It is not shown during fixation crosses, image display, or outcome screens. So on touch screens, you can only exit when the Exit button is visible.
+- **Key difference**: Laptop users can exit anytime with ESC. Touch screen users can only exit when the Exit button appears (during interactive/decision screens).
+- **Localizer**: ESC and Exit work at all times, including during fixation and image presentation.
 
-**Experimenter note**: At the beginning of the localizer task, inform participants that they can only exit/quit when they see the Exit button (i.e., when images are not being shown and they are at an interactive screen).
+**Experimenter note**: Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically. Exit when you see the button."
 
 ---
 
@@ -122,6 +122,7 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 ### Practice Phase - Recognition Trial 1
 **Display shows:**
 - Green circle
+- Prompt: "CLICK ONCE on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). How close you are to either side indicates how CONFIDENT you are in your answer."
 - Slider with OLD on left, NEW on right
 - SUBMIT button
 
@@ -137,7 +138,7 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 - Message: "Carly is confident she's seen this before!"
 - Red circle appears
 - Carly's slider animation (she clicks all the way OLD)
-- Then participant's slider appears
+- Then participant's slider with prompt "Rate your memory: OLD or NEW?"
 
 **What to say:**
 "Carly will also rate each image. Sometimes she'll go first, sometimes you will. In this practice trial, Carly went first and rated it as OLD. Now it's your turn to rate it."
@@ -146,9 +147,10 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 
 ### Practice Phase - Recognition Trial 3
 **Display shows:**
+- Message: "Now, work with Carly."
 - Blue square
-- Participant rates first
-- Then Carly rates (she selects OLD but not very confident)
+- Participant rates first (prompt: "Rate your memory: OLD or NEW?")
+- Then Carly rates (she selects OLD but not very confident—slider at 0.4)
 - Then decision screen appears
 
 **What to say:**
@@ -173,9 +175,9 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 
 ### Outcome Screen
 **Display shows:**
-- "Correct." or "Incorrect." (green or red)
-- "The in-house curator scored this image: X points based on image & your confidence."
-- Screen advances automatically after ~1.5 seconds.
+- **Practice trials 1–2**: Just "Correct" or "Incorrect" (green or red); advances after 1.5 seconds.
+- **Practice trial 3**: "Correct. Based off your answer and confidence, your points are X" or "Incorrect. Based off your answer and confidence, your points are X"; advances after 2 seconds.
+- **Experimental trials**: "Correct." or "Incorrect." followed by "The in-house curator scored this image: X points based on image & your confidence."; advances after 2 seconds.
 
 **What to say:**
 "You'll see how the curator scored your decision. The scoring takes into account both whether you were correct and how confident you were."
@@ -272,7 +274,9 @@ Make sure participants get all the way to the end of the task. If they do, there
 - **Button Positions**: All buttons are positioned away from screen edges for better clickability
 - **Decision screen labels**: On the switch/stay screen, "you" (green) and the partner name "Amy" or "Ben" (blue) appear below the scale next to the markers
 - **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; continue button is placed lower to avoid overlap with text
-- **Practice vs. Real**: The practice block uses Carly (Amy's assistant; same image as Amy) and simple shapes (green circle, red circle, blue square). Carly only appears in practice. The real experiment uses Amy or Ben as partners and photographs from the THINGS dataset
+- **Practice vs. Real**: The practice block uses Carly (Amy's assistant; same image as Amy) and 4 simple shapes: green circle, red circle, blue circle (study phase), and blue square (trial 3 recognition—the NEW item). Carly only appears in practice. The real experiment uses Amy or Ben as partners and photographs from the THINGS dataset
+- **Amy vs. Ben confidence**: Amy (reliable blocks): When correct, high confidence (0.75–1.0 on correct side); when wrong, moderate confidence (0.5–0.75 or 0.25–0.5 depending on which wrong side). Ben (unreliable blocks): Confidence is random (0–1) and unrelated to correctness—participants cannot infer accuracy from Ben's confidence.
+- **Exit instructions (tell participants before task)**: Laptop users can press ESC anytime to exit. Touch screen users: the Exit button only appears when you need to tap a button or make a decision—not during image display, fixation, or outcome screens. Exit when you see it.
 
 ---
 
@@ -283,7 +287,7 @@ Make sure participants get all the way to the end of the task. If they do, there
 - If the participant accidentally minimizes the screen, navigate to the psychopy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
 - If there are any unexpected bugs, quit the terminal and restart the task again
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
-- **To exit the task**: Laptop users press **ESC**; touch screen users tap the **Exit** button (top-right). If needed, close the terminal window to force quit.
+- **To exit the task**: Laptop users press **ESC** (always works). Touch screen users tap the **Exit** button (top-right) when it appears—it is only shown on interactive/decision screens, not during fixation, image display, or outcome screens. If needed, close the terminal window to force quit.
 - All data is saved automatically after each trial
 - Log files are saved to the `../LOG_FILES/` directory
 - Email kahinimehta@hotmail.com for any issues
