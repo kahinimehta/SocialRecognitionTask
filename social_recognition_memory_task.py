@@ -4397,15 +4397,6 @@ def run_experiment():
         wrapWidth=1.2
     )
     
-    # Label for Carly's image (first time shown) - below image
-    carly_label_1 = visual.TextStim(
-        win,
-        text="Carly",
-        color='black',
-        height=0.04*0.75*1.35,
-        pos=(0, -0.25)  # Below image
-    )
-    
     # Create custom button for this screen (positioned bottom right to avoid icon overlap)
     continue_button_welcome = visual.Rect(
         win,
@@ -4427,7 +4418,6 @@ def run_experiment():
         welcome_text_1.draw()  # Draw text first
         if carly_image:
             carly_image.draw()
-        carly_label_1.draw()
         continue_button_welcome.draw()
         continue_text_welcome.draw()
     

@@ -64,7 +64,7 @@ You've just joined Amy's photography studio. She's preparing images for an upcom
 
 Carly, her assistant, will walk you through a short practice to get familiar with the task."
 
-**Display shows:** Image of Carly (same as Amy) below the text, "Carly" label under the image, CONTINUE button (bottom right).
+**Display shows:** Image of Carly (same as Amy) below the text, CONTINUE button (bottom right).
 
 **What to say:**
 "This is Carly, Amy's assistant. She'll walk you through a short practice to learn the task. The actual work will be with Amy. Click CONTINUE when you're ready."
