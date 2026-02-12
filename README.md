@@ -4,7 +4,7 @@ This repository contains the full PsychoPy implementation, documentation, and ex
 
 ## Narrative Context
 
-The experiment is framed as a photography studio collaboration task. Participants join a small photography studio where **Amy**, a professional photographer, is preparing images for an upcoming exhibition. Participants help sort through large sets of images and decide which ones truly belong in the collection. During the experiment, participants may work with **Amy** (reliable partner) or **Ben** (another assistant who may rely on different cues, unreliable partner). The task is framed as helping an "in-house curator" score the images, with scoring feedback presented as "The in-house curator scored this image: X points" rather than direct point earnings.
+The experiment is framed as a photography studio collaboration task. It is **Amy's shop**; she is the professional photographer preparing images for an exhibition. **Carly** is Amy's assistant and **only appears during the practice block**—she walks participants through the training (using the same image as Amy). The **experimental blocks** use **Amy** (reliable partner) or **Ben** (another assistant who may rely on different cues, unreliable partner). Participants help sort through large sets of images and decide which ones truly belong in the collection. The task is framed as helping an "in-house curator" score the images, with scoring feedback presented as "The in-house curator scored this image: X points" rather than direct point earnings.
 
 ## Repository Contents
 
@@ -138,7 +138,7 @@ Localizer task data.
 ---
 
 #### **`STIMULI`**
-Stimuli used in the task. From the THINGS dataset. Also included with STIMULI: `ImagevsLure.pdf` to visualize all stimuli. Lures were AI generated via ChatGPT and Gemini, and aimed to keep difficulty at a medium level across all images. 
+Stimuli used in the task. From the THINGS dataset. Also included with STIMULI: `ImagevsLure.pdf` to visualize all stimuli. Lures were AI generated via ChatGPT and Gemini, and aimed to keep difficulty at a medium level across all images. Partner avatars: `Amy.png` and `Ben.png` (experimental blocks). Practice block uses `Amy.png` for Carly (Amy's assistant; same image). 
 
 
 

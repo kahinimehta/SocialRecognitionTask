@@ -274,13 +274,14 @@ All scoring is framed as "in-house curator" evaluations:
   - Trial 2: Red circle (AI rates first, then participant rates)
   - Trial 3: Blue square (full trial: participant rates, AI rates, switch/stay decision)
 - **Practice flow**:
-  1. Welcome message with Amy's story and picture
+  1. Welcome message: Amy's studio, Carly (her assistant) will walk through practice; Carly's picture (same image as Amy)
   2. Sequential presentation of 3 shapes (green circle, red circle, blue circle), each for 1.5 seconds with fixations between
   3. Trial 3 uses a blue square (not the blue circle from encoding) - this is NEW and tests recognition
   3. Transition screen: "Now let's see how well you recall the objects you've seen!"
   4. Trial 1: Green circle - participant rates only
-  5. Trial 2: Red circle - shows "Amy is confident they've seen this before", AI clicks "all the way on the old" side, then participant rates
-  6. Trial 3: Blue square - shows "now, work with Amy", participant rates, then AI selects OLD but is not very confident (euclidean distance of 0.4 from left, at 0.4) but incorrectly (as it's a new square), then participant performs switch/stay decision, outcome shown
+  5. Trial 2: Red circle - shows "Carly is confident she's seen this before", AI clicks "all the way on the old" side, then participant rates
+  6. Trial 3: Blue square - shows "now, work with Carly", participant rates, then AI selects OLD but is not very confident (euclidean distance of 0.4 from left, at 0.4) but incorrectly (as it's a new square), then participant performs switch/stay decision, outcome shown
+- **Note**: Carly (Amy's assistant) appears only in practice; same image as Amy.
 - **Outcome explanations**: For practice trials, outcomes explicitly explain the score (e.g., "You were 67% incorrect!" for a score of 0.33)
 - **Slider instruction**: For mouse/trackpad mode, participants can click or drag the slider. For touch screen mode, participants tap to set the rating.
 
@@ -321,7 +322,7 @@ All scoring is framed as "in-house curator" evaluations:
 ### Transition Screens
 
 - **Initial screen**: "Hello & welcome to the social memory game! Pay careful attention to the text on the screen"
-- **Before practice**: Welcome message with Amy's story and picture
+- **Before practice**: Welcome message—Amy's studio; Carly (her assistant) will walk through practice (same image as Amy)
 - **After practice**: Transition message explaining the real work begins with Amy organizing photographs
 - **Before each block**: "Ready to start sorting?" screen showing collections remaining count with BEGIN button
 - **Between blocks**: Partner switch messages when partner changes (Amy ↔ Ben), or brief break message

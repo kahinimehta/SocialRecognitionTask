@@ -388,7 +388,7 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
   - **Note**: The localizer task uses a different timeout (10.0 seconds for questions) - see Localizer Task section below
 - The experiment saves data incrementally after each trial, not just at the end
 - Block 0 is the practice block (3 trials), blocks 1-10 are experimental blocks (10 trials each)
-- **Narrative context**: The experiment is framed as a photography studio collaboration where participants work with Amy (reliable partner) or Ben (unreliable partner) to help sort images for an exhibition. Scoring is framed as "in-house curator" evaluations.
+- **Narrative context**: The experiment is framed as a photography studio collaboration. It is Amy's shop. Carly is Amy's assistant and appears only in the practice block (same image as Amy). Experimental blocks use Amy (reliable partner) or Ben (unreliable partner) to help sort images for an exhibition. Scoring is framed as "in-house curator" evaluations.
 - **Scoring display**: Trial outcomes show "The in-house curator scored this image: X points" instead of "Points earned this trial". Block summaries show "The in-house curator scored this collection X points out of a total of 10 points!" (actual points, not scaled). All point displays (trial, block summary, final score) are rounded to 1 decimal place for readability, but logged data maintains full precision.
 - Points are calculated based on Euclidean distance: `points = 1.0 - distance(final_answer, ground_truth)`
 - **Practice Block (Block 0)**:
@@ -396,8 +396,8 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
   - All practice trials include the same fields as regular trials
   - Fields that don't apply to specific practice trials are set to `None` or `False`:
     - Trial 1: No AI response (`ai_slider_value`, `ai_rt`, `ai_decision_time`, `ai_slider_display_time`, `ai_final_slider_display_time`, `ai_correct` all `None`), no switch/stay decision (all switch fields `None`), `euclidean_ai_to_truth` and `euclidean_participant_to_ai` are `None`. `ai_reliability` is `0.5` (50% for practice block)
-    - Trial 2: Has AI response, but no switch/stay decision (switch fields `None`). `ai_reliability` is `0.5` (50% for practice block)
-    - Trial 3: Full trial with participant, AI, and switch/stay decision. `ai_reliability` is `0.5` (50% for practice block)
+    - Trial 2: Has AI response, but no switch/stay decision (switch fields `None`). `ai_reliability` is `0.5` (50% for practice block). Partner shown as Carly (Amy's assistant).
+    - Trial 3: Full trial with participant, AI, and switch/stay decision. `ai_reliability` is `0.5` (50% for practice block). Partner shown as Carly (Amy's assistant).
   - All practice trials have `block_start_time`, `block_end_time`, `block_duration_seconds`, and `block_duration_minutes` set to `None` (practice block timing not tracked)
 - **Block structure**:
   - Blocks 1-3: Reliable (exactly 0.75 accuracy, deterministic, Amy)

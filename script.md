@@ -56,20 +56,18 @@ Touch or click the button below:"
 
 ---
 
-### Welcome Screen 1
+### Welcome Screen 1 (Practice: Amy's Assistant Carly)
 **Display says:**
 "Greetings!
 
-You've just joined a small photography studio.
+You've just joined Amy's photography studio. She's preparing images for an upcoming exhibition.
 
-Amy, a professional photographer, is preparing images for an upcoming exhibition.
+Carly, her assistant, will walk you through a short practice to get familiar with the task."
 
-She needs help sorting through large sets of images and deciding which ones truly belong. Will you be her employee of the month?"
-
-**Display shows:** Image of Amy below the text, "Amy" label under the image, CONTINUE button (bottom right).
+**Display shows:** Image of Carly (same as Amy) below the text, "Carly" label under the image, CONTINUE button (bottom right).
 
 **What to say:**
-"This is Amy, your partner for this task. You'll be helping her sort through images for an exhibition. Click CONTINUE when you're ready."
+"This is Carly, Amy's assistant. She'll walk you through a short practice to learn the task. The actual work will be with Amy. Click CONTINUE when you're ready."
 
 ---
 
@@ -123,13 +121,13 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 
 ### Practice Phase - Recognition Trial 2
 **Display shows:**
-- Message: "Amy is confident she's seen this before!"
+- Message: "Carly is confident she's seen this before!"
 - Red circle appears
-- Amy's slider animation (she clicks all the way OLD)
+- Carly's slider animation (she clicks all the way OLD)
 - Then participant's slider appears
 
 **What to say:**
-"Amy will also rate each image. Sometimes she'll go first, sometimes you will. In this practice trial, Amy went first and rated it as OLD. Now it's your turn to rate it."
+"Carly will also rate each image. Sometimes she'll go first, sometimes you will. In this practice trial, Carly went first and rated it as OLD. Now it's your turn to rate it."
 
 ---
 
@@ -137,11 +135,11 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 **Display shows:**
 - Blue square
 - Participant rates first
-- Then Amy rates (she selects OLD but not very confident)
+- Then Carly rates (she selects OLD but not very confident)
 - Then decision screen appears
 
 **What to say:**
-"In this trial, you'll rate first, then Amy will rate. After you both rate, you'll see both of your choices and decide whether to STAY with your answer or SWITCH to Amy's answer."
+"In this trial, you'll rate first, then Carly will rate. After you both rate, you'll see both of your choices and decide whether to STAY with your answer or SWITCH to Carly's answer."
 
 ---
 
@@ -150,8 +148,8 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 - Image
 - Slider with markers (dots) showing each rating:
   - Green marker for participant's choice (labeled "you" below the scale)
-  - Blue marker for partner's choice (labeled "Amy" or "Ben" below the scale)
-- Text: "Do you want to STAY with your answer or SWITCH to Amy's answer?" (or "Ben's answer" when with Ben)
+  - Blue marker for partner's choice (labeled "Carly" during practice, "Amy" or "Ben" during experimental blocks)
+- Text: "Do you want to STAY with your answer or SWITCH to [partner's] answer?" (Carly during practice, Amy or Ben during experimental blocks)
 - STAY button (light blue)
 - SWITCH button (light coral)
 
@@ -325,7 +323,7 @@ Make sure participants get all the way to the end of the task. If they do, there
 - **Button Positions**: All buttons are positioned away from screen edges for better clickability
 - **Decision screen labels**: On the switch/stay screen, "you" (green) and the partner name "Amy" or "Ben" (blue) appear below the scale next to the markers
 - **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; continue button is placed lower to avoid overlap with text
-- **Practice vs. Real**: The practice block uses simple shapes (green circle, red circle, blue square). The real experiment uses photographs from the THINGS dataset
+- **Practice vs. Real**: The practice block uses Carly (Amy's assistant; same image as Amy) and simple shapes (green circle, red circle, blue square). Carly only appears in practice. The real experiment uses Amy or Ben as partners and photographs from the THINGS dataset
 
 ---
 

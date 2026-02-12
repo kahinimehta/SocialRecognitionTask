@@ -2900,7 +2900,7 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
     a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, slider_y_pos))
     
-    # Labels below dots, vertical (90°), colored: "you" (green) and partner name (Amy/Ben) (blue)
+    # Labels below dots, vertical (90°), colored: "you" (green) and partner name (Carly in practice, Amy/Ben in experimental) (blue)
     # Actual trials: labels slightly higher so they stay visible and above dock
     is_actual_scale = (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005)
     label_y = slider_y_pos - (0.05 if is_actual_scale else 0.06)  # Below dots, not hidden
@@ -2915,7 +2915,7 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     
     a_label_text = visual.TextStim(
         win,
-        text=partner_name,  # "Amy" or "Ben"
+        text=partner_name,  # "Carly" (practice), "Amy" or "Ben" (experimental)
         color='blue',
         height=0.032*0.75*1.35,
         pos=(a_x_pos, label_y),
@@ -2991,7 +2991,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     if partner_value is not None and a_x_pos is not None:
         a_label_text = visual.TextStim(
             win,
-            text=partner_name,  # "Amy" or "Ben"
+            text=partner_name,  # "Carly" (practice), "Amy" or "Ben" (experimental)
             color='blue',
             height=0.032*0.75*1.35,
             pos=(a_x_pos, label_y),
@@ -4372,37 +4372,35 @@ def run_experiment():
     practice_trials = []
     practice_points = 0.0
     
-    # Load and display Amy's picture (maintain aspect ratio to prevent stretching)
-    amy_path = os.path.join(STIMULI_DIR, "Amy.png")
-    if os.path.exists(amy_path):
-        amy_image = load_image_stimulus(amy_path, maintain_aspect_ratio=True)
-        # Position Amy's image below the text (closer to text for better spacing)
-        if hasattr(amy_image, 'setPos'):
-            amy_image.setPos((0, -0.05))  # Closer to text
-        elif hasattr(amy_image, 'pos'):
-            amy_image.pos = (0, -0.05)  # Closer to text
+    # Load and display Carly's picture for practice (uses same image as Amy.png, labeled as Carly)
+    carly_image_path = os.path.join(STIMULI_DIR, "Amy.png")
+    if os.path.exists(carly_image_path):
+        carly_image = load_image_stimulus(carly_image_path, maintain_aspect_ratio=True)
+        # Position Carly's image below the text (closer to text for better spacing)
+        if hasattr(carly_image, 'setPos'):
+            carly_image.setPos((0, -0.05))  # Closer to text
+        elif hasattr(carly_image, 'pos'):
+            carly_image.pos = (0, -0.05)  # Closer to text
     else:
-        amy_image = None
-        print(f"Warning: Amy.png not found at {amy_path}", file=sys.stderr)
+        carly_image = None
+        print(f"Warning: Amy.png not found at {carly_image_path}", file=sys.stderr)
     
-    # Show first welcome screen with Amy's picture
+    # Show first welcome screen with Carly's picture (Amy's assistant, practice only; same image as Amy)
     welcome_text_1 = visual.TextStim(
         win,
         text="Greetings!\n\n"
-             "You've just joined a small photography studio.\n\n"
-             "Amy, a professional photographer, is preparing images for an upcoming exhibition.\n\n"
-             "She needs help sorting through large sets of images and deciding which ones truly belong. "
-             "Will you be her employee of the month?",
+             "You've just joined Amy's photography studio. She's preparing images for an upcoming exhibition.\n\n"
+             "Carly, her assistant, will walk you through a short practice to get familiar with the task.",
         color='black',
         height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.25),  # Moved down for better spacing with image
         wrapWidth=1.2
     )
     
-    # Label for Amy's image (first time shown) - below image
-    amy_label_1 = visual.TextStim(
+    # Label for Carly's image (first time shown) - below image
+    carly_label_1 = visual.TextStim(
         win,
-        text="Amy",
+        text="Carly",
         color='black',
         height=0.04*0.75*1.35,
         pos=(0, -0.25)  # Below image
@@ -4427,8 +4425,9 @@ def run_experiment():
     
     def redraw_welcome_1():
         welcome_text_1.draw()  # Draw text first
-        if amy_image:
-            amy_image.draw()
+        if carly_image:
+            carly_image.draw()
+        carly_label_1.draw()
         continue_button_welcome.draw()
         continue_text_welcome.draw()
     
@@ -4755,8 +4754,8 @@ def run_experiment():
     core.wait(1.0)
     
     # Trial 2: Show message first, then AI rates (all the way OLD), then participant rates
-    # Show message that partner is confident (Amy in practice)
-    partner_message = visual.TextStim(win, text="Amy is confident she's seen this before!", 
+    # Show message that partner is confident (Carly in practice)
+    partner_message = visual.TextStim(win, text="Carly is confident she's seen this before!", 
                                       color='blue', height=0.04*0.75*1.35, pos=(0, 0.4))
     # Show message with red circle (use default positioning - no manual pos/size)
     partner_message.draw()
@@ -4773,9 +4772,9 @@ def run_experiment():
     ai_correct_t2 = True  # It's OLD (we're showing it)
     ground_truth_t2 = 0.0
     
-    # Show AI rating (Amy in practice)
+    # Show AI rating (Carly in practice)
     try:
-        ai_slider_display_time_t2, ai_final_slider_display_time_t2 = show_animated_partner_slider(ai_confidence_t2, ai_rt_t2, image_stim=red_circle, partner_name="Amy")
+        ai_slider_display_time_t2, ai_final_slider_display_time_t2 = show_animated_partner_slider(ai_confidence_t2, ai_rt_t2, image_stim=red_circle, partner_name="Carly")
     except Exception as e:
         print(f"Warning: Error in show_animated_partner_slider: {e}", file=sys.stderr)
         import traceback
@@ -4854,8 +4853,8 @@ def run_experiment():
     }
     practice_trials.append(trial_data_t2)
     
-    # Show message: "now, work with your partner." (Amy in practice)
-    work_with_partner_text = visual.TextStim(win, text="Now, work with Amy.", 
+    # Show message: "now, work with your partner." (Carly in practice)
+    work_with_partner_text = visual.TextStim(win, text="Now, work with Carly.", 
                                             color='black', height=0.06*0.75*1.35, pos=(0, 0.2))
     work_with_partner_text.draw()
     win.flip()
@@ -4880,13 +4879,13 @@ def run_experiment():
         "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
-    # AI rates (selects OLD but not very confident - euclidean distance of 0.4 from left) - it's actually NEW (square), so AI is Incorrect (Amy in practice)
+    # AI rates (selects OLD but not very confident - euclidean distance of 0.4 from left) - it's actually NEW (square), so AI is Incorrect (Carly in practice)
     ai_confidence_t3 = 0.4  # Selects OLD (closer to 0.0) but not very confident - euclidean distance of 0.4 from left (0.0)
     ai_rt_t3 = 2.0
-    ai_correct_t3 = False  # It's actually NEW (square), but Amy rates it as OLD (0.4), so AI is Incorrect
+    ai_correct_t3 = False  # It's actually NEW (square), but Carly rates it as OLD (0.4), so AI is Incorrect
     ground_truth_t3 = 1.0  # NEW
     try:
-        ai_slider_display_time_t3, ai_final_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Amy")
+        ai_slider_display_time_t3, ai_final_slider_display_time_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Carly")
     except Exception as e:
         print(f"Warning: Error in show_animated_partner_slider: {e}", file=sys.stderr)
         import traceback
@@ -4896,9 +4895,9 @@ def run_experiment():
         ai_final_slider_display_time_t3 = time.time()
     
     # Go straight to switch/stay screen (question + image + scores + buttons all at once)
-    # Switch/Stay decision (Amy in practice)
+    # Switch/Stay decision (Carly in practice)
     switch_decision_t3, switch_rt_t3, switch_commit_time_t3, switch_timeout_t3, decision_onset_time_t3 = get_switch_stay_decision(
-        image_stim=blue_square, participant_value=participant_value_t3, partner_value=ai_confidence_t3, timeout=999999.0, partner_name="Amy"  # No timeout in practice
+        image_stim=blue_square, participant_value=participant_value_t3, partner_value=ai_confidence_t3, timeout=999999.0, partner_name="Carly"  # No timeout in practice
     )
     
     # Determine final answer
