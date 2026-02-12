@@ -87,6 +87,10 @@ sys.excepthook = exception_handler
 # Global variable to store input method preference (set before window creation)
 USE_TOUCH_SCREEN = False
 
+# Exit button: always top-right, consistent position and hit area for touch screens
+EXIT_BTN_POS = (0.45, 0.47)  # Top-right corner (units='height')
+EXIT_HIT_MARGIN = 0.05  # Larger margin for reliable touch registration
+
 def safe_window_close(window):
     """Safely close a window, checking if it's still valid to prevent NoneType errors"""
     try:
@@ -238,7 +242,9 @@ def get_input_method():
                               button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin)
                 on_button2 = (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
                               button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin)
-                on_exit = (0.39 <= mouseloc_x <= 0.51 and 0.45 <= mouseloc_y <= 0.49)  # Exit button (height units)
+                exit_margin = 0.04  # Larger hit area for touch reliability
+                on_exit = (0.39 - exit_margin <= mouseloc_x <= 0.51 + exit_margin and
+                           0.45 - exit_margin <= mouseloc_y <= 0.49 + exit_margin)
                 
                 # Check for button release (was pressed, now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
@@ -1289,8 +1295,8 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
         pos=(0, button_y)
     )
     
-    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=(0.45, 0.47), lineWidth=1, units='height')
-    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=(0.45, 0.47), units='height')
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     # Draw initial screen once (button should be included in redraw_func)
     def draw_screen():
@@ -1352,7 +1358,8 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
                     
                     on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x <= button_x + button_width/2 + hit_margin_x and
                                 button_y - button_height/2 - hit_margin_y <= mouseloc_y <= button_y + button_height/2 + hit_margin_y)
-                    on_exit = (0.39 <= mouseloc_x <= 0.51 and 0.45 <= mouseloc_y <= 0.49)
+                    on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                              EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                     
                     if on_exit:
                         core.quit()
@@ -1422,7 +1429,8 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
                 
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
                             button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
-                on_exit = (0.39 <= mouse_x <= 0.51 and 0.45 <= mouse_y <= 0.49)
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                 
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
                     if on_exit:
@@ -1727,7 +1735,7 @@ def get_participant_id():
     # Create text display - adjust positions for touch screen to avoid overlap
     # Layout: prompt at top, input below, buttons below input, keyboard at bottom
     if USE_TOUCH_SCREEN:
-        id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.35*0.6))
+        id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.42*0.6))
         input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75*1.35, pos=(0, 0.25*0.6))
     else:
         id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
@@ -1776,11 +1784,13 @@ def get_participant_id():
         
         # Special buttons: Backspace, Continue (positioned between input and keyboard)
         special_y = 0.05*0.6  # Position between input (0.25) and keyboard start (-0.15)
-        backspace_button = visual.Rect(win, width=0.2*0.75, height=0.1*0.75*1.35, fillColor='lightcoral', lineColor='black', lineWidth=2*0.75, pos=(-0.25*0.6, special_y))
+        backspace_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75*1.35, fillColor='lightcoral', lineColor='black', lineWidth=2*0.75, pos=(-0.25*0.6, special_y))
         backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025*0.75*1.35, pos=(-0.25*0.6, special_y))
         
         continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75*1.35, fillColor='lightgreen', lineColor='black', lineWidth=2*0.75, pos=(0.25*0.6, special_y))
         continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75*1.35, pos=(0.25*0.6, special_y))
+        exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+        exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     # Key list for keyboard input (non-touch)
     key_list = ['return', 'backspace', 'space'] + [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(48, 58)]
@@ -1803,6 +1813,8 @@ def get_participant_id():
             backspace_text.draw()
             continue_button.draw()
             continue_text.draw()
+            exit_btn.draw()
+            exit_text.draw()
         
         win.flip()
     
@@ -1838,9 +1850,15 @@ def get_participant_id():
                 redraw()
             else:
                 # Position has changed - check if touch is within any button using position calculation
-                # Check keyboard buttons first - use smaller hit margin to prevent overlap
+                # Check Exit button FIRST (top-right, always clickable)
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
+                if on_exit:
+                    core.quit()  # Exit always responsive (no minRT)
+                # Check keyboard buttons - use smaller hit margin to prevent overlap
                 hit_margin_keyboard = 0.01  # Small margin to prevent overlap between keyboard buttons
-                for button, button_text, char in keyboard_buttons:
+                if not on_exit:
+                    for button, button_text, char in keyboard_buttons:
                     try:
                         button_x, button_y = button.pos
                         button_width, button_height = button.width, button.height
@@ -1885,7 +1903,7 @@ def get_participant_id():
                         button_width, button_height = backspace_button.width, backspace_button.height
                     except:
                         button_x, button_y = 0.0, 0.0
-                        button_width, button_height = 0.2, 0.1
+                        button_width, button_height = 0.3*0.75, 0.1*0.75
                     
                     on_backspace = (button_x - button_width/2 - hit_margin_special <= mouseloc_x <= button_x + button_width/2 + hit_margin_special and
                                     button_y - button_height/2 - hit_margin_special <= mouseloc_y <= button_y + button_height/2 + hit_margin_special)
@@ -1976,8 +1994,10 @@ def get_participant_id():
             safe_wait(0.001)  # Very fast polling
         else:
             # Click/mouse mode: keyboard input only
-            keys = event.getKeys(keyList=key_list, timeStamped=False)
+            keys = event.getKeys(keyList=key_list + ['escape'], timeStamped=False)
             if keys:
+                if 'escape' in keys:
+                    core.quit()
                 key = keys[0]
                 if key == 'return':
                     if input_id.strip():
@@ -2072,6 +2092,8 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         pos=(0, submit_y)
     )
     submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.035*0.75*1.35, pos=(0, submit_y))
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     mouse.setVisible(True)
     
@@ -2153,8 +2175,13 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             
             # Check if position has changed
             if mouseloc_x != mouserec_x or mouseloc_y != mouserec_y:
+                # Check Exit button FIRST (top-right, always clickable)
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
+                if on_exit:
+                    core.quit()
                 # Position changed - check if touch is on slider line
-                if on_slider_line and on_slider_x_range:
+                elif on_slider_line and on_slider_x_range:
                     # Touched on slider line - set value based on x position
                     x_pos = max(-0.4*0.6, min(0.4*0.6, mouseloc_x))
                     slider_value = (x_pos + 0.4*0.6) / (0.8*0.6)  # Map -0.4*0.6 to 0.4*0.6 -> 0 to 1
@@ -2264,8 +2291,13 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             submit_clicked = (submit_x - submit_width/2 <= mouse_pos[0] <= submit_x + submit_width/2 and
                              submit_y - submit_height/2 <= mouse_pos[1] <= submit_y + submit_height/2)
             
+            # Check if Exit button is clicked (mouse mode)
+            on_exit_mouse = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_pos[0] <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                            EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_pos[1] <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
+            if prev_mouse_buttons[0] and not mouse_buttons[0] and on_exit_mouse:
+                core.quit()
             # Check if submit button is clicked
-            if prev_mouse_buttons[0] and not mouse_buttons[0] and submit_clicked:
+            elif prev_mouse_buttons[0] and not mouse_buttons[0] and submit_clicked:
                 if has_moved:
                     slider_commit_time = time.time()
                     break
@@ -2317,6 +2349,8 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         slider_handle.draw()
         submit_button.draw()
         submit_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
         win.flip()
         
         # Check for escape (with error handling)
@@ -2381,18 +2415,13 @@ class AICollaborator:
         return min(rt, 5.0)  # Cap at 5 seconds
     
     def generate_confidence(self, is_studied, ground_truth_correct):
-        """Generate AI confidence from Gaussian distribution"""
-        # If correct, higher confidence; if Incorrect, lower confidence
+        """Generate AI confidence: random but definitely high when correct, definitely low when incorrect"""
+        # When correct: random in higher range (0.65-0.95)
+        # When incorrect: random in lower range (0.05-0.35)
         if ground_truth_correct:
-            mean = 0.7  # Higher confidence when correct
-            std = 0.15
+            confidence = np.random.uniform(0.65, 0.95)
         else:
-            mean = 0.3  # Lower confidence when Incorrect
-            std = 0.15
-        
-        confidence = np.random.normal(mean, std)
-        # Clamp to [0, 1]
-        confidence = max(0.0, min(1.0, confidence))
+            confidence = np.random.uniform(0.05, 0.35)
         
         # If studied item, bias toward OLD; if lure, bias toward NEW
         if is_studied:
@@ -3053,6 +3082,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         wrapWidth=2.5,  # Wide so text stays on one line
         pos=(0, 0.35)   # Slightly higher
     )
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     mouse.setVisible(True)
     decision_onset_time = None  # Will be set when screen first appears
@@ -3162,6 +3193,11 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 pass
             else:
                 # Position changed - check if touch is within buttons using position calculation
+                # Check Exit button FIRST (top-right, always clickable)
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
+                if on_exit:
+                    core.quit()
                 # Check stay button
                 try:
                     stay_pos = stay_button.pos
@@ -3272,8 +3308,12 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                              switch_y - switch_height/2 <= mouse_y <= switch_y + switch_height/2)
             
             # Check for mouse button release on buttons
+            on_exit_mouse = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                            EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
             if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                if stay_clicked:
+                if on_exit_mouse:
+                    core.quit()
+                elif stay_clicked:
                     # Button was clicked - change color for visual feedback
                     stay_button.fillColor = 'lightgreen'
                     decision = "stay"
@@ -3328,6 +3368,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         stay_text.draw()
         switch_button.draw()
         switch_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
         win.flip()
         
         # Record decision onset time on first draw (when screen appears with all info)
@@ -3384,12 +3426,16 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
         height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
         pos=(0, -0.4*0.6)  # Moved away from edge for better clickability
     )
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     # Draw initial screen
     def redraw():
         ready_text.draw()
         begin_button.draw()
         begin_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
         win.flip()
     
     redraw()
@@ -3440,10 +3486,14 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
                     hit_margin_x = max(button_width * 0.5, 0.08)
                     hit_margin_y = max(button_height * 0.5, 0.04)
                     
+                    on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                              EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                     on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x <= button_x + button_width/2 + hit_margin_x and
                                 button_y - button_height/2 - hit_margin_y <= mouseloc_y <= button_y + button_height/2 + hit_margin_y)
                     
-                    if on_button:
+                    if on_exit:
+                        core.quit()
+                    elif on_button:
                         # Visual feedback (no color change in touch screen mode)
                         redraw()
                         core.wait(0.2)
@@ -3505,11 +3555,15 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
                 except (TypeError, ValueError):
                     button_width, button_height = 0.3*0.75, 0.1*0.75
                 
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
                             button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
                 
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_button:
+                    if on_exit:
+                        core.quit()
+                    elif on_button:
                         begin_button.fillColor = 'lightgreen'
                         redraw()
                         core.wait(0.2)
@@ -4191,6 +4245,8 @@ def run_experiment():
         height=0.04*0.75*1.35,
         pos=(0, -0.45*0.6)  # Match button position
     )
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     # Create mouse instance for this function (since we assign to mouse later, Python treats it as local)
     mouse = event.Mouse(win=win)
@@ -4205,6 +4261,8 @@ def run_experiment():
     start_screen.draw()
     start_button.draw()
     start_button_text.draw()
+    exit_btn.draw()
+    exit_text.draw()
     win.flip()
     
     # Clear any existing events before waiting for click
@@ -4236,9 +4294,13 @@ def run_experiment():
                     start_screen.draw()
                     start_button.draw()
                     start_button_text.draw()
+                    exit_btn.draw()
+                    exit_text.draw()
                     win.flip()
                 else:
                     # Position has changed - check if touch is within button using position calculation
+                    on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                              EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                     try:
                         button_pos = start_button.pos
                         if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
@@ -4261,11 +4323,15 @@ def run_experiment():
                     on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x <= button_x + button_width/2 + hit_margin_x and
                                 button_y - button_height/2 - hit_margin_y <= mouseloc_y <= button_y + button_height/2 + hit_margin_y)
                     
-                    if on_button:
+                    if on_exit:
+                        core.quit()
+                    el                    elif on_button:
                         # Visual feedback (no color change in touch screen mode)
                         start_screen.draw()
                         start_button.draw()
                         start_button_text.draw()
+                        exit_btn.draw()
+                        exit_text.draw()
                         win.flip()
                         core.wait(0.2)
                         clicked = True
@@ -4328,18 +4394,24 @@ def run_experiment():
                     button_width, button_height = 0.3, 0.1
                 
                 # Check if mouse is over button
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
                             button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
                 
                 # Check for button release (mouse was pressed on button and now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_button:
+                    if on_exit:
+                        core.quit()
+                    elif on_button:
                         # Visual feedback (only for click mode, not touch screen)
                         if not USE_TOUCH_SCREEN:
                             start_button.fillColor = 'lightgreen'
                         start_screen.draw()
                         start_button.draw()
                         start_button_text.draw()
+                        exit_btn.draw()
+                        exit_text.draw()
                         win.flip()
                         core.wait(0.2)
                         clicked = True
@@ -4354,6 +4426,8 @@ def run_experiment():
                     start_screen.draw()
                     start_button.draw()
                     start_button_text.draw()
+                    exit_btn.draw()
+                    exit_text.draw()
                     win.flip()
                     last_hover_state = on_button
                 
@@ -4435,6 +4509,8 @@ def run_experiment():
         height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
         pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
     )
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     def redraw_welcome_1():
         welcome_text_1.draw()  # Draw text first
@@ -4442,6 +4518,8 @@ def run_experiment():
             carly_image.draw()
         continue_button_welcome.draw()
         continue_text_welcome.draw()
+        exit_btn.draw()
+        exit_text.draw()
     
     # Custom wait for button with custom button position
     mouse = event.Mouse(win=win)
@@ -4482,10 +4560,14 @@ def run_experiment():
                     hit_margin_x = max(button_width * 0.5, 0.08)
                     hit_margin_y = max(button_height * 0.5, 0.04)
                     
+                    on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                              EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                     on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x <= button_x + button_width/2 + hit_margin_x and
                                 button_y - button_height/2 - hit_margin_y <= mouseloc_y <= button_y + button_height/2 + hit_margin_y)
                     
-                    if on_button:
+                    if on_exit:
+                        core.quit()
+                    elif on_button:
                         # Visual feedback (no color change in touch screen mode)
                         draw_screen()
                         core.wait(0.2)
@@ -4536,11 +4618,15 @@ def run_experiment():
                 button_x, button_y = 0.4, -0.3  # Updated to match button position
                 button_width, button_height = 0.3*0.75, 0.1*0.75
                 
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
                             button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
                 
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_button:
+                    if on_exit:
+                        core.quit()
+                    elif on_button:
                         continue_button_welcome.fillColor = 'lightgreen'
                         draw_screen()
                         core.wait(0.2)
@@ -5076,6 +5162,8 @@ def run_experiment():
         height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
         pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
     )
+    exit_btn_amy = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text_amy = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     def redraw_amy_intro():
         amy_intro_text.draw()  # Draw text first
@@ -5083,6 +5171,8 @@ def run_experiment():
             amy_intro_image.draw()
         continue_button_amy_intro.draw()
         continue_text_amy_intro.draw()
+        exit_btn_amy.draw()
+        exit_text_amy.draw()
     
     # Custom wait for button with custom button position
     mouse_amy_intro = event.Mouse(win=win)
@@ -5123,10 +5213,14 @@ def run_experiment():
                     hit_margin_amy_intro_x = max(button_width_amy_intro * 0.5, 0.08)
                     hit_margin_amy_intro_y = max(button_height_amy_intro * 0.5, 0.04)
                     
+                    on_exit_amy = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x_amy_intro <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                                  EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y_amy_intro <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                     on_button_amy_intro = (button_x_amy_intro - button_width_amy_intro/2 - hit_margin_amy_intro_x <= mouseloc_x_amy_intro <= button_x_amy_intro + button_width_amy_intro/2 + hit_margin_amy_intro_x and
                                           button_y_amy_intro - button_height_amy_intro/2 - hit_margin_amy_intro_y <= mouseloc_y_amy_intro <= button_y_amy_intro + button_height_amy_intro/2 + hit_margin_amy_intro_y)
                     
-                    if on_button_amy_intro:
+                    if on_exit_amy:
+                        core.quit()
+                    elif on_button_amy_intro:
                         # Visual feedback (no color change in touch screen mode)
                         draw_screen_amy_intro()
                         core.wait(0.2)
@@ -5146,6 +5240,17 @@ def run_experiment():
             except Exception as e:
                 print(f"Error in button wait: {e}", file=sys.stderr)
                 core.wait(0.01)
+            
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if keys:
+                    if 'space' in keys:
+                        clicked_amy_intro = True
+                        break
+                    elif 'escape' in keys:
+                        core.quit()
+            except (AttributeError, Exception):
+                pass
     else:
         # Standard mouse click detection for non-touch screens
         prev_mouse_buttons_amy_intro = [False, False, False]
@@ -5166,11 +5271,15 @@ def run_experiment():
                 button_x_amy_intro, button_y_amy_intro = 0.4, -0.3  # Updated to match button position
                 button_width_amy_intro, button_height_amy_intro = 0.3*0.75, 0.1*0.75
                 
+                on_exit_amy = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x_amy_intro <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                              EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y_amy_intro <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                 on_button_amy_intro = (button_x_amy_intro - button_width_amy_intro/2 <= mouse_x_amy_intro <= button_x_amy_intro + button_width_amy_intro/2 and
                                       button_y_amy_intro - button_height_amy_intro/2 <= mouse_y_amy_intro <= button_y_amy_intro + button_height_amy_intro/2)
                 
                 if prev_mouse_buttons_amy_intro[0] and not mouse_buttons_amy_intro[0]:
-                    if on_button_amy_intro:
+                    if on_exit_amy:
+                        core.quit()
+                    elif on_button_amy_intro:
                         continue_button_amy_intro.fillColor = 'lightgreen'
                         draw_screen_amy_intro()
                         core.wait(0.2)
@@ -5182,6 +5291,17 @@ def run_experiment():
             except Exception as e:
                 print(f"Error in button wait: {e}", file=sys.stderr)
                 core.wait(0.01)
+            
+            try:
+                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                if keys:
+                    if 'space' in keys:
+                        clicked_amy_intro = True
+                        break
+                    elif 'escape' in keys:
+                        core.quit()
+            except (AttributeError, Exception):
+                pass
     
     mouse_amy_intro.setVisible(False)
     event.clearEvents()
@@ -5357,6 +5477,8 @@ def run_experiment():
                     
                     # Only show Ben screen if we have valid text (Block 4 or Block 8)
                     if switch_text is not None:
+                        exit_btn_ben = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+                        exit_text_ben = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
                     
                         # Custom wait for button with custom button position
                         mouse = event.Mouse(win=win)
@@ -5364,6 +5486,8 @@ def run_experiment():
                         
                         def draw_screen():
                             redraw_ben()
+                            exit_btn_ben.draw()
+                            exit_text_ben.draw()
                             win.flip()
                         
                         draw_screen()
@@ -5396,10 +5520,14 @@ def run_experiment():
                                         hit_margin_x = max(button_width * 0.5, 0.08)
                                         hit_margin_y = max(button_height * 0.5, 0.04)
                                         
+                                        on_exit_ben = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x_ben <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                                                      EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y_ben <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                                         on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x_ben <= button_x + button_width/2 + hit_margin_x and
                                                     button_y - button_height/2 - hit_margin_y <= mouseloc_y_ben <= button_y + button_height/2 + hit_margin_y)
                                         
-                                        if on_button:
+                                        if on_exit_ben:
+                                            core.quit()
+                                        elif on_button:
                                             # Visual feedback (no color change in touch screen mode)
                                             draw_screen()
                                             core.wait(0.2)
@@ -5449,11 +5577,15 @@ def run_experiment():
                                     
                                     button_width, button_height = 0.3*0.75, 0.1*0.75
                                     
+                                    on_exit_ben = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                                                  EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                                     on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
                                                 button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
                                     
                                     if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                                        if on_button:
+                                        if on_exit_ben:
+                                            core.quit()
+                                        elif on_button:
                                             continue_button.fillColor = 'lightgreen'
                                             draw_screen()
                                             core.wait(0.2)
@@ -5529,6 +5661,8 @@ def run_experiment():
                             height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
                             pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
+                        exit_btn_amy_return = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+                        exit_text_amy_return = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
                         
                         def redraw_amy():
                             switch_text.draw()  # Draw text first
@@ -5536,6 +5670,8 @@ def run_experiment():
                                 amy_image.draw()
                             continue_button_amy_return.draw()
                             continue_text_amy_return.draw()
+                            exit_btn_amy_return.draw()
+                            exit_text_amy_return.draw()
                         
                         # Custom wait for button with custom button position
                         mouse_amy_return = event.Mouse(win=win)
@@ -5576,10 +5712,14 @@ def run_experiment():
                                         hit_margin_amy_return_x = max(button_width_amy_return * 0.5, 0.08)
                                         hit_margin_amy_return_y = max(button_height_amy_return * 0.5, 0.04)
                                         
+                                        on_exit_amy_return = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x_amy_return <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                                                            EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y_amy_return <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                                         on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 - hit_margin_amy_return_x <= mouseloc_x_amy_return <= button_x_amy_return + button_width_amy_return/2 + hit_margin_amy_return_x and
                                                                 button_y_amy_return - button_height_amy_return/2 - hit_margin_amy_return_y <= mouseloc_y_amy_return <= button_y_amy_return + button_height_amy_return/2 + hit_margin_amy_return_y)
                                         
-                                        if on_button_amy_return:
+                                        if on_exit_amy_return:
+                                            core.quit()
+                                        elif on_button_amy_return:
                                             # Visual feedback (no color change in touch screen mode)
                                             draw_screen_amy_return()
                                             core.wait(0.2)
@@ -5599,6 +5739,17 @@ def run_experiment():
                                 except Exception as e:
                                     print(f"Error in button wait: {e}", file=sys.stderr)
                                     core.wait(0.01)
+                            
+                            try:
+                                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                                if keys:
+                                    if 'space' in keys:
+                                        clicked_amy_return = True
+                                        break
+                                    elif 'escape' in keys:
+                                        core.quit()
+                            except (AttributeError, Exception):
+                                pass
                         else:
                             # Standard mouse click detection for non-touch screens
                             prev_mouse_buttons_amy_return = [False, False, False]
@@ -5619,11 +5770,15 @@ def run_experiment():
                                     button_x_amy_return, button_y_amy_return = 0.4, -0.3  # Updated to match button position
                                     button_width_amy_return, button_height_amy_return = 0.3*0.75, 0.1*0.75
                                     
+                                    on_exit_amy_return = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x_amy_return <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                                                        EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y_amy_return <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                                     on_button_amy_return = (button_x_amy_return - button_width_amy_return/2 <= mouse_x_amy_return <= button_x_amy_return + button_width_amy_return/2 and
                                                             button_y_amy_return - button_height_amy_return/2 <= mouse_y_amy_return <= button_y_amy_return + button_height_amy_return/2)
                                     
                                     if prev_mouse_buttons_amy_return[0] and not mouse_buttons_amy_return[0]:
-                                        if on_button_amy_return:
+                                        if on_exit_amy_return:
+                                            core.quit()
+                                        elif on_button_amy_return:
                                             continue_button_amy_return.fillColor = 'lightgreen'
                                             draw_screen_amy_return()
                                             core.wait(0.2)
@@ -5635,6 +5790,17 @@ def run_experiment():
                                 except Exception as e:
                                     print(f"Error in button wait: {e}", file=sys.stderr)
                                     core.wait(0.01)
+                                
+                                try:
+                                    keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
+                                    if keys:
+                                        if 'space' in keys:
+                                            clicked_amy_return = True
+                                            break
+                                        elif 'escape' in keys:
+                                            core.quit()
+                                except (AttributeError, Exception):
+                                    pass
                         
                         mouse_amy_return.setVisible(False)
                         event.clearEvents()
