@@ -4372,7 +4372,7 @@ def run_experiment():
     practice_trials = []
     practice_points = 0.0
     
-    # Load and display Carly's picture for practice (uses same image as Amy.png, labeled as Carly)
+    # Load and display Carly's picture for practice (uses same image as Amy.png, no label)
     carly_image_path = os.path.join(STIMULI_DIR, "Amy.png")
     if os.path.exists(carly_image_path):
         carly_image = load_image_stimulus(carly_image_path, maintain_aspect_ratio=True)
