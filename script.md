@@ -16,6 +16,11 @@
 
 This will run the localizer and upload the log files. 
 
+**To exit fullscreen:** 
+- **Laptop**: Press **ESC**
+- **Touch screen**: Tap the **Exit** button (top-right corner)
+- Exit button appears on: input method screen, instruction/CONTINUE screens, and question screens (localizer YES/NO).
+
 ---
 
 ## Full Experiment Script
@@ -24,12 +29,16 @@ This will run the localizer and upload the log files.
 **Display says:**
 "What input method are you using?
 
-Touch or click the button below:"
+Touch or click the button below:
 
-**Display shows:** Two buttons: "TOUCH SCREEN (Double tap with finger)" and "MOUSE/TRACKPAD (Click)"
+(Press ESC or tap Exit to leave fullscreen)"
+
+**Display shows:** Two buttons: "TOUCH SCREEN (Double tap with finger)" and "MOUSE/TRACKPAD (Click)". A small **Exit** button (top-right corner).
 
 **What to say:**
 "First, double-tap the touch-screen button."
+
+**Exit fullscreen:** **ESC** (laptop) or tap **Exit** (top-right). Same on all screens with CONTINUE/instruction buttons.
 
 ---
 
@@ -270,7 +279,7 @@ Make sure participants get all the way to the end of the task. If they do, there
 - If the participant accidentally minimizes the screen, navigate to the psychopy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
 - If there are any unexpected bugs, quit the terminal and restart the task again
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
-- If there are technical issues, close the terminal window to exit
+- **To exit the task**: Laptop users press **ESC**; touch screen users tap the **Exit** button (top-right). If needed, close the terminal window to force quit.
 - All data is saved automatically after each trial
 - Log files are saved to the `../LOG_FILES/` directory
 - Email kahinimehta@hotmail.com for any issues

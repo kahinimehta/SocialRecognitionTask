@@ -415,6 +415,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
   - Pre-generated sequence ensures exactly 10 correct and 10 incorrect questions in randomized order
 - **Feedback**: No per-trial feedback. Accuracy summary ("Your accuracy: X/20 (Y%)") shown at the very end only.
 - **Question timeout**: 10.0 seconds (differs from main task's 7.0 second timeouts)
+- **Exit fullscreen**: Same as main task—ESC (laptop) or tap Exit button (top-right) on instruction and question screens.
 
 **Timing**:
 - **Fixation cross**: Jittered 0.25-0.75 seconds before each image (`random.uniform(0.25, 0.75)`), 200 fixations total
@@ -452,6 +453,10 @@ Separate task for object verification. Participants view 200 images (100 Image +
 ### Window and Display
 
 - **Window**: Fullscreen on both laptop and touch screen (uses full display resolution)
+- **Exit fullscreen**: 
+  - **Laptop**: Press **ESC**
+  - **Touch screen**: Tap the **Exit** button (top-right corner)
+  - Exit button is visible on: input method screen, instruction/CONTINUE screens, and question screens (YES/NO in localizer)
 - **Window focus**: Automatically activated on macOS
 - **Initial screen**: "Click anywhere to begin" ensures window focus
 

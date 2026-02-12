@@ -128,7 +128,8 @@ def get_input_method():
         prompt_text = visual.TextStim(
             temp_win,
             text="What input method are you using?\n\n"
-                 "Touch or click the button below:",
+                 "Touch or click the button below:\n\n"
+                 "(Press ESC or tap Exit to leave fullscreen)",
             color='black',
             height=30/720*0.75,
             pos=(0, 200/720*0.6),
@@ -176,6 +177,9 @@ def get_input_method():
             units='height'
         )
         
+        exit_btn = visual.Rect(temp_win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=(0.45, 0.47), lineWidth=1, units='height')
+        exit_text = visual.TextStim(temp_win, text="Exit", color='darkred', height=0.025, pos=(0.45, 0.47), units='height')
+        
         mouse_temp = event.Mouse(win=temp_win)
         mouse_temp.setVisible(True)
         
@@ -185,6 +189,8 @@ def get_input_method():
             button1_text.draw()
             button2.draw()
             button2_text.draw()
+            exit_btn.draw()
+            exit_text.draw()
             temp_win.flip()
         
         draw_selection_screen()
@@ -232,11 +238,14 @@ def get_input_method():
                               button1_y - button1_height/2 - hit_margin <= mouseloc_y <= button1_y + button1_height/2 + hit_margin)
                 on_button2 = (button2_x - button2_width/2 - hit_margin <= mouseloc_x <= button2_x + button2_width/2 + hit_margin and
                               button2_y - button2_height/2 - hit_margin <= mouseloc_y <= button2_y + button2_height/2 + hit_margin)
+                on_exit = (0.39 <= mouseloc_x <= 0.51 and 0.45 <= mouseloc_y <= 0.49)  # Exit button (height units)
                 
                 # Check for button release (was pressed, now released)
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
+                    if on_exit:
+                        return None, None
                     # Button was released - check if it was over a button
-                    if on_button1:
+                    elif on_button1:
                         USE_TOUCH_SCREEN = True
                         selected = 'touch'
                         button1.fillColor = 'green'
@@ -253,7 +262,9 @@ def get_input_method():
                 
                 # Also check for button press (for touch screens, press and release happen quickly)
                 if mouse_buttons[0] and not prev_mouse_buttons[0]:
-                    if on_button1:
+                    if on_exit:
+                        return None, None
+                    elif on_button1:
                         USE_TOUCH_SCREEN = True
                         selected = 'touch'
                         button1.fillColor = 'green'
@@ -1278,6 +1289,9 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
         pos=(0, button_y)
     )
     
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=(0.45, 0.47), lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=(0.45, 0.47), units='height')
+    
     # Draw initial screen once (button should be included in redraw_func)
     def draw_screen():
         if redraw_func:
@@ -1287,6 +1301,8 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
                 pass
         continue_button.draw()
         continue_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
         win.flip()
     
     draw_screen()
@@ -1336,8 +1352,11 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
                     
                     on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x <= button_x + button_width/2 + hit_margin_x and
                                 button_y - button_height/2 - hit_margin_y <= mouseloc_y <= button_y + button_height/2 + hit_margin_y)
+                    on_exit = (0.39 <= mouseloc_x <= 0.51 and 0.45 <= mouseloc_y <= 0.49)
                     
-                    if on_button:
+                    if on_exit:
+                        core.quit()
+                    elif on_button:
                         # Visual feedback (no color change in touch screen mode)
                         draw_screen()
                         core.wait(0.2)
@@ -1403,9 +1422,12 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
                 
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
                             button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
+                on_exit = (0.39 <= mouse_x <= 0.51 and 0.45 <= mouse_y <= 0.49)
                 
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_button:
+                    if on_exit:
+                        core.quit()
+                    elif on_button:
                         if not USE_TOUCH_SCREEN:
                             continue_button.fillColor = 'lightgreen'
                         draw_screen()
