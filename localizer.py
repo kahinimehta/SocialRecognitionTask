@@ -820,7 +820,7 @@ def get_participant_id():
         try:
             keys = event.getKeys(keyList=['escape'], timeStamped=False)
             if keys and 'escape' in keys:
-                return None
+                core.quit()
         except (AttributeError, RuntimeError) as e:
             print(f"Warning: Error checking escape key in get_participant_id: {e}", file=sys.stderr)
         
@@ -1013,6 +1013,13 @@ def get_participant_id():
             
             # Redraw every frame
             redraw()
+            # Check escape again before clearing (clearEvents can wipe keys pressed during redraw)
+            try:
+                keys = event.getKeys(keyList=['escape'], timeStamped=False)
+                if keys and 'escape' in keys:
+                    core.quit()
+            except (AttributeError, RuntimeError):
+                pass
             # Clear events only once per loop iteration, after all checks
             event.clearEvents()
             core.wait(0.001)  # Very fast polling
@@ -1021,8 +1028,12 @@ def get_participant_id():
             try:
                 keys = event.getKeys(keyList=None, timeStamped=False)
                 if keys:  # Only process if keys is not empty
+                    if 'escape' in keys:
+                        core.quit()
                     for key in keys:
-                        if key == 'return' or key == 'enter':
+                        if key == 'escape':
+                            continue  # Already handled above
+                        elif key == 'return' or key == 'enter':
                             if input_id.strip():
                                 mouse.setVisible(False)
                                 event.clearEvents()
@@ -1035,8 +1046,6 @@ def get_participant_id():
                             input_id += key
                             input_display.text = input_id if input_id else "_"
                             redraw()
-                        elif key == 'escape':
-                            core.quit()
             except (AttributeError, Exception):
                 pass  # Ignore event errors
         

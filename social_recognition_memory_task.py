@@ -1834,6 +1834,14 @@ def get_participant_id():
     clock.reset()
     
     while True:
+        # Check for escape key FIRST, before any processing
+        try:
+            keys = event.getKeys(keyList=['escape'], timeStamped=False)
+            if keys and 'escape' in keys:
+                core.quit()
+        except (AttributeError, RuntimeError):
+            pass
+        
         if USE_TOUCH_SCREEN:
             mouseloc = mouse.getPos()
             try:
@@ -1859,41 +1867,41 @@ def get_participant_id():
                 hit_margin_keyboard = 0.01  # Small margin to prevent overlap between keyboard buttons
                 if not on_exit:
                     for button, button_text, char in keyboard_buttons:
-                    try:
-                        button_x, button_y = button.pos
-                        button_width, button_height = button.width, button.height
-                    except:
-                        continue
-                    
-                    # Use exact button bounds with minimal margin to prevent overlap
-                    on_button = (button_x - button_width/2 - hit_margin_keyboard <= mouseloc_x <= button_x + button_width/2 + hit_margin_keyboard and
-                                 button_y - button_height/2 - hit_margin_keyboard <= mouseloc_y <= button_y + button_height/2 + hit_margin_keyboard)
-                    
-                    if on_button:
-                        if t > minRT:  # Minimum time has passed
-                            input_id += char
-                            # No color change in touch screen mode
-                            if not USE_TOUCH_SCREEN:
-                                button.fillColor = 'lightgreen'
-                            redraw()
-                            core.wait(0.05)
-                            if not USE_TOUCH_SCREEN:
-                                button.fillColor = 'lightgray'
-                            redraw()
-                            clicked = True
-                            mouserec = mouse.getPos()  # Update reference position
-                            try:
-                                mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                            except:
-                                mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
-                            clock.reset()  # Reset timer
-                            break
-                        else:
-                            mouserec = mouse.getPos()  # Update reference position
-                            try:
-                                mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
-                            except:
-                                mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                        try:
+                            button_x, button_y = button.pos
+                            button_width, button_height = button.width, button.height
+                        except:
+                            continue
+                        
+                        # Use exact button bounds with minimal margin to prevent overlap
+                        on_button = (button_x - button_width/2 - hit_margin_keyboard <= mouseloc_x <= button_x + button_width/2 + hit_margin_keyboard and
+                                     button_y - button_height/2 - hit_margin_keyboard <= mouseloc_y <= button_y + button_height/2 + hit_margin_keyboard)
+                        
+                        if on_button:
+                            if t > minRT:  # Minimum time has passed
+                                input_id += char
+                                # No color change in touch screen mode
+                                if not USE_TOUCH_SCREEN:
+                                    button.fillColor = 'lightgreen'
+                                redraw()
+                                core.wait(0.05)
+                                if not USE_TOUCH_SCREEN:
+                                    button.fillColor = 'lightgray'
+                                redraw()
+                                clicked = True
+                                mouserec = mouse.getPos()  # Update reference position
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
+                                clock.reset()  # Reset timer
+                                break
+                            else:
+                                mouserec = mouse.getPos()  # Update reference position
+                                try:
+                                    mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+                                except:
+                                    mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                 
                 if not clicked:
                     # Check backspace button using position calculation - larger margin for special buttons
@@ -1988,7 +1996,13 @@ def get_participant_id():
                         core.quit()
             except (AttributeError, RuntimeError) as e:
                 print(f"Warning: Error checking keys in get_participant_id: {e}", file=sys.stderr)
-            
+            # Check escape again before clearing (clearEvents can wipe keys pressed during redraw)
+            try:
+                keys = event.getKeys(keyList=['escape'], timeStamped=False)
+                if keys and 'escape' in keys:
+                    core.quit()
+            except (AttributeError, RuntimeError):
+                pass
             # Clear events AFTER checking keys
             event.clearEvents()
             safe_wait(0.001)  # Very fast polling
@@ -4325,7 +4339,7 @@ def run_experiment():
                     
                     if on_exit:
                         core.quit()
-                    el                    elif on_button:
+                    elif on_button:
                         # Visual feedback (no color change in touch screen mode)
                         start_screen.draw()
                         start_button.draw()
