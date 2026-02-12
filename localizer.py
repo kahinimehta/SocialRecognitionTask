@@ -35,6 +35,36 @@ USE_TOUCH_SCREEN = False
 EXIT_BTN_POS = (0.45, 0.47)  # Top-right corner (units='height')
 EXIT_HIT_MARGIN = 0.05  # Larger margin for reliable touch registration
 
+def safe_wait(duration):
+    """Wrapper for core.wait() that handles macOS event dispatch errors (e.g. NSTrackingArea)"""
+    try:
+        core.wait(duration)
+    except AttributeError as e:
+        err_str = str(e)
+        if "type" in err_str and ("ObjCInstance" in err_str or "NSConcreteNotification" in err_str or "NSTrackingArea" in err_str):
+            pass
+        else:
+            raise
+    except Exception:
+        pass
+
+def wait_with_escape(duration):
+    """Wait for duration, checking for ESC every 0.05s. If ESC pressed, quit immediately."""
+    elapsed = 0.0
+    chunk = 0.05
+    while elapsed < duration:
+        # Check ESC FIRST before any wait (event.getKeys is destructive)
+        try:
+            keys = event.getKeys(keyList=['escape'])
+            if keys and 'escape' in keys:
+                core.quit()
+        except (AttributeError, RuntimeError):
+            pass
+        remaining = min(chunk, duration - elapsed)
+        if remaining > 0:
+            safe_wait(remaining)
+        elapsed += remaining
+
 def safe_window_close(window):
     """Safely close a window, checking if it's still valid to prevent NoneType errors"""
     try:
@@ -1176,7 +1206,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                 
                 # Redraw every frame
                 draw_screen()
-                core.wait(0.001)  # Very fast polling
+                safe_wait(0.001)  # Very fast polling (macOS-safe)
             except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 # Log specific errors instead of silently ignoring
                 print(f"Warning: Error in wait_for_button touch screen loop: {e}", file=sys.stderr)
@@ -1201,6 +1231,13 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         last_hover_state = None
         
         while not clicked:
+            # Check for escape FIRST, before any other processing
+            try:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:
+                    core.quit()
+            except (AttributeError, RuntimeError):
+                pass
             try:
                 mouse_buttons = mouse.getPressed()
                 mouse_pos = mouse.getPos()
@@ -1274,7 +1311,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
             except (AttributeError, Exception):
                 pass
             
-            core.wait(0.01)
+            safe_wait(0.01)
     
     mouse.setVisible(False)
     event.clearEvents()
@@ -1371,6 +1408,13 @@ def ask_object_question(object_name, timeout=10.0):
         minRT = 0.2  # Minimum response time
         
         while not answered:
+            # Check for escape FIRST, before any other processing
+            try:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:
+                    core.quit()
+            except (AttributeError, RuntimeError):
+                pass
             # Check for timeout
             elapsed_time = clock.getTime()
             if elapsed_time >= timeout:
@@ -1509,6 +1553,13 @@ def ask_object_question(object_name, timeout=10.0):
         prev_mouse_buttons = [False, False, False]
         
         while not answered:
+            # Check for escape FIRST, before any other processing
+            try:
+                keys = event.getKeys(keyList=['escape'])
+                if keys and 'escape' in keys:
+                    core.quit()
+            except (AttributeError, RuntimeError):
+                pass
             # Check for timeout
             elapsed_time = clock.getTime()
             if elapsed_time >= timeout:
@@ -1589,9 +1640,9 @@ def ask_object_question(object_name, timeout=10.0):
                     elif 'escape' in keys:
                         core.quit()
             except (AttributeError, RuntimeError) as e:
-                print(f"Warning: Error checking keys in ask_category_question: {e}", file=sys.stderr)
+                print(f"Warning: Error checking keys in ask_object_question: {e}", file=sys.stderr)
             
-            core.wait(0.01)
+            safe_wait(0.01)
     
     mouse.setVisible(False)
     event.clearEvents()
@@ -1608,7 +1659,7 @@ def ask_object_question(object_name, timeout=10.0):
         )
         timeout_message.draw()
         win.flip()
-        core.wait(2.0)  # Show message for 2 seconds
+        wait_with_escape(2.0)  # Show message for 2 seconds. ESC works during wait.
     
     return (answer, timed_out, response_time, answer_click_time)
 
@@ -1831,10 +1882,10 @@ try:
     fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     
     def show_fixation(duration=1.0):
-        """Display fixation cross for specified duration"""
+        """Display fixation cross for specified duration. ESC works during wait."""
         fixation.draw()
         win.flip()
-        core.wait(duration)
+        wait_with_escape(duration)
 
     # Get participant ID
     print("About to call get_participant_id()...")
@@ -1971,8 +2022,8 @@ try:
             # Record image onset time
             image_onset_time = time.time()
             
-            # Show image for exactly 0.5 seconds (fixed duration)
-            core.wait(0.5)
+            # Show image for exactly 0.5 seconds (fixed duration). ESC works during wait.
+            wait_with_escape(0.5)
             
             # Record image offset time
             image_offset_time = time.time()
