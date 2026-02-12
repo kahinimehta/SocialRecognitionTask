@@ -31,6 +31,10 @@ sys.excepthook = exception_handler
 # Global variable to store input method preference (set before window creation)
 USE_TOUCH_SCREEN = False
 
+# Exit button: always top-right, consistent position and hit area for touch screens
+EXIT_BTN_POS = (0.45, 0.47)  # Top-right corner (units='height')
+EXIT_HIT_MARGIN = 0.05  # Larger margin for reliable touch registration
+
 def safe_window_close(window):
     """Safely close a window, checking if it's still valid to prevent NoneType errors"""
     try:
@@ -178,9 +182,14 @@ def get_input_method():
                         if exit_btn.contains(mouseloc):
                             return None, None
                     except Exception:
+                        pass
+                    try:
                         mouseloc_x, mouseloc_y = float(mouseloc[0]), float(mouseloc[1])
-                        if 0.39 <= mouseloc_x <= 0.51 and 0.45 <= mouseloc_y <= 0.49:
-                            return None, None
+                    except (TypeError, ValueError, IndexError):
+                        mouseloc_x, mouseloc_y = 0.0, 0.0
+                    exit_margin = 0.04  # Larger hit area for touch
+                    if 0.39 - exit_margin <= mouseloc_x <= 0.51 + exit_margin and 0.45 - exit_margin <= mouseloc_y <= 0.49 + exit_margin:
+                        return None, None
                     # Check button 1 (TOUCH SCREEN)
                     try:
                         if button1.contains(mouseloc):
@@ -701,7 +710,7 @@ def get_participant_id():
     try:
         if USE_TOUCH_SCREEN:
             print("Creating touch screen text stimuli...")
-            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.35*0.6))
+            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.42*0.6))
             print("id_prompt created")
             input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75*1.35, pos=(0, 0.25*0.6))
             print("input_display created")
@@ -754,13 +763,15 @@ def get_participant_id():
             print("Creating special buttons...")
             # Special buttons - arranged horizontally between input and keyboard
             button_y_pos = 0.05*0.6  # Position between input (0.25) and keyboard start (-0.15)
-            backspace_button = visual.Rect(win, width=0.2*0.75, height=0.1*0.75*1.35, fillColor='lightcoral', 
+            backspace_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75*1.35, fillColor='lightcoral', 
                                           lineColor='black', lineWidth=2*0.75, pos=(-0.25*0.6, button_y_pos))
             backspace_text = visual.TextStim(win, text="BACKSPACE", color='black', height=0.025*0.75*1.35, pos=(-0.25*0.6, button_y_pos))
             
             continue_button = visual.Rect(win, width=0.3*0.75, height=0.1*0.75*1.35, fillColor='lightgreen', 
                                           lineColor='black', lineWidth=2*0.75, pos=(0.25*0.6, button_y_pos))
             continue_text = visual.TextStim(win, text="CONTINUE", color='black', height=0.025*0.75*1.35, pos=(0.25*0.6, button_y_pos))
+            exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+            exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
             print("All keyboard buttons created successfully")
         except Exception as e:
             print(f"ERROR creating keyboard buttons: {e}")
@@ -782,6 +793,8 @@ def get_participant_id():
             backspace_text.draw()
             continue_button.draw()
             continue_text.draw()
+            exit_btn.draw()
+            exit_text.draw()
         
         win.flip()
 
@@ -827,7 +840,12 @@ def get_participant_id():
                 redraw()
             else:
                 # Position has changed - check if touch is within any button
-                # Check keyboard buttons first
+                # Check Exit button FIRST (top-right, always clickable)
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
+                if on_exit:
+                    core.quit()  # Exit always responsive (no minRT)
+                # Check keyboard buttons
                 for row in keyboard_buttons:
                     for button, text, key, x_pos, y_pos in row:
                         try:
@@ -912,7 +930,7 @@ def get_participant_id():
                         traceback.print_exc()
                         hit_margin = 0.08*0.75
                         backspace_x, backspace_y = -0.35*0.6, (start_y + 0.2)*0.6
-                        backspace_width, backspace_height = 0.2*0.75, 0.1*0.75
+                        backspace_width, backspace_height = 0.3*0.75, 0.1*0.75
                         if (backspace_x - backspace_width/2 - hit_margin <= mouseloc_x <= backspace_x + backspace_width/2 + hit_margin and
                             backspace_y - backspace_height/2 - hit_margin <= mouseloc_y <= backspace_y + backspace_height/2 + hit_margin):
                             if t > minRT:
@@ -1051,8 +1069,8 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     )
     
     # Exit button (top-right): tap to leave fullscreen on touch screen; ESC on laptop
-    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=(0.45, 0.47), lineWidth=1, units='height')
-    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=(0.45, 0.47), units='height')
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     def draw_screen():
         # Draw additional stimuli first (e.g., instructions)
@@ -1105,8 +1123,11 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                     draw_screen()
                 else:
                     # Position has changed - check if touch is within button
+                    # Exit button: use explicit bounds for reliable touch registration
+                    on_exit_btn = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                                  EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                     try:
-                        if exit_btn.contains(mouseloc) and t > minRT:
+                        if (on_exit_btn or exit_btn.contains(mouseloc)):
                             core.quit()
                         elif continue_button.contains(mouseloc):
                             if t > minRT:
@@ -1122,7 +1143,9 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                                 except:
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                     except:
-                        # Fallback to manual calculation
+                        # Fallback to manual calculation (including exit button)
+                        if on_exit_btn:
+                            core.quit()
                         hit_margin = 0.02*0.75
                         button_x, button_y = 0.0, -0.5*0.6  # Updated to match new button position
                         button_width, button_height = 0.3*0.75, 0.1*0.75
@@ -1158,9 +1181,6 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                     elif 'space' in keys:
                         clicked = True
                         break
-                if keys and 'space' in keys:
-                    clicked = True
-                    break
             except (AttributeError, RuntimeError) as e:
                 print(f"Warning: Error checking space key in wait_for_button: {e}", file=sys.stderr)
             
@@ -1208,7 +1228,8 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                 
                 on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
                             button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
-                on_exit = (0.39 <= mouse_x <= 0.51 and 0.45 <= mouse_y <= 0.49)  # Exit button bounds
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                 
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
                     if on_exit:
@@ -1304,8 +1325,8 @@ def ask_object_question(object_name, timeout=10.0):
         pos=(0.3*0.6, -0.2*0.6)
     )
     
-    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=(0.45, 0.47), lineWidth=1, units='height')
-    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=(0.45, 0.47), units='height')
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
@@ -1364,8 +1385,10 @@ def ask_object_question(object_name, timeout=10.0):
                     draw_question()
                 else:
                     # Position has changed - check if touch is within buttons
+                    on_exit_btn = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                                  EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                     try:
-                        if exit_btn.contains(mouseloc) and t > minRT:
+                        if (on_exit_btn or exit_btn.contains(mouseloc)):
                             core.quit()
                         # Check YES button
                         elif yes_button.contains(mouseloc):
@@ -1402,7 +1425,9 @@ def ask_object_question(object_name, timeout=10.0):
                                 except:
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                     except:
-                        # Fallback to manual calculation
+                        # Fallback to manual calculation (including exit button)
+                        if on_exit_btn:
+                            core.quit()
                         hit_margin = 0.02
                         yes_x, yes_y = -0.3, -0.2
                         yes_width, yes_height = 0.25, 0.1
@@ -1506,7 +1531,8 @@ def ask_object_question(object_name, timeout=10.0):
                 no_width, no_height = 0.25*0.75, 0.1*0.75
                 on_no = (no_x - no_width/2 <= mouse_x <= no_x + no_width/2 and
                         no_y - no_height/2 <= mouse_y <= no_y + no_height/2)
-                on_exit = (0.39 <= mouse_x <= 0.51 and 0.45 <= mouse_y <= 0.49)
+                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                 
                 if prev_mouse_buttons[0] and not mouse_buttons[0]:
                     if on_exit:

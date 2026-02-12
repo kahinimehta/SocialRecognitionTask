@@ -124,7 +124,7 @@ Each of the 10 trials follows this structure:
 
 - AI partner also rates each image on the same slider
 - **AI Response Time (RT)**: Drawn from a log-normal distribution (jittered)
-- **AI Confidence**: Drawn from a Gaussian distribution
+- **AI Confidence**: Random, but definitely higher when correct (0.65–0.95) and definitely lower when incorrect (0.05–0.35)
 - **AI Accuracy**: Varies by block (see below)
 - Animation shows AI's slider clicking (handle appears at chosen position) and clicking submit
 
@@ -359,10 +359,10 @@ All scoring is framed as "in-house curator" evaluations:
 ### AI Behavior Randomization
 
 - **AI RT**: Log-normal distribution (mu=0.5, sigma=0.3, capped at 5.0s)
-- **AI Confidence**: Gaussian distribution
-  - Mean = 0.7 if correct, 0.3 if incorrect
-  - Std = 0.15
-  - Biased toward OLD/NEW based on ground truth
+- **AI Confidence**: Uniform random within range
+  - When correct: 0.65–0.95 (definitely on higher side)
+  - When incorrect: 0.05–0.35 (definitely on lower side)
+  - Biased toward OLD/NEW side based on ground truth
 - **AI Accuracy**: Controlled at block level (0.75 or 0.25)
 
 ---
