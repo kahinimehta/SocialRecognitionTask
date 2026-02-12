@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
 """
 Generate imagevs_lure.pdf: each stimulus image displayed side-by-side with its lure.
+Uses PIL only (no matplotlib) for fast PDF generation.
 """
 
 import os
 import re
 from pathlib import Path
 
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 # Paths
 STIMULI_DIR = Path(__file__).parent / "STIMULI"
 OUTPUT_PDF = Path(__file__).parent / "imagevs_lure.pdf"
+
+# Page dimensions (points at 72 DPI equivalently scaled for images)
+PAGE_WIDTH = 612   # 8.5 inches
+PAGE_HEIGHT = 432  # 6 inches (half for each image in landscape-like layout)
+MARGIN = 20
+MAX_IMG_HEIGHT = 350
 
 
 def find_image_lure_pairs():
@@ -40,6 +45,43 @@ def find_image_lure_pairs():
     return sorted(pairs, key=lambda x: x[2])
 
 
+def make_side_by_side(img_path, lure_path, num):
+    """Create a side-by-side composite image (Image | Lure) with labels."""
+    img = Image.open(img_path).convert("RGB")
+    lure = Image.open(lure_path).convert("RGB")
+
+    # Resize to fit within half page each
+    half_w = (PAGE_WIDTH - 3 * MARGIN) // 2
+    h = min(MAX_IMG_HEIGHT, img.height, lure.height)
+
+    def resize_to_fit(im, max_w, max_h):
+        r = min(max_w / im.width, max_h / im.height)
+        nw, nh = int(im.width * r), int(im.height * r)
+        return im.resize((nw, nh), Image.Resampling.LANCZOS)
+
+    img = resize_to_fit(img, half_w, h)
+    lure = resize_to_fit(lure, half_w, h)
+
+    # Same height for row, add space for labels
+    label_h = 28
+    row_h = max(img.height, lure.height) + label_h
+    total_w = img.width + MARGIN + lure.width
+    composite = Image.new("RGB", (total_w, row_h), (255, 255, 255))
+    composite.paste(img, (0, label_h))
+    composite.paste(lure, (img.width + MARGIN, label_h))
+
+    # Add labels
+    draw = ImageDraw.Draw(composite)
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 14)
+    except OSError:
+        font = ImageFont.load_default()
+    draw.text((img.width // 2 - 25, 4), f"Image {num}", fill=(0, 0, 0), font=font)
+    draw.text((img.width + MARGIN + lure.width // 2 - 25, 4), f"Lure {num}", fill=(0, 0, 0), font=font)
+
+    return composite
+
+
 def main():
     pairs = find_image_lure_pairs()
     if not pairs:
@@ -48,50 +90,16 @@ def main():
 
     print(f"Found {len(pairs)} Image/Lure pairs")
 
-    rcParams["font.size"] = 10
-    rcParams["axes.titlesize"] = 12
+    pages = []
+    for img_path, lure_path, num in pairs:
+        try:
+            page = make_side_by_side(img_path, lure_path, num)
+            pages.append(page)
+        except Exception as e:
+            print(f"Warning: Could not process pair {num}: {e}")
 
-    n_pages = len(pairs)
-    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-
-    with plt.rc_context({"figure.max_open_warning": 0}):
-        with plt.ioff():
-            # Use PdfPages for multi-page PDF
-            from matplotlib.backends.backend_pdf import PdfPages
-
-            with PdfPages(OUTPUT_PDF) as pdf:
-                for img_path, lure_path, num in pairs:
-                    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-
-                    # Load images
-                    try:
-                        img = Image.open(img_path)
-                        lure = Image.open(lure_path)
-                    except Exception as e:
-                        print(f"Warning: Could not load pair {num}: {e}")
-                        plt.close(fig)
-                        continue
-
-                    # Display Image (left)
-                    axes[0].imshow(img)
-                    axes[0].set_title(f"Image {num:03d}")
-                    axes[0].axis("off")
-
-                    # Display Lure (right)
-                    axes[1].imshow(lure)
-                    axes[1].set_title(f"Lure {num:03d}")
-                    axes[1].axis("off")
-
-                    # Add category label from path (e.g., biganimal/Alligator)
-                    rel_path = os.path.relpath(os.path.dirname(img_path), STIMULI_DIR)
-                    fig.suptitle(rel_path, fontsize=11, y=1.02)
-
-                    plt.tight_layout()
-                    pdf.savefig(fig, bbox_inches="tight", dpi=150)
-                    plt.close(fig)
-
-    print(f"Saved: {OUTPUT_PDF}")
-
-
-if __name__ == "__main__":
-    main()
+    if pages:
+        pages[0].save(OUTPUT_PDF, save_all=True, append_images=pages[1:])
+        print(f"Saved: {OUTPUT_PDF} ({len(pages)} pages)")
+    else:
+        print("No pages generated.")
