@@ -20,7 +20,7 @@ Main PsychoPy script for the entire experiment.
   - Study phase → Recognition phase → Switch/Stay decision → Outcome feedback  
   - AI turn-taking (randomized within blocks: AI goes first on 5 random trials out of 10 per block)  
   - AI accuracy manipulation (reliable 70–80% vs. unreliable 20–30% per 10-trial block)  
-  - AI confidence: Amy (reliable)—higher when correct, lower when incorrect; Ben (unreliable)—totally random
+  - AI confidence: Amy (reliable)—0.75–1.0 when correct, 0.5–0.75 or 0.25–0.5 when wrong (depending on side); Ben (unreliable)—totally random
   - Leaderboard screen (5 players, participant ranked 2 out of 5; continue button positioned to avoid overlap with text)
 - Saves trial-level and block-level data as CSV files.
 
@@ -44,7 +44,7 @@ Localizer task script for object verification.
 - Saves data to CSV file: `localizer_[participant_id]_[timestamp].csv`
 - **Example filename**: `localizer_P1_20260130_232131.csv`
 - Supports both touch screen and click/mouse input modes
-- **Exit fullscreen:** Laptop: press ESC; Touch screen: tap the Exit button (top-right corner)
+- **Exit fullscreen:** Laptop: press ESC; Touch screen: tap the Exit button (top-right corner). Exit/quit is only available at interactive screens (input method, instructions, question screens)—not during fixation or image presentation.
 - Skips file saving if "test" is in participant name
 - **See `CSV_VARIABLES_DOCUMENTATION.md` for complete variable definitions**
 

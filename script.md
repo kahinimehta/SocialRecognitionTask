@@ -20,6 +20,9 @@ This will run the localizer and upload the log files.
 - **Laptop**: Press **ESC**
 - **Touch screen**: Tap the **Exit** button (top-right corner)
 - Exit button appears on: input method screen, instruction/CONTINUE screens, and question screens (localizer YES/NO).
+- **Important**: In the localizer, exit/quit is only available when images are *not* being displayed—i.e., at interactive screens (input method, instructions, question screens). Participants cannot exit during fixation crosses or during image presentation.
+
+**Experimenter note**: At the beginning of the localizer task, inform participants that they can only exit/quit when they see the Exit button (i.e., when images are not being shown and they are at an interactive screen).
 
 ---
 

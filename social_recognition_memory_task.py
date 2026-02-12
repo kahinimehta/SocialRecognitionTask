@@ -120,7 +120,7 @@ def get_input_method():
         # Add waitBlanking=False and useFBO=False to prevent hanging
         temp_win = visual.Window(
             size=(1400, 900),
-            color='lightgray',
+            color='lighgit tgray',
             units='height',
             fullscr=True,
             allowGUI=True,
@@ -2430,27 +2430,25 @@ class AICollaborator:
     
     def generate_confidence(self, is_studied, ground_truth_correct):
         """Generate AI confidence.
-        Amy (reliable, 0.75): High when correct (0.65-0.95), low when incorrect (0.05-0.35).
+        Amy (reliable, 0.75): When correct, 0.75–1.0 (on correct side). When wrong, 0.5–0.75 or 0.25–0.5 (depending on which wrong side).
         Ben (unreliable, 0.25): Totally random (0-1), unrelated to correctness.
         """
         if self.accuracy_rate >= 0.5:
-            # Amy (reliable): confidence matches correctness - high when correct, low when incorrect
+            # Amy (reliable): high confidence (0.75–1) when correct, moderate confidence (0.5–0.75 or 0.25–0.5) when wrong
             if ground_truth_correct:
-                confidence = np.random.uniform(0.65, 0.95)
-            else:
-                confidence = np.random.uniform(0.05, 0.35)
-            
-            # If studied item, bias toward OLD; if lure, bias toward NEW
-            if is_studied:
-                if ground_truth_correct:
-                    confidence = confidence * 0.5  # OLD side
+                # Correct: high confidence on the correct side (uniform 0.75–1 in certainty, mapped to OLD or NEW)
+                if is_studied:
+                    confidence = np.random.uniform(0.0, 0.25)   # OLD correct: high confidence OLD (0–0.25)
                 else:
-                    confidence = 0.5 + (confidence * 0.5)  # NEW side (Incorrect)
+                    confidence = np.random.uniform(0.75, 1.0)   # NEW correct: high confidence NEW (0.75–1)
             else:
-                if ground_truth_correct:
-                    confidence = 0.5 + (confidence * 0.5)  # NEW side
+                # Wrong: moderate confidence (0.5–0.75 or 0.25–0.5) on the wrong side
+                if is_studied:
+                    # Correct was OLD, AI said NEW: confidence 0.5–0.75
+                    confidence = np.random.uniform(0.5, 0.75)
                 else:
-                    confidence = confidence * 0.5  # OLD side (Incorrect)
+                    # Correct was NEW, AI said OLD: confidence 0.25–0.5
+                    confidence = np.random.uniform(0.25, 0.5)
         else:
             # Ben (unreliable): totally random confidence, unrelated to correctness
             confidence = np.random.uniform(0.0, 1.0)

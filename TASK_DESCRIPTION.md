@@ -125,7 +125,7 @@ Each of the 10 trials follows this structure:
 - AI partner also rates each image on the same slider
 - **AI Response Time (RT)**: Drawn from a log-normal distribution (jittered)
 - **AI Confidence**:
-  - **Amy (reliable blocks)**: Higher when correct (0.65–0.95), lower when incorrect (0.05–0.35)—confidence is informative about accuracy
+  - **Amy (reliable blocks)**: When correct, high confidence—0.75–1.0 on the correct side (uniform random). When wrong, moderate confidence—0.5–0.75 if she said NEW (but correct was OLD), or 0.25–0.5 if she said OLD (but correct was NEW). Confidence is informative about accuracy.
   - **Ben (unreliable blocks)**: Totally random (uniform 0–1)—confidence is uninformative and unrelated to correctness
 - **AI Accuracy**: Varies by block (see below)
 - Animation shows AI's slider clicking (handle appears at chosen position) and clicking submit
@@ -359,10 +359,10 @@ All scoring is framed as "in-house curator" evaluations:
 ### AI Behavior Randomization
 
 - **AI RT**: Log-normal distribution (mu=0.5, sigma=0.3, capped at 5.0s)
-- **AI Confidence**: Uniform random within range
-  - When correct: 0.65–0.95 (definitely on higher side)
-  - When incorrect: 0.05–0.35 (definitely on lower side)
-  - Biased toward OLD/NEW side based on ground truth
+- **AI Confidence** (Amy only): Uniform random within range
+  - When correct: 0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0)
+  - When incorrect: 0.5–0.75 if said NEW (correct was OLD), or 0.25–0.5 if said OLD (correct was NEW)
+  - Ben: uniform 0–1, unrelated to correctness
 - **AI Accuracy**: Controlled at block level (70–80% reliable or 20–30% unreliable)
 
 ---
@@ -416,6 +416,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 - **Feedback**: No per-trial feedback. Accuracy summary ("Your accuracy: X/20 (Y%)") shown at the very end only.
 - **Question timeout**: 10.0 seconds (differs from main task's 7.0 second timeouts)
 - **Exit fullscreen**: Same as main task—ESC (laptop) or tap Exit button (top-right) on instruction and question screens.
+- **Exit availability**: Exit/quit is only available when images are *not* being displayed and when the participant is at an interactive screen (input method, instructions, question screens). Exit cannot be used during fixation crosses or during image presentation.
 
 **Timing**:
 - **Fixation cross**: Jittered 0.25-0.75 seconds before each image (`random.uniform(0.25, 0.75)`), 200 fixations total
@@ -457,6 +458,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
   - **Laptop**: Press **ESC**
   - **Touch screen**: Tap the **Exit** button (top-right corner)
   - Exit button is visible on: input method screen, instruction/CONTINUE screens, and question screens (YES/NO in localizer)
+  - **Localizer**: Exit/quit only works when images are not being displayed (i.e., at interactive screens). Participants cannot exit during fixation crosses or image presentation.
 - **Window focus**: Automatically activated on macOS
 - **Initial screen**: "Click anywhere to begin" ensures window focus
 
