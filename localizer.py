@@ -1846,7 +1846,7 @@ try:
              "Every few images, you will be asked a question about the previous image.\n"
              "Please pay attention to each image. Not every question has an objectively correct answer, but do your best. ",
         color='black',
-        height=0.05*0.75*1.35,pay attentin
+        height=0.05*0.75*1.35,
         pos=(0, 0),
         wrapWidth=1.4*0.75
     )
