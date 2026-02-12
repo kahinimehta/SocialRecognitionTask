@@ -109,9 +109,6 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 - Shape appears for 1.5 seconds
 - This repeats for 3 shapes
 
-**What to say:**
-"Watch the screen. You'll see some shapes appear one at a time. Just memorize them—you don't need to do anything yet."
-
 ---
 
 ### Transition Screen (Before Recognition Phase)
@@ -135,7 +132,7 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 **What to say:**
 
 ***Make sure they know to CLICK, not DRAG the slider.***
-"Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the slider—CLICK, not slide, anywhere on the line to set your rating, then click SUBMIT."
+"Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the slider—CLICK, not slide, anywhere on the line to set your rating, then click SUBMIT. How far you click shows how confident you are -- if you're 100% sure you've seen this, click all the way to the left. If you're 100% sure you haven't, click all the way to the right."
 
 ---
 
@@ -147,7 +144,7 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 - Then participant's slider with prompt "Rate your memory: OLD or NEW?"
 
 **What to say:**
-"Carly will also rate each image. Sometimes she'll go first, sometimes you will. In this practice trial, Carly went first and rated it as OLD. Now it's your turn to rate it."
+"Carly will also rate each image. Sometimes she'll go first, sometimes you will. In this practice trial, Carly went first and rated it confidently as OLD. Now it's your turn to rate it."
 
 ---
 
@@ -240,7 +237,7 @@ Confidence matters. An in-house curator scores based on accuracy and confidence.
 **Display shows:** CONTINUE button.
 
 **What to say:**
-"The scoring system considers both accuracy and confidence. If you are confident but wrong, you lose more points than if you are not confident and wrong. If you are right but not confident, you will not get as many points as if you were both right and confident. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision. *You will see how you compared against other anonymous players at the end via a leaderboard!*"
+"The scoring system considers both accuracy and confidence. If you are confident but wrong, you lose more points than if you are not confident and wrong. If you are right but not confident, you will not get as many points as if you were both right and confident. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision. Some of the image differences will be extremely, extremely subtle, so play close attention! *You will see how you compared against other anonymous players at the end via a leaderboard!*"
 
 ---
 
