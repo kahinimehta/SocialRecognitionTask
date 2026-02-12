@@ -17,15 +17,15 @@
 This will run the localizer and upload the log files. 
 
 ### For Pushing Log Files:
-If you only want to push the log files without running anything else, you may open a new *Anconda PowerShell Prompt Terminal* and enter "n" and enter when prompted to run the localizer. 
+If you only want to push the log files without running anything else, you may open a new *Anaconda PowerShell Prompt Terminal* and enter "n" and enter when prompted to run the localizer. 
 
 ### Updating the repo
-The code should automatically update everytime you open the terminal or run the experiment. If this is not the case, reach out to kahinimehta@hotmail.com
+The code should automatically update every time you open the terminal or run the experiment. If this is not the case, reach out to kahinimehta@hotmail.com
 
 **To exit fullscreen (main experiment):** 
 - **Laptop**: Press **ESC** — ESC always works to exit.
 - **Touch screen**: Tap the **Exit** button (top-right corner) — the Exit button is only shown sometimes, when you have to make a decision or click a button (e.g., input method, instructions, CONTINUE, slider/SUBMIT, STAY/SWITCH, name entry). It is not shown during fixation crosses, image display, or outcome screens. So on touch screens, you can only exit when the Exit button is visible.
-- **Key difference**: Laptop users can exit anytime with ESC. Touch screen users can only exit when the Exit button appears (during interactive/decision screens).
+- **Key difference**: Laptop users can exit any time with ESC. Touch screen users can only exit when the Exit button appears (during interactive/decision screens).
 - **Localizer**: ESC and Exit work at all times, including during fixation and image presentation.
 
 **Experimenter note**: Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically. Exit when you see the button."
@@ -110,7 +110,7 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 - This repeats for 3 shapes
 
 **What to say:**
-"Watch the screen. You'll see some shapes appear one at a time. Just memorize them - you don't need to do anything yet."
+"Watch the screen. You'll see some shapes appear one at a time. Just memorize them—you don't need to do anything yet."
 
 ---
 
@@ -135,7 +135,7 @@ For now, simply memorize the shapes you're about to see. Click CONTINUE when you
 **What to say:**
 
 ***Make sure they know to CLICK, not DRAG the slider.***
-"Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the slider - CLICK, not slide, anywhere on the line to set your rating, then click SUBMIT."
+"Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the slider—CLICK, not slide, anywhere on the line to set your rating, then click SUBMIT."
 
 ---
 
@@ -240,7 +240,7 @@ Confidence matters. An in-house curator scores based on accuracy and confidence.
 **Display shows:** CONTINUE button.
 
 **What to say:**
-"The scoring system considers both accuracy and confidence. If you are confident but wrong, you lose more points than if you are not confident and wrong. If you are right but not confident, you will not get as many points as if you were both right and confident. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision. *You will see how you compared against other anonymouse players at the end via a leaderboard!*"
+"The scoring system considers both accuracy and confidence. If you are confident but wrong, you lose more points than if you are not confident and wrong. If you are right but not confident, you will not get as many points as if you were both right and confident. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision. *You will see how you compared against other anonymous players at the end via a leaderboard!*"
 
 ---
 
@@ -279,23 +279,23 @@ Make sure participants get all the way to the end of the task. If they do, there
 - **Mouse Mode**: If using a mouse, participants can click or drag the slider
 - **Button Positions**: All buttons are positioned away from screen edges for better clickability
 - **Decision screen labels**: On the switch/stay screen, "you" (green) and the partner name "Amy" or "Ben" (blue) appear below the scale next to the markers
-- **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; continue button is placed lower to avoid overlap with text
+- **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; CONTINUE button is placed lower to avoid overlap with text
 - **Practice vs. Real**: The practice block uses Carly (Amy's assistant; same image as Amy) and 4 simple shapes: green circle, red circle, blue circle (study phase), and blue square (trial 3 recognition—the NEW item). Carly only appears in practice. The real experiment uses Amy or Ben as partners and photographs from the THINGS dataset
 - **Amy vs. Ben accuracy**: Amy (reliable blocks): 70–80% accuracy (7–8 correct per 10-trial block). Ben (unreliable blocks): 20–30% accuracy (2–3 correct per 10-trial block).
 - **Amy vs. Ben confidence**: Amy (reliable blocks): Confidence correlated with correctness—when correct, high confidence (0.75–1.0 on correct side); when wrong, moderate confidence (0.5–0.75 or 0.25–0.5 depending on which wrong side). Ben (unreliable blocks): Totally random (0–1), unrelated to correctness—participants cannot infer accuracy from Ben's confidence.
 - **Partner rating text**: When Amy, Ben, or Carly is rating, "[Partner name] is rating..." appears below the slider bar and above the SUBMIT button (in blue).
-- **Exit instructions (tell participants before task)**: Laptop users can press ESC anytime to exit. Touch screen users: the Exit button only appears when you need to tap a button or make a decision—not during image display, fixation, or outcome screens. Exit when you see it.
+- **Exit instructions (tell participants before task)**: Laptop users can press ESC any time to exit. Touch screen users: the Exit button only appears when you need to tap a button or make a decision—not during image display, fixation, or outcome screens. Exit when you see it.
 
 ---
 
 ## Troubleshooting
 
-- The task should not quit if they accidentally turn the Surface Pro off but be sure to log this if it happens. 
-- If a participant times out, the task will automatically select a random response and continue
-- If the participant accidentally minimizes the screen, navigate to the psychopy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
-- If there are any unexpected bugs, quit the terminal and restart the task again. Sometimes (only on the computer version) the task lags and gets stuck on "begin". For Windows, you should be able to navigate away. For Mac, hit cmd+opt+esc for 3 seconds to force quit. After you restart, it should work normally again. 
+- The task should not quit if they accidentally turn the Surface Pro off, but be sure to log this if it happens. 
+- If a participant times out, the task will automatically select a random response and continue.
+- If the participant accidentally minimizes the screen, navigate to the PsychoPy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
+- If there are any unexpected bugs, quit the terminal and restart the task again. Sometimes (only on the computer version) the task lags and gets stuck on "begin". For Windows, you should be able to navigate away. For Mac, hit Cmd+Opt+Esc for 3 seconds to force quit. After you restart, it should work normally again. 
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
 - **To exit the task**: Laptop users press **ESC** (always works). Touch screen users tap the **Exit** button (top-right) when it appears—it is only shown on interactive/decision screens, not during fixation, image display, or outcome screens. If needed, close the terminal window to force quit.
-- All data is saved automatically after each trial
-- Log files are saved to the `../LOG_FILES/` directory
-- Email kahinimehta@hotmail.com for any issues
+- All data is saved automatically after each trial.
+- Log files are saved to the `../LOG_FILES/` directory.
+- Email kahinimehta@hotmail.com for any issues.
