@@ -61,7 +61,7 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Practice Block Stimuli
 
-- Practice block uses **5 placeholder shape stimuli** from the PLACEHOLDERS folder
+- Practice block uses **4 placeholder shape stimuli** from the PLACEHOLDERS folder (3 circles for study + blue square for trial 3 recognition)
 - Practice stimuli are not replaced with real stimuli (kept as simple shapes for practice)
 
 ---
@@ -94,9 +94,9 @@ Each of the 10 trials follows this structure:
 5. **Collaboration Decision**: Participant decides to STAY or SWITCH
    - Timeout: 7 seconds (random decision selected if timeout)
 6. **Outcome Feedback**: Shows correctness and curator scoring
-   - "Correct!" (green) or "Incorrect" (red)
+   - "Correct" (green) or "Incorrect" (red)
    - "The in-house curator scored this image: X points"
-   - Display duration: ~1.5 seconds
+   - Display duration: 2 seconds
 7. **Jittered Fixation**: 0.25-0.75 seconds (uniform random distribution) between trials
    - Distribution: `random.uniform(0.25, 0.75)` - each jitter independently drawn
    - Shown as fixation cross during inter-trial interval
@@ -212,7 +212,7 @@ All scoring is framed as "in-house curator" evaluations:
 ### Trial Outcome
 
 **Correctness Feedback**: 
-- "Correct!" (green) or "Incorrect" (red)
+- "Correct" (green) or "Incorrect" (red)
 - Points earned this trial displayed (rounded to 1 decimal place for display, full precision maintained in logged data)
 
 ---
@@ -277,12 +277,12 @@ All scoring is framed as "in-house curator" evaluations:
   1. Welcome message: Amy's studio, Carly (her assistant) will walk through practice; Carly's picture (same image as Amy)
   2. Sequential presentation of 3 shapes (green circle, red circle, blue circle), each for 1.5 seconds with fixations between
   3. Trial 3 uses a blue square (not the blue circle from encoding) - this is NEW and tests recognition
-  3. Transition screen: "Now let's see how well you recall the objects you've seen!"
+  3. Transition screen: "Now let's see how well you recall the shapes you've seen!"
   4. Trial 1: Green circle - participant rates only
   5. Trial 2: Red circle - shows "Carly is confident she's seen this before", AI clicks "all the way on the old" side, then participant rates
   6. Trial 3: Blue square - shows "now, work with Carly", participant rates, then AI selects OLD but is not very confident (euclidean distance of 0.4 from left, at 0.4) but incorrectly (as it's a new square), then participant performs switch/stay decision, outcome shown
 - **Note**: Carly (Amy's assistant) appears only in practice; same image as Amy.
-- **Outcome explanations**: For practice trials, outcomes explicitly explain the score (e.g., "You were 67% incorrect!" for a score of 0.33)
+- **Outcome explanations**: Practice trials 1–2 show just "Correct" or "Incorrect". Practice trial 3 shows "Correct/Incorrect. Based off your answer and confidence, your points are X."
 - **Slider instruction**: For mouse/trackpad mode, participants can click or drag the slider. For touch screen mode, participants tap to set the rating.
 
 ### Purpose
@@ -415,8 +415,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
   - Pre-generated sequence ensures exactly 10 correct and 10 incorrect questions in randomized order
 - **Feedback**: No per-trial feedback. Accuracy summary ("Your accuracy: X/20 (Y%)") shown at the very end only.
 - **Question timeout**: 10.0 seconds (differs from main task's 7.0 second timeouts)
-- **Exit fullscreen**: Same as main task—ESC (laptop) or tap Exit button (top-right) on instruction and question screens.
-- **Exit availability**: Exit/quit is only available when images are *not* being displayed and when the participant is at an interactive screen (input method, instructions, question screens). Exit cannot be used during fixation crosses or during image presentation.
+- **Exit fullscreen**: Laptop: ESC always works. Touch: Exit button on instruction and question screens. In the localizer, ESC and Exit work at all times (including during fixation and image presentation).
 
 **Timing**:
 - **Fixation cross**: Jittered 0.25-0.75 seconds before each image (`random.uniform(0.25, 0.75)`), 200 fixations total
@@ -433,8 +432,8 @@ Separate task for object verification. Participants view 200 images (100 Image +
 
 #### Outcome Feedback Timing
 - Outcome screen displayed immediately after decision
-- Shows correctness ("Correct!" or "Incorrect") and curator scoring message
-- Visual feedback duration: ~1.5 seconds (fixed)
+- Shows correctness ("Correct" or "Incorrect") and curator scoring message
+- Visual feedback duration: 2 seconds (fixed)
 - Brief pause before next trial (jittered fixation: 0.25-0.75 seconds)
 
 #### General Timing Notes
@@ -454,13 +453,13 @@ Separate task for object verification. Participants view 200 images (100 Image +
 ### Window and Display
 
 - **Window**: Fullscreen on both laptop and touch screen (uses full display resolution)
-- **Exit fullscreen**: 
-  - **Laptop**: Press **ESC**
-  - **Touch screen**: Tap the **Exit** button (top-right corner)
-  - Exit button is visible on: input method screen, instruction/CONTINUE screens, and question screens (YES/NO in localizer)
-  - **Localizer**: Exit/quit only works when images are not being displayed (i.e., at interactive screens). Participants cannot exit during fixation crosses or image presentation.
+- **Exit fullscreen (main task)**: 
+  - **Laptop**: Press **ESC** — ESC always works to exit.
+  - **Touch screen**: Tap the **Exit** button (top-right corner) — the Exit button is only shown when participants make a decision or tap a button (input method, instructions, CONTINUE, slider/SUBMIT, STAY/SWITCH, name entry). It is not shown during fixation, image display, or outcome screens.
+  - **Key difference**: Laptop users can exit anytime with ESC; touch screen users can only exit when the Exit button is visible.
+- **Localizer**: ESC and Exit work at all times, including during fixation and image presentation.
 - **Window focus**: Automatically activated on macOS
-- **Initial screen**: "Click anywhere to begin" ensures window focus
+- **Initial screen**: "Hello & welcome to the social memory game! ..." with BEGIN button
 
 ### File Management
 
@@ -503,7 +502,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 ### Practice Instructions
 
 - "This is just for practice, but go as quick as you can!"
-- Practice uses 5 shape stimuli
+- Practice uses 4 shape stimuli (3 circles in study + blue square in trial 3)
 - Same mechanics as experimental blocks
 
 ---

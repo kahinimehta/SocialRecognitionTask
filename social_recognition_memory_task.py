@@ -2461,10 +2461,10 @@ class AICollaborator:
         is_studied: True if this is a studied item, False if lure
         trial_type: "studied" or "lure"
         
-        Uses pre-generated randomized sequence to ensure exactly the target accuracy rate
+        Uses pre-generated randomized sequence to ensure target accuracy rate
         while randomizing which trials are correct/Incorrect:
-        - 75% accuracy: approximately 7-8 out of 10 trials correct (randomized order)
-        - 25% accuracy: approximately 2-3 out of 10 trials correct (randomized order)
+        - 70-80% accuracy: approximately 7-8 out of 10 trials correct (randomized order)
+        - 20-30% accuracy: approximately 2-3 out of 10 trials correct (randomized order)
         """
         # Ground truth: studied items should be rated OLD, lures should be rated NEW
         if is_studied:
