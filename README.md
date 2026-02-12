@@ -24,7 +24,7 @@ Main PsychoPy script for the entire experiment.
 - Saves trial-level and block-level data as CSV files.
 
 #### **`localizer.py`**
-Localizer task script for category verification.
+Localizer task script for object verification.
 
 - Shows all 200 images from the STIMULI folder (100 Image + 100 Lure versions) in random order
 - **Image presentation timing**:
@@ -34,9 +34,9 @@ Localizer task script for category verification.
   - Fixation jitter: `random.uniform(0.25, 0.75)` - each fixation independently drawn
   - Fixation appears before EVERY image, including the first image
   - Questions asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (every 10th trial)
-- At every 10th trial, asks a category question: "Was the last object a [category]?"
-- **Question design**: Exactly 50% of questions ask about the correct category (the category of the last object shown), exactly 50% ask about a random incorrect category. Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions (out of 20 total) in randomized order.
-- Category names are converted from folder names to natural language (e.g., BIG_ANIMAL → "big animal", smallobject → "small object")
+- At every 10th trial, asks an **object** question: "Was the last object a [object]?" (e.g., "Was the last object a giraffe?")
+- **Question design**: Exactly 50% of questions ask about the correct object (the object shown), exactly 50% ask about a random incorrect object. Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions (out of 20 total) in randomized order.
+- **Feedback**: No per-trial feedback. Accuracy summary shown at the very end of the task only.
 - **Question timing**: **10.0 second timeout** - if participant doesn't respond within 10 seconds, the question times out and the task continues
   - **Note**: This differs from the main task, which uses 7.0 second timeouts for slider and switch/stay decisions
 - Records participant responses (YES/NO) and accuracy

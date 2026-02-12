@@ -440,9 +440,9 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 
 ## Localizer Task CSV Variables
 
-The **localizer_[participant_id]_[timestamp].csv** file contains data from the localizer task, where participants view 200 images (100 Image + 100 Lure versions) in random order and answer category questions at every 10th image.
+The **localizer_[participant_id]_[timestamp].csv** file contains data from the localizer task, where participants view 200 images (100 Image + 100 Lure versions) in random order and answer object questions at every 10th image.
 
-**File structure**: Each row represents one image presentation, logged in presentation order (trial 1 = first image shown, trial 2 = second image shown, etc.). All 200 images are logged sequentially, with question response data included for question trials (every 10th trial).
+**File structure**: Each row represents one image presentation, logged in presentation order (trial 1 = first image shown, trial 2 = second image shown, etc.). All 200 images are logged sequentially, with question response data included for question trials (every 10th trial). CSV no longer includes per-trial feedback timing fields; feedback is given at task end only.
 
 **What is recorded**:
 - Image file path (`image_path`)
@@ -547,26 +547,21 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 
 ### `is_question_trial`
 - **Type**: Boolean
-- **Description**: True if this trial included a category question (trials 10, 20, 30, ..., 200), False otherwise
+- **Description**: True if this trial included an object question (trials 10, 20, 30, ..., 200), False otherwise
 - **Example**: `True`, `False`
 
-### `question_category`
-- **Type**: String
-- **Description**: The category that was asked about in the question
-- **Question design**: Exactly 50% of questions ask about the correct category (matches `category` field), exactly 50% ask about a random incorrect category (different from `category` field). Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions in randomized order.
-- **Possible values**: Same as `category` (all 10 category names)
-- **Example**: `"FRUIT"`, `"BIG_ANIMAL"`, `"BIRD"` (may or may not match the actual `category` of the image)
+### `question_object`
+- **Type**: String or None
+- **Description**: The object name that was asked about in the question (e.g., "Giraffe", "Elephant")
+- **Question design**: Exactly 50% of questions ask about the correct object (matches `object_name` field), exactly 50% ask about a random incorrect object (different from `object_name`). Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions in randomized order.
+- **Example**: `"Giraffe"`, `"Elephant"`, `"Apple"` (may or may not match the actual `object_name` of the image)
 
 ### `question_text`
 - **Type**: String or None
 - **Description**: Full text of the question asked to the participant (only populated for question trials)
-- **Format**: "Was the last object a [category]?" or "Was the last object an [category]?" where category is converted from folder name to natural language
-- **Category conversion**: Handles multiple folder name formats:
-  - `BIG_ANIMAL` → "big animal"
-  - `smallobject` → "small object" (splits camelCase-like names)
-  - `BIRD` → "bird"
-- **Article selection**: Uses "a" or "an" based on whether the category starts with a vowel sound
-- **Example**: `"Was the last object a big animal?"`, `"Was the last object a small object?"`, `"Was the last object an insect?"`, `None`
+- **Format**: "Was the last object a [object]?" or "Was the last object an [object]?" where object name is lowercase
+- **Article selection**: Uses "a" or "an" based on whether the object starts with a vowel sound
+- **Example**: `"Was the last object a giraffe?"`, `"Was the last object an elephant?"`, `"Was the last object an apple?"`, `None`
 
 ### `question_onset_time`
 - **Type**: Float (Unix timestamp) or None
@@ -588,8 +583,8 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 - **Type**: Boolean or None
 - **Description**: The correct answer to the question
 - **Question design**: 
-  - `True` if the question asks about the correct category (matches the actual `category` of the image)
-  - `False` if the question asks about an incorrect category (does not match the actual `category` of the image)
+  - `True` if the question asks about the correct object (matches the actual `object_name` of the image)
+  - `False` if the question asks about an incorrect object (does not match the actual `object_name` of the image)
   - `None` for non-question trials
 - **Example**: `True`, `False`, `None`
 
@@ -619,24 +614,6 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 - **Note**: Only populated for question trials where participant answered (YES/NO button click or y/n key press). `None` for non-question trials or if participant timed out.
 - **Example**: `1764818181.1234567`, `None`
 
-### `feedback_onset_time`
-- **Type**: Float (Unix timestamp) or None
-- **Description**: Time when feedback was displayed after answering the question (in seconds since epoch, high precision)
-- **Note**: Only populated for question trials where participant answered before timeout. Feedback shows "Correct!" (green) or "Incorrect" (red) for 1.5 seconds. `None` for non-question trials or if participant timed out.
-- **Example**: `1764818182.1234567`, `None`
-
-### `feedback_offset_time`
-- **Type**: Float (Unix timestamp) or None
-- **Description**: Time when feedback was removed from display (in seconds since epoch, high precision)
-- **Note**: Only populated for question trials where participant answered before timeout. Feedback duration is 1.5 seconds. `None` for non-question trials or if participant timed out.
-- **Example**: `1764818183.6234567`, `None`
-
-### `feedback_duration`
-- **Type**: Float (seconds) or None
-- **Description**: Duration the feedback was displayed
-- **Note**: Only populated for question trials where participant answered before timeout. Fixed duration of 1.5 seconds. `None` for non-question trials or if participant timed out.
-- **Example**: `1.5`, `None`
-
 ---
 
 ## Notes on Localizer Task
@@ -657,20 +634,12 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
   - Questions are asked at trials 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 (20 questions total)
   - **Timeout**: 10.0 seconds - if participant doesn't respond within 10 seconds, the question times out and the task continues to the next image
   - Question appears immediately after the image is shown
-- **Feedback timing**:
-  - After answering a question (before timeout), feedback is displayed showing "Correct!" (green) or "Incorrect" (red)
-  - Feedback duration: 1.5 seconds (fixed)
-  - Feedback timing is logged: `feedback_onset_time`, `feedback_offset_time`, and `feedback_duration`
-  - No feedback is shown if participant times out
+- **Feedback**: No per-trial feedback. Accuracy summary ("Your accuracy: X/20 (Y%)") is shown at the very end of the task only.
 - **Question design**:
-  - **Exactly 50% correct questions**: Ask about the actual category of the last object shown (correct answer = True)
-  - **Exactly 50% incorrect questions**: Ask about a random category different from the last object's category (correct answer = False)
+  - **Exactly 50% correct questions**: Ask about the actual object shown (e.g., "Was the last object a giraffe?") (correct answer = True)
+  - **Exactly 50% incorrect questions**: Ask about a random different object (correct answer = False)
   - Uses pre-generated randomized sequence to ensure exactly 10 correct and 10 random questions (out of 20 total) in randomized order
-- **Category conversion**: Category names are converted from folder format to natural language for questions:
-  - Folder names with underscores: `BIG_ANIMAL` → "big animal"
-  - Folder names without underscores: `smallobject` → "small object" (automatically splits camelCase-like names)
-  - Single-word categories: `BIRD` → "bird"
-  - Article selection: Uses "a" or "an" based on whether category starts with a vowel sound
+- **Object question format**: "Was the last object a [object]?" or "Was the last object an [object]?" (object name in lowercase, article "a"/"an" based on vowel)
 - **File saving**: 
   - Skipped if "test" (case-insensitive) is in the participant name
   - All files are saved to `../LOG_FILES/` directory (created automatically if it doesn't exist)
