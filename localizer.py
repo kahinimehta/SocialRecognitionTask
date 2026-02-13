@@ -1570,14 +1570,12 @@ try:
     import time
     # Window creation happens exactly 0.4 seconds after continue was clicked
     # (delay already handled in get_input_method function)
-    # Close temp window before creating main window to avoid hang on some systems
-    if temp_win is not None:
-        try:
-            temp_win.close()
-            temp_win = None
-        except Exception as e:
-            print(f"Warning: Could not close temp window: {e}", file=sys.stderr)
-        time.sleep(0.1)
+    # Add delay to ensure temp window is fully closed
+    # NOTE: Do NOT close temp_win here - PsychoPy auto-quits when all windows are closed
+    print("Waiting before creating main window...")
+    sys.stdout.flush()
+    sys.stderr.flush()
+    time.sleep(0.2)  # Longer delay to ensure temp window is fully closed
     
     print("Creating main window (1400x900)...")
     sys.stdout.flush()
@@ -1760,7 +1758,10 @@ try:
     # Don't close temp window - keep it open to prevent PsychoPy from auto-quitting
     # Closing it causes PsychoPy to detect all windows are closed and quit
     # We'll just leave it open (it's behind the main window anyway)
-    # temp_win was closed before main window creation to avoid hang
+    if temp_win is not None:
+        print("DEBUG: Keeping temp window open to prevent PsychoPy auto-quit", file=sys.stderr)
+        sys.stderr.flush()
+        # Don't close temp_win - leave it open
     
     # =========================
     #  MAIN EXPERIMENT
