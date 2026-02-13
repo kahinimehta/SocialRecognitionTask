@@ -775,7 +775,7 @@ try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # Quarter of exit-button size
             fillColor='white', lineColor=None,
-            pos=(-0.65, -0.48),  # Far left, slightly up
+            pos=(-0.75, -0.48),  # Far left, slightly up
             units='height'
         )
         _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
