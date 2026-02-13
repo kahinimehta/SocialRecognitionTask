@@ -1632,11 +1632,13 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
     event.clearEvents()
 
 def show_fixation(duration=1.0, return_onset=False):
-    """Show fixation for duration. Returns onset time if return_onset=True (no photodiode on fixation)."""
+    """Show fixation for duration. Photodiode flashes black on fixation onset and offset (TTL sent with each)."""
+    _signal_photodiode_event()  # Fixation onset – black flash, then white
     fixation.draw()
     win.flip()
-    onset = time.time()
+    onset = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(duration)
+    _signal_photodiode_event()  # Fixation offset – black flash on next flip, then white
     return onset if return_onset else None
 
 def get_participant_id():

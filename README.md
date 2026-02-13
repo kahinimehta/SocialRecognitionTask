@@ -45,7 +45,7 @@ Defines all logged fields, including:
 - AI responses, RTs, correctness  
 - Switch/Stay choices and timings  
 - Distances from ground truth  
-- **Neural data triggers**: Event-based photodiode/TTL (extreme right of screen)—flashes on image onset/offset, instruction onset, outcome onset, and participant commits (SUBMIT, CONTINUE, BEGIN, stay/switch). Photodiode appears only from first task screen.  
+- **Neural data triggers**: Photodiode/TTL at extreme right; flashes (and TTL) on fixation onset/offset, image onset/offset, instruction onset, outcome onset, participant commits. See `CSV_VARIABLES_DOCUMENTATION.md`.  
 
 Use this file when analyzing data.
 

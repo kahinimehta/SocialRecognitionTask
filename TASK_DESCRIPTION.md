@@ -260,12 +260,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Neural Data Logging (Photodiode & TTL)
 
-The task outputs **photodiode and TTL signals** for fMRI/EEG synchronization:
-
-- **Photodiode patch**: A small rectangle (0.03 × 0.01 height units) at **extreme right** of screen (0.49, -0.45). **White by default** (baseline); **flashes black only** on: **image onset/offset**, **instruction onset**, **outcome onset**, and **participant commits** (SUBMIT, CONTINUE, BEGIN, stay/switch). During decision screens (slider, switch/stay) the patch stays white; it flashes black only when participants commit. In the localizer, the YES/NO object-question screen does **not** trigger photodiode flashes. **Not shown until the first task screen** (after input method, participant ID).
-- **TTL pulses**: Sent only when the photodiode flashes black (Windows/Linux; default port 0x0378). Set `PARALLEL_PORT_ADDRESS` to override.
-- **CSV trigger variables**: All `*_trigger` columns (e.g., `study_fixation_trigger`, `recognition_image_trigger`, `switch_stay_trigger`, `outcome_trigger`) record the Unix timestamp when the photodiode/TTL fired—use these to align behavioral data with neural recordings. See `CSV_VARIABLES_DOCUMENTATION.md` for the full mapping.
-- **CSV data**: All slider-related variables (`participant_slider_click_times`, `participant_slider_decision_onset_time`, `participant_commit_time`, etc.) are written to the CSV for analysis flexibility, regardless of photodiode event timing.
+Photodiode patch at **extreme right** (0.49, -0.45), white baseline. **Flashes black** (and sends TTL) on every visual change and motor response: fixation onset/offset, image onset/offset, instruction onset, outcome onset, participant commits (SUBMIT, CONTINUE, BEGIN, stay/switch). TTL sent with every black flash. Not shown until first task screen. See `CSV_VARIABLES_DOCUMENTATION.md` for variable mapping.
 
 ---
 
@@ -352,7 +347,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 - **Question timing**: Asked at trials 10, 20, 30, ..., 200 (20 questions total)
 - **Total duration**: Approximately 3-5 minutes
 
-**Neural data**: Same event-based photodiode and TTL as the main task (extreme right of screen; flashes on image onset/offset, instruction onset, outcome onset, participant commits—no fixation). Photodiode appears only from first task screen. CSV variables: `localizer_fixation_trigger` (behavioral timestamp), `localizer_image_trigger`, `question_trigger` (for question trials).
+**Neural data**: Same as main task (fixation onset/offset, image onset/offset, instruction onset, outcome onset, participant commits). YES/NO questions do not trigger flashes.
 
 
 ### Window and Display
