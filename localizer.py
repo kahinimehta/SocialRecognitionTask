@@ -1754,11 +1754,13 @@ try:
     fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     
     def show_fixation(duration=1.0, return_onset=False):
-        """Display fixation cross for specified duration. ESC works during wait. Returns onset if return_onset=True (no photodiode on fixation)."""
+        """Display fixation cross for specified duration. Photodiode flashes black on fixation onset and offset (TTL sent with each)."""
+        _signal_photodiode_event()  # Fixation onset – black flash, then white
         fixation.draw()
         win.flip()
-        onset = time.time()
+        onset = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
         wait_with_escape(duration)
+        _signal_photodiode_event()  # Fixation offset – black flash on next flip, then white
         return onset if return_onset else None
 
     # Get participant ID
