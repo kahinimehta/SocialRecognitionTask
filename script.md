@@ -31,6 +31,10 @@ The code should automatically update every time you open the terminal or run the
 **Experimenter note**: 
 - Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically. Exit when you see the button."
 - Also make sure to hit all the information in the script below to ensure participants understand the task and its purpose!
+- Make sure to emphasize the leaderboard + stress the importance of collaboration so participants engage with the AI!
+- Make it clear that some images are very similar to the lures (so participants don't wonder why they're incorrect on some trials in the beginning). 
+- Be sure to emphasize that confidence matters so people use the sliding scale. 
+- Make sure people CLICK, NOT slide as far as possible. 
 
 
 ---
