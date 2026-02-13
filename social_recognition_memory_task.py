@@ -5570,7 +5570,12 @@ def run_experiment():
                 with open(ttl_file, 'w', newline='') as f:
                     writer = csv.DictWriter(f, fieldnames=['timestamp', 'event_type'])
                     writer.writeheader()
-                    writer.writerows(ttl_events)
+                    # Preserve full float precision for timestamps (no int conversion)
+                    for ev in ttl_events:
+                        row = dict(ev)
+                        if isinstance(row.get('timestamp'), (int, float)):
+                            row['timestamp'] = f"{row['timestamp']:.9f}"
+                        writer.writerow(row)
                 print(f"✓ TTL events saved to {ttl_file} ({len(ttl_events)} triggers)")
             except Exception as e:
                 print(f"⚠ Could not save TTL events: {e}", file=sys.stderr)
