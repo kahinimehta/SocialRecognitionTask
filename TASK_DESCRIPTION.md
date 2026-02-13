@@ -262,6 +262,8 @@ All scoring is framed as "in-house curator" evaluations:
 
 Photodiode patch at **extreme left** (-0.49, -0.45). White baseline; at each event it briefly flashes black (TTL sent) then white via `win.flip()`—never stays black. Covers: fixation onset/offset, image onset/offset, instruction onset, outcome onset, participant commits. Every flash logged in CSV. See `CSV_VARIABLES_DOCUMENTATION.md` for variable mapping.
 
+**Computer/laptop screens only**: A 17 ms delay (~1 frame at 60 Hz) is used between the black and white flips for every photodiode event. This prevents vsync coalescing where rapid flips can cause only the white frame to display. Touch screens do not use this delay.
+
 ---
 
 ## Practice Block
@@ -347,7 +349,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 - **Question timing**: Asked at trials 10, 20, 30, ..., 200 (20 questions total)
 - **Total duration**: Approximately 3-5 minutes
 
-**Neural data**: Same as main task (fixation onset/offset, image onset/offset, instruction onset, outcome onset, participant commits). YES/NO questions do not trigger flashes.
+**Neural data**: Same as main task (fixation onset/offset, image onset/offset, instruction onset, outcome onset, participant commits). YES/NO question onset and participant taps trigger flashes.
 
 
 ### Window and Display
