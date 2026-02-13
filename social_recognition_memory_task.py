@@ -1544,17 +1544,22 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
         pos=(0, -0.25)
     )
     
-    # Draw function that includes button
+    # Exit button for consistency with other instruction screens
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
+    
     def redraw():
         if header_stim:
             header_stim.draw()
         body_stim.draw()
         continue_button.draw()
         continue_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
         win.flip()
     
-    # Draw initial screen
-    redraw()
+    # Draw initial screen with photodiode flash (instruction onset)
+    _do_photodiode_flash(redraw, event_type="instruction_onset")
     
     # Wait for button click
     mouse_btn = event.Mouse(win=win)
@@ -1603,12 +1608,15 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
                     hit_margin_x = max(button_width * 0.5, 0.08)
                     hit_margin_y = max(button_height * 0.5, 0.04)
                     
+                    on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                              EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
                     on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x <= button_x + button_width/2 + hit_margin_x and
                                 button_y - button_height/2 - hit_margin_y <= mouseloc_y <= button_y + button_height/2 + hit_margin_y)
                     
-                    if on_button:
-                        # Visual feedback (no color change in touch screen mode)
-                        redraw()
+                    if on_exit:
+                        core.quit()
+                    elif on_button:
+                        _do_photodiode_flash(redraw, event_type="instruction_continue")
                         core.wait(0.2)
                         clicked = True
                         break
@@ -1628,10 +1636,11 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
             # Check for space key as backup
             try:
                 keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
-                if 'space' in keys:
+                if keys and 'space' in keys:
+                    _do_photodiode_flash(redraw, event_type="instruction_continue")
                     clicked = True
                     break
-                elif 'escape' in keys:
+                elif keys and 'escape' in keys:
                     core.quit()
             except (AttributeError, Exception):
                 pass
@@ -1645,6 +1654,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
+                        _do_photodiode_flash(redraw, event_type="instruction_continue")
                         clicked = True
                         break
                     elif 'escape' in keys:
@@ -2769,17 +2779,21 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     elapsed_wait = 0.0
     start_time = time.time()
     
-    # Show slider without handle (partner thinking/deciding)
-    while elapsed_wait < wait_before_tap:
+    def draw_partner_rating_screen():
         if image_stim:
             image_stim.draw()
         partner_text.draw()
         slider_line.draw()
         old_label.draw()
         new_label.draw()
-        # Don't draw handle yet - partner hasn't tapped
         submit_button.draw()
         submit_text.draw()
+    
+    # Show slider without handle (partner thinking/deciding) - photodiode at first onset
+    _do_photodiode_flash(draw_partner_rating_screen, event_type="partner_rating_onset")
+    
+    while elapsed_wait < wait_before_tap:
+        draw_partner_rating_screen()
         win.flip()
         
         elapsed_wait = time.time() - start_time
@@ -2875,21 +2889,23 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
         win.flip()
         core.wait(0.1)
     
-    # Show final result briefly
+    # Show final result briefly - photodiode when partner's rating text appears
     if partner_value < 0.5:
         label = "OLD"
     else:
         label = "NEW"
     partner_text.text = f"{partner_name} rates: {label}"
     
-    if image_stim:
-        image_stim.draw()
-    partner_text.draw()
-    slider_line.draw()
-    old_label.draw()
-    new_label.draw()
-    partner_handle.draw()
-    win.flip()
+    def draw_partner_rating_complete():
+        if image_stim:
+            image_stim.draw()
+        partner_text.draw()
+        slider_line.draw()
+        old_label.draw()
+        new_label.draw()
+        partner_handle.draw()
+    
+    _do_photodiode_flash(draw_partner_rating_complete, event_type="partner_rating_complete")
     core.wait(0.5)
     
     return slider_display_time, final_slider_display_time
@@ -4911,6 +4927,7 @@ def run_experiment():
     mouse_amy_intro.setVisible(True)
     
     first_draw_amy_intro = [True]
+    clicked_amy_intro = False
     def draw_screen_amy_intro():
         if first_draw_amy_intro[0]:
             _do_photodiode_flash(redraw_amy_intro, event_type="instruction_onset")
@@ -4954,8 +4971,7 @@ def run_experiment():
                     if on_exit_amy:
                         core.quit()
                     elif on_button_amy_intro:
-                        # Visual feedback (no color change in touch screen mode)
-                        draw_screen_amy_intro()
+                        _do_photodiode_flash(redraw_amy_intro, event_type="instruction_continue")
                         core.wait(0.2)
                         clicked_amy_intro = True
                         break
@@ -4978,6 +4994,7 @@ def run_experiment():
                 keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                 if keys:
                     if 'space' in keys:
+                        _do_photodiode_flash(redraw_amy_intro, event_type="instruction_continue")
                         clicked_amy_intro = True
                         break
                     elif 'escape' in keys:
@@ -4988,11 +5005,11 @@ def run_experiment():
         # Keyboard mode: wait for Return key
         while not clicked_amy_intro:
             draw_screen_amy_intro()
-            win.flip()
             try:
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
+                        _do_photodiode_flash(redraw_amy_intro, event_type="instruction_continue")
                         clicked_amy_intro = True
                         break
                     elif 'escape' in keys:
@@ -5182,13 +5199,16 @@ def run_experiment():
                         mouse = event.Mouse(win=win)
                         mouse.setVisible(True)
                         
-                        def draw_screen():
+                        def draw_ben_content():
                             redraw_ben()
                             exit_btn_ben.draw()
                             exit_text_ben.draw()
+                        
+                        def draw_screen():
+                            draw_ben_content()
                             win.flip()
                         
-                        draw_screen()
+                        _do_photodiode_flash(draw_ben_content, event_type="instruction_onset")
                         
                         clicked = False
                         
@@ -5226,8 +5246,7 @@ def run_experiment():
                                         if on_exit_ben:
                                             core.quit()
                                         elif on_button:
-                                            # Visual feedback (no color change in touch screen mode)
-                                            draw_screen()
+                                            _do_photodiode_flash(draw_ben_content, event_type="instruction_continue")
                                             core.wait(0.2)
                                             clicked = True
                                             break
@@ -5248,6 +5267,7 @@ def run_experiment():
                                     keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                                     if keys:
                                         if 'space' in keys:
+                                            _do_photodiode_flash(draw_ben_content, event_type="instruction_continue")
                                             clicked = True
                                             break
                                         elif 'escape' in keys:
@@ -5260,11 +5280,11 @@ def run_experiment():
                             # Keyboard mode: wait for Return key
                             while not clicked:
                                 draw_screen()
-                                win.flip()
                                 try:
                                     keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                                     if keys:
                                         if 'return' in keys:
+                                            _do_photodiode_flash(draw_ben_content, event_type="instruction_continue")
                                             clicked = True
                                             break
                                         elif 'escape' in keys:
@@ -5338,7 +5358,7 @@ def run_experiment():
                             redraw_amy()
                             win.flip()
                         
-                        draw_screen_amy_return()
+                        _do_photodiode_flash(redraw_amy, event_type="instruction_onset")
                         
                         clicked_amy_return = False
                         
@@ -5377,8 +5397,7 @@ def run_experiment():
                                         if on_exit_amy_return:
                                             core.quit()
                                         elif on_button_amy_return:
-                                            # Visual feedback (no color change in touch screen mode)
-                                            draw_screen_amy_return()
+                                            _do_photodiode_flash(redraw_amy, event_type="instruction_continue")
                                             core.wait(0.2)
                                             clicked_amy_return = True
                                             break
@@ -5401,6 +5420,7 @@ def run_experiment():
                                 keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                                 if keys:
                                     if 'space' in keys:
+                                        _do_photodiode_flash(redraw_amy, event_type="instruction_continue")
                                         clicked_amy_return = True
                                         break
                                     elif 'escape' in keys:
@@ -5411,11 +5431,11 @@ def run_experiment():
                             # Keyboard mode: wait for Return key
                             while not clicked_amy_return:
                                 draw_screen_amy_return()
-                                win.flip()
                                 try:
                                     keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                                     if keys:
                                         if 'return' in keys:
+                                            _do_photodiode_flash(redraw_amy, event_type="instruction_continue")
                                             clicked_amy_return = True
                                             break
                                         elif 'escape' in keys:
