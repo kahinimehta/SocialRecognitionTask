@@ -35,6 +35,34 @@ USE_TOUCH_SCREEN = False
 EXIT_BTN_POS = (0.45, 0.47)  # Top-right corner (units='height')
 EXIT_HIT_MARGIN = 0.05  # Larger margin for reliable touch registration
 
+# Photodiode detector: black rectangle in bottom-left (0.5" x 1"), drawn on each flip except input/name screens
+PHOTODIODE_ACTIVE = True  # Set False during get_input_method (temp_win) and get_participant_id
+photodiode_patch = None  # Created after main window exists
+
+# TTL trigger: parallel port pulse when photodiode appears (Windows/Linux; no-op on macOS)
+_ttl_parallel = None  # Lazy-init
+def _send_ttl_trigger():
+    """Send a brief TTL pulse via parallel port when photodiode appears. Fails silently if unavailable."""
+    global _ttl_parallel
+    try:
+        if _ttl_parallel is False:
+            return  # Previously failed to init
+        if _ttl_parallel is None:
+            try:
+                from psychopy import parallel
+                addr = int(os.environ.get('PARALLEL_PORT_ADDRESS', '0x0378'), 16)
+                parallel.setPortAddress(addr)
+                _ttl_parallel = parallel
+            except Exception:
+                _ttl_parallel = False
+                return
+        if _ttl_parallel:
+            _ttl_parallel.setData(255)
+            core.wait(0.01)
+            _ttl_parallel.setData(0)
+    except Exception:
+        pass
+
 def safe_wait(duration):
     """Wrapper for core.wait() that handles macOS event dispatch errors (e.g. NSTrackingArea)"""
     try:
@@ -680,6 +708,9 @@ def load_all_stimuli():
 
 def get_participant_id():
     """Get participant ID from PsychoPy screen input with on-screen keyboard for touch screens"""
+    global PHOTODIODE_ACTIVE
+    PHOTODIODE_ACTIVE = False  # Exclude name entry from photodiode
+    
     print("Inside get_participant_id() - checking win...")
     if win is None:
         raise RuntimeError("win is None when get_participant_id() is called!")
@@ -954,6 +985,7 @@ def get_participant_id():
                                     if input_id.strip():
                                         mouse.setVisible(False)
                                         event.clearEvents()
+                                        PHOTODIODE_ACTIVE = True
                                         return input_id.strip()
                                     # If empty, show feedback
                                     continue_button.fillColor = 'darkgreen'
@@ -984,6 +1016,7 @@ def get_participant_id():
                                     if input_id.strip():
                                         mouse.setVisible(False)
                                         event.clearEvents()
+                                        PHOTODIODE_ACTIVE = True
                                         return input_id.strip()
                                     continue_button.fillColor = 'darkgreen'
                                     redraw()
@@ -1029,6 +1062,7 @@ def get_participant_id():
                             if input_id.strip():
                                 mouse.setVisible(False)
                                 event.clearEvents()
+                                PHOTODIODE_ACTIVE = True
                                 return input_id.strip()
                         elif key == 'backspace':
                             input_id = input_id[:-1] if input_id else ""
@@ -1208,7 +1242,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     event.clearEvents()
 
 def ask_object_question(object_name, timeout=10.0):
-    """Ask object question and return (answer, timed_out, response_time, answer_click_time) tuple
+    """Ask object question and return (answer, timed_out, response_time, answer_click_time, question_trigger) tuple
     
     Args:
         object_name: Object name for the question (e.g., "Giraffe", "Elephant")
@@ -1281,6 +1315,7 @@ def ask_object_question(object_name, timeout=10.0):
         win.flip()
     
     draw_question()
+    question_trigger = time.time()
     
     answered = False
     answer = None
@@ -1492,7 +1527,7 @@ def ask_object_question(object_name, timeout=10.0):
         win.flip()
         wait_with_escape(2.0)  # Show message for 2 seconds. ESC works during wait.
     
-    return (answer, timed_out, response_time, answer_click_time)
+    return (answer, timed_out, response_time, answer_click_time, question_trigger)
 
 # Create main window with appropriate settings - use try/finally pattern
 print("DEBUG: About to start window creation block", file=sys.stderr)
@@ -1563,6 +1598,25 @@ try:
         print("Windowed window created successfully")
         sys.stdout.flush()
         sys.stderr.flush()
+        
+        # Photodiode detector: 0.5" x 1" black rectangle, bottom-left corner (excluded during input/name screens)
+        try:
+            photodiode_patch = visual.Rect(
+                win, width=0.11, height=0.22,
+                fillColor='black', lineColor=None,
+                pos=(-0.72, -0.39),  # Bottom-left corner
+                units='height'
+            )
+            _orig_flip = win.flip
+            def _wrapped_flip():
+                if PHOTODIODE_ACTIVE and photodiode_patch is not None:
+                    photodiode_patch.draw()
+                _orig_flip()
+                if PHOTODIODE_ACTIVE and photodiode_patch is not None:
+                    _send_ttl_trigger()
+            win.flip = _wrapped_flip
+        except Exception as e:
+            print(f"Warning: Could not create photodiode patch: {e}", file=sys.stderr)
         
         # Don't close temp window yet - wait until main window is fully set up
     except Exception as e:
@@ -1712,11 +1766,13 @@ try:
     # Create fixation cross
     fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     
-    def show_fixation(duration=1.0):
-        """Display fixation cross for specified duration. ESC works during wait."""
+    def show_fixation(duration=1.0, return_onset=False):
+        """Display fixation cross for specified duration. ESC works during wait. Returns onset (photodiode trigger time) if return_onset=True."""
         fixation.draw()
         win.flip()
+        onset = time.time()
         wait_with_escape(duration)
+        return onset if return_onset else None
 
     # Get participant ID
     print("About to call get_participant_id()...")
@@ -1809,9 +1865,9 @@ try:
         fieldnames = [
             'participant_id', 'trial', 'stimulus_number', 'object_name', 'category',
             'stimulus_type', 'is_lure', 'image_path', 'presentation_time', 
-            'fixation_onset_time', 'fixation_offset_time', 'fixation_duration',
-            'image_onset_time', 'image_offset_time', 'is_question_trial', 
-            'question_object', 'question_text', 'question_onset_time', 
+            'localizer_fixation_trigger', 'fixation_offset_time', 'fixation_duration',
+            'localizer_image_trigger', 'image_offset_time', 'is_question_trial', 
+            'question_object', 'question_text', 'question_trigger', 
             'answer', 'correct_answer', 'correct', 'timed_out', 'response_time', 'answer_click_time'
         ]
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -1823,8 +1879,7 @@ try:
     # Show images
     # Start with a fixation cross before the first image
     fixation_duration_first = random.uniform(0.25, 0.75)
-    fixation_onset_first = time.time()
-    show_fixation(fixation_duration_first)
+    localizer_fixation_trigger_first = show_fixation(fixation_duration_first, return_onset=True)
     fixation_offset_first = time.time()
     
     for idx, stimulus in enumerate(all_stimuli, 1):
@@ -1835,13 +1890,12 @@ try:
         # Show jittered fixation between images (except before first image, which was already shown)
         if idx > 1:
             fixation_duration = random.uniform(0.25, 0.75)
-            fixation_onset = time.time()
-            show_fixation(fixation_duration)
+            localizer_fixation_trigger = show_fixation(fixation_duration, return_onset=True)
             fixation_offset = time.time()
         else:
             # First image uses the initial fixation
             fixation_duration = fixation_duration_first
-            fixation_onset = fixation_onset_first
+            localizer_fixation_trigger = localizer_fixation_trigger_first
             fixation_offset = fixation_offset_first
         
         # Load and display image
@@ -1850,8 +1904,8 @@ try:
             img.draw()
             win.flip()
             
-            # Record image onset time
-            image_onset_time = time.time()
+            # Record image trigger (when photodiode fires)
+            localizer_image_trigger = time.time()
             
             # Show image for exactly 0.5 seconds (fixed duration). ESC works during wait.
             wait_with_escape(0.5)
@@ -1861,8 +1915,6 @@ try:
             
             # Check if this is the 10th image (or every 10th after the first)
             is_question_trial = (idx % 10 == 0)
-            
-            question_onset_time = None
             
             if is_question_trial:
                 # Ask object question about the image we just showed (the 10th, 20th, 30th, etc.)
@@ -1885,8 +1937,7 @@ try:
                     question_object = random.choice(wrong_objects) if wrong_objects else correct_object
                     correct_answer = False
                 
-                question_onset_time = time.time()
-                answer, timed_out, response_time, answer_click_time = ask_object_question(question_object, timeout=10.0)
+                answer, timed_out, response_time, answer_click_time, question_trigger = ask_object_question(question_object, timeout=10.0)
                 is_correct = (answer == correct_answer) if not timed_out else None
                 
                 # No per-trial feedback; feedback shown at end only
@@ -1900,15 +1951,15 @@ try:
                     'is_lure': current_stimulus['is_lure'],
                     'image_path': current_stimulus['path'],
                     'presentation_time': presentation_timestamp,
-                    'fixation_onset_time': fixation_onset,
+                    'localizer_fixation_trigger': localizer_fixation_trigger,
                     'fixation_offset_time': fixation_offset,
                     'fixation_duration': fixation_duration,
-                    'image_onset_time': image_onset_time,
+                    'localizer_image_trigger': localizer_image_trigger,
                     'image_offset_time': image_offset_time,
                     'is_question_trial': True,
                     'question_object': question_object,
                     'question_text': object_to_question(question_object),
-                    'question_onset_time': question_onset_time,
+                    'question_trigger': question_trigger,
                     'answer': answer if not timed_out else 'TIMEOUT',
                     'correct_answer': correct_answer,
                     'correct': is_correct,
@@ -1927,15 +1978,15 @@ try:
                     'is_lure': stimulus['is_lure'],
                     'image_path': stimulus['path'],
                     'presentation_time': presentation_timestamp,
-                    'fixation_onset_time': fixation_onset,
+                    'localizer_fixation_trigger': localizer_fixation_trigger,
                     'fixation_offset_time': fixation_offset,
                     'fixation_duration': fixation_duration,
-                    'image_onset_time': image_onset_time,
+                    'localizer_image_trigger': localizer_image_trigger,
                     'image_offset_time': image_offset_time,
                     'is_question_trial': False,
                     'question_object': None,
                     'question_text': None,
-                    'question_onset_time': None,
+                    'question_trigger': None,
                     'answer': None,
                     'correct_answer': None,
                     'correct': None,

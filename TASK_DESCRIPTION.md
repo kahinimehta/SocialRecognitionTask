@@ -258,6 +258,14 @@ All scoring is framed as "in-house curator" evaluations:
 - **File saving locations**: All files are saved to `../LOG_FILES/` directory (created automatically if it doesn't exist)
 - **File saving**: Skipped if "test" (case-insensitive) is in the participant name
 
+### Neural Data Logging (Photodiode & TTL)
+
+The task outputs **photodiode and TTL signals** for fMRI/EEG synchronization:
+
+- **Photodiode patch**: A black rectangle (0.5" × 1") in the bottom-left corner appears on every screen flip during the experiment (except input-method selection and name entry).
+- **TTL pulses**: When the photodiode is drawn, a brief parallel-port pulse is sent (Windows/Linux; default port 0x0378). Set `PARALLEL_PORT_ADDRESS` to override.
+- **CSV trigger variables**: All `*_trigger` columns (e.g., `study_fixation_trigger`, `recognition_image_trigger`, `switch_stay_trigger`, `outcome_trigger`) record the Unix timestamp when the photodiode/TTL fired—use these to align behavioral data with neural recordings. See `CSV_VARIABLES_DOCUMENTATION.md` for the full mapping.
+
 ---
 
 ## Practice Block
@@ -342,6 +350,8 @@ Separate task for object verification. Participants view 200 images (100 Image +
 - **Image duration**: 0.5 seconds per image (fixed)
 - **Question timing**: Asked at trials 10, 20, 30, ..., 200 (20 questions total)
 - **Total duration**: Approximately 3-5 minutes
+
+**Neural data**: Same photodiode and TTL output as the main task. CSV variables: `localizer_fixation_trigger`, `localizer_image_trigger`, `question_trigger` (for question trials).
 
 
 ### Window and Display
