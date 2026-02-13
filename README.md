@@ -45,7 +45,7 @@ Defines all logged fields, including:
 - AI responses, RTs, correctness  
 - Switch/Stay choices and timings  
 - Distances from ground truth  
-- **Neural data triggers**: Photodiode at extreme left; white baseline, flashes black (TTL) then white per event; every flash logged. See `CSV_VARIABLES_DOCUMENTATION.md`.  
+- **Neural data triggers**: Photodiode at extreme left; white baseline, flashes black (TTL) then white per event. TTL sent at exact flip moment via `callOnFlip`. Trial-associated flashes logged. See `CSV_VARIABLES_DOCUMENTATION.md` for complete event list.  
 
 Use this file when analyzing data.
 
