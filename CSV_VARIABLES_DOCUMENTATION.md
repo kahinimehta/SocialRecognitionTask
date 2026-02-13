@@ -8,7 +8,7 @@ The task supports **fMRI/EEG synchronization** via a photodiode detector and par
 
 ### Hardware Setup
 
-- **Photodiode patch**: A small rectangle (0.03 × 0.01 height units) at **(-0.25, -0.45)**. **White by default** (baseline); **flashes black only** on: **images**, **responses** (submit, stay/switch, continue), **screen changes** (instructions, outcomes). No flash on fixation. During slider and switch/stay decision screens, the patch **stays white**; it flashes black only when participants **commit**. In the localizer, the YES/NO object-question screen does **not** trigger flashes. Not shown during input-method selection or name entry.
+- **Photodiode patch**: A small rectangle (0.03 × 0.01 height units) at **extreme right** (0.49, -0.45). **White by default**; **flashes black** on: **image onset/offset**, **instruction onset**, **outcome onset**, **participant commits** (SUBMIT, CONTINUE, BEGIN, stay/switch). No flash on fixation. During decision screens the patch stays white until commit. In the localizer, YES/NO questions do **not** trigger flashes. **Not shown until first task screen** (after input method and name entry).
 - **TTL pulse**: Sent only when the photodiode flashes black (i.e., on event onset), via the **parallel port** (Windows/Linux):
   - Default address: `0x0378` (LPT1). Override with env var: `PARALLEL_PORT_ADDRESS=0x0378`
   - Pulse: pins high (255) for 10 ms, then low (0)

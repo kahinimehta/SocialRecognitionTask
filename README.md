@@ -45,7 +45,7 @@ Defines all logged fields, including:
 - AI responses, RTs, correctness  
 - Switch/Stay choices and timings  
 - Distances from ground truth  
-- **Neural data triggers**: Event-based photodiode/TTL variables (`*_trigger`) for fMRI/EEG synchronization—flashes only on stimulus onset and participant responses (e.g., submit, stay/switch), not on slider movements  
+- **Neural data triggers**: Event-based photodiode/TTL (extreme right of screen)—flashes on image onset/offset, instruction onset, outcome onset, and participant commits (SUBMIT, CONTINUE, BEGIN, stay/switch). Photodiode appears only from first task screen.  
 
 Use this file when analyzing data.
 

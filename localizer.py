@@ -1790,7 +1790,7 @@ try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # 1/4 exit button size
             fillColor='white', lineColor=None,
-            pos=(-0.25, -0.45),  # Slightly up, much more to the right
+            pos=(0.49, -0.45),  # Extreme right of screen
             units='height'
         )
         _photodiode_signal_next_flip = [False]
@@ -1864,6 +1864,7 @@ try:
         wrapWidth=1.4*0.75
     )
 
+    _signal_photodiode_event()  # First instruction screen onset (visual change)
     instructions.draw()
     win.flip()
     wait_for_button("BEGIN", additional_stimuli=[instructions])
@@ -1929,6 +1930,7 @@ try:
             
             # Show image for exactly 0.5 seconds (fixed duration). ESC works during wait.
             wait_with_escape(0.5)
+            _signal_photodiode_event()  # Image offset (next flip will flash)
             
             # Record image offset time
             image_offset_time = time.time()
