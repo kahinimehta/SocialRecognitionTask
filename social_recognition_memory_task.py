@@ -94,6 +94,7 @@ EXIT_HIT_MARGIN = 0.05  # Larger margin for reliable touch registration
 # Photodiode detector: black rectangle in bottom-left (0.5" x 1"), drawn on each flip except input/name screens
 PHOTODIODE_ACTIVE = True  # Set False during get_input_method (temp_win) and get_participant_id
 photodiode_patch = None  # Created after main window exists
+_blank_rect = None  # Full-screen gray rect for blank frames (fixation offset)
 _last_photodiode_ttl_timestamp = [None]  # Set at exact moment of photodiode flash + TTL (for CSV alignment)
 
 # TTL trigger: parallel port pulse when photodiode appears (Windows/Linux; no-op on macOS)
@@ -747,18 +748,28 @@ try:
     print("WINDOW CREATION SUCCESSFUL")
     print("="*60)
     
-    # Photodiode: white baseline, flashes black only on images, responses, screen changes, instructions, outcomes (not fixation)
-    # 1/4 exit button size, positioned up and right of bottom-left
+    # Photodiode: white baseline, flashes black (TTL) then white on every event. Never stays black.
+    # Extreme left of screen
     _photodiode_signal_next_flip = [False]  # List for mutability in closure
     def _signal_photodiode_event():
         _photodiode_signal_next_flip[0] = True
+    def _do_photodiode_flash(draw_func):
+        """Signal photodiode, then flip black (TTL) then white. No artificial delays—timestamps align to screen change."""
+        _signal_photodiode_event()
+        if draw_func:
+            draw_func()
+        win.flip()  # Black flash, TTL
+        if draw_func:
+            draw_func()
+        win.flip()  # White (baseline)
     try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # 1/4 exit button size
             fillColor='white', lineColor=None,
-            pos=(0.49, -0.45),  # Extreme right of screen
+            pos=(-0.49, -0.45),  # Extreme left of screen
             units='height'
         )
+        _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
         _orig_flip = win.flip
         def _wrapped_flip(*args, **kwargs):
             did_flash = False
@@ -770,11 +781,13 @@ try:
                     _photodiode_signal_next_flip[0] = False
                     did_flash = True
                 photodiode_patch.draw()
-            result = _orig_flip(*args, **kwargs)
-            # TTL only when photodiode flashes – same event, same timestamp for CSV alignment
+            # TTL at exact flip moment – callOnFlip fires when screen changes, same time as photodiode flash
             if PHOTODIODE_ACTIVE and photodiode_patch is not None and did_flash:
-                _last_photodiode_ttl_timestamp[0] = time.time()
-                _send_ttl_trigger()
+                def _on_flash():
+                    _last_photodiode_ttl_timestamp[0] = time.time()
+                    _send_ttl_trigger()
+                win.callOnFlip(_on_flash)
+            result = _orig_flip(*args, **kwargs)
             return result
         win.flip = _wrapped_flip
     except Exception as e:
@@ -1316,9 +1329,9 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
     exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
     exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
-    # Draw initial screen once (button should be included in redraw_func)
+    # Draw initial screen once (button should be included in redraw_func). Photodiode: black then white.
     first_draw_done = [False]  # List for closure
-    def draw_screen():
+    def draw_content():
         if redraw_func:
             try:
                 redraw_func()
@@ -1328,10 +1341,13 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
         continue_text.draw()
         exit_btn.draw()
         exit_text.draw()
+    def draw_screen():
         if not first_draw_done[0]:
-            _signal_photodiode_event()  # Instruction/continue screen onset
+            _do_photodiode_flash(draw_content)  # Instruction/continue onset: black (TTL), white
             first_draw_done[0] = True
-        win.flip()
+        else:
+            draw_content()
+            win.flip()
     
     draw_screen()
     
@@ -1383,9 +1399,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
                     if on_exit:
                         core.quit()
                     elif on_button:
-                        _signal_photodiode_event()  # Participant response
-                        # Visual feedback (no color change in touch screen mode)
-                        draw_screen()
+                        _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
                         core.wait(0.2)
                         clicked = True
                         break
@@ -1408,7 +1422,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
                 keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                 if keys:
                     if 'space' in keys:
-                        _signal_photodiode_event()  # Participant response
+                        _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
                         clicked = True
                         break
                     elif 'escape' in keys:
@@ -1423,7 +1437,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
-                        _signal_photodiode_event()  # Participant response
+                        _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
                         clicked = True
                         break
                     elif 'escape' in keys:
@@ -1631,15 +1645,16 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
     mouse_btn.setVisible(False)
     event.clearEvents()
 
-def show_fixation(duration=1.0, return_onset=False):
-    """Show fixation for duration. Photodiode flashes black on fixation onset and offset (TTL sent with each)."""
-    _signal_photodiode_event()  # Fixation onset – black flash, then white
-    fixation.draw()
-    win.flip()
-    onset = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+def show_fixation(duration=1.0, return_onset=False, return_offset_trigger=False):
+    """Show fixation for duration. Photodiode stays white at baseline; flashes black (TTL) then white at onset and offset."""
+    _do_photodiode_flash(lambda: fixation.draw())  # Onset: black (TTL), white – quick flash, back to white
+    onset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(duration)
-    _signal_photodiode_event()  # Fixation offset – black flash on next flip, then white
-    return onset if return_onset else None
+    _do_photodiode_flash(lambda: _blank_rect.draw() if _blank_rect is not None else None)  # Offset: black (TTL), white – quick flash
+    offset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+    if return_onset and return_offset_trigger:
+        return onset_trigger, offset_trigger
+    return onset_trigger if return_onset else None
 
 def get_participant_id():
     """Get participant ID from PsychoPy screen input with on-screen keyboard for touch screens"""
@@ -2027,11 +2042,27 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
     exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
+    def draw_slider_content():
+        if image_stim:
+            image_stim.draw()
+        if trial_num is not None:
+            trial_text.draw()
+        prompt.draw()
+        slider_line.draw()
+        old_label.draw()
+        new_label.draw()
+        slider_handle.draw()
+        submit_button.draw()
+        submit_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
+    
     mouse.setVisible(True)
     
     slider_value = 0.5  # Start at center (0.5)
     start_time = time.time()
     slider_commit_time = None
+    slider_commit_trigger = None  # Photodiode/TTL timestamp when participant submits (for CSV)
     slider_stop_time = None  # Time when slider value is set (clicked)
     slider_decision_onset_time = None  # First time participant clicks/taps the slider bar (decision onset)
     slider_click_times = []  # List of all times participant clicks/taps the slider bar (for touch screens)
@@ -2146,8 +2177,9 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                 
                 if submit_clicked:
                     if has_moved:
-                        _signal_photodiode_event()  # Participant response
+                        _do_photodiode_flash(draw_slider_content)  # Participant response: black (TTL), white
                         slider_commit_time = time.time()  # Record immediately, no delay
+                        slider_commit_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         break
                     else:
                         # Show message: "please select an answer first"
@@ -2187,8 +2219,9 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                         core.quit()
                     if 'return' in keys:
                         if has_moved:
-                            _signal_photodiode_event()  # Participant response
+                            _do_photodiode_flash(draw_slider_content)  # Participant response: black (TTL), white
                             slider_commit_time = time.time()
+                            slider_commit_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                             break
                         else:
                             # Show message: "please select an answer first"
@@ -2251,19 +2284,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         prev_mouse_buttons = mouse_buttons.copy()
         
         # Draw everything (photodiode/TTL only on submit, not on slider movements)
-        if image_stim:
-            image_stim.draw()
-        if trial_num is not None:
-            trial_text.draw()
-        prompt.draw()
-        slider_line.draw()
-        old_label.draw()
-        new_label.draw()
-        slider_handle.draw()
-        submit_button.draw()
-        submit_text.draw()
-        exit_btn.draw()
-        exit_text.draw()
+        draw_slider_content()
         win.flip()
         
         # Check for escape (with error handling)
@@ -2292,7 +2313,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     if slider_click_times is None:
         slider_click_times = []
     
-    return slider_value, slider_rt, slider_commit_time, timed_out, slider_stop_time, slider_decision_onset_time, slider_click_times
+    return slider_value, slider_rt, slider_commit_time, timed_out, slider_stop_time, slider_decision_onset_time, slider_click_times, slider_commit_trigger
 
 # =========================
 #  AI COLLABORATOR
@@ -2414,41 +2435,36 @@ def run_study_phase(studied_images, block_num):
     
     # ALWAYS start study phase with a fixation cross
     fixation_duration_first = random.uniform(0.25, 0.75)
-    study_fixation_trigger_first = show_fixation(fixation_duration_first, return_onset=True)
-    fixation_offset_first = time.time()
+    study_fixation_onset_trigger_first, study_fixation_offset_trigger_first = show_fixation(fixation_duration_first, return_onset=True, return_offset_trigger=True)
     
     for i, img_path in enumerate(studied_images, 1):
         # Jittered fixation between images (0.25-0.75 seconds)
         if i > 1:  # Additional fixations between images
             fixation_duration = random.uniform(0.25, 0.75)
-            study_fixation_trigger = show_fixation(fixation_duration, return_onset=True)
-            fixation_offset = time.time()
+            study_fixation_onset_trigger, study_fixation_offset_trigger = show_fixation(fixation_duration, return_onset=True, return_offset_trigger=True)
         else:
-            # First image uses the initial fixation
             fixation_duration = fixation_duration_first
-            study_fixation_trigger = study_fixation_trigger_first
-            fixation_offset = fixation_offset_first
+            study_fixation_onset_trigger = study_fixation_onset_trigger_first
+            study_fixation_offset_trigger = study_fixation_offset_trigger_first
         
-        # Load and display image (fixation offset + image onset)
-        _signal_photodiode_event()
+        # Load and display image (fixation offset handled by show_fixation; image onset: black then white)
         img_stim = load_image_stimulus(img_path)
-        img_stim.draw()
-        win.flip()
-        study_image_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+        _do_photodiode_flash(lambda: img_stim.draw())
+        study_image_onset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
         core.wait(image_duration)  # Show each image for 1 second
-        _signal_photodiode_event()  # Image offset (next flip will flash)
-        image_offset = time.time()
+        _do_photodiode_flash(lambda: _blank_rect.draw() if _blank_rect is not None else None)  # Image offset: black (TTL), white
+        study_image_offset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
         
         study_data.append({
             "block": block_num,
             "phase": "study",
             "trial": i,
             "image_path": img_path,
-            "study_fixation_trigger": study_fixation_trigger,
-            "fixation_offset": fixation_offset,
+            "study_fixation_onset_trigger": study_fixation_onset_trigger,
+            "study_fixation_offset_trigger": study_fixation_offset_trigger,
             "fixation_duration": fixation_duration,
-            "study_image_trigger": study_image_trigger,
-            "image_offset": image_offset,
+            "study_image_onset_trigger": study_image_onset_trigger,
+            "study_image_offset_trigger": study_image_offset_trigger,
             "image_duration": image_duration
         })
     
@@ -2510,20 +2526,19 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     # Load image
     img_stim = load_image_stimulus(image_path)
     
-    # Pre-trial fixation (0.5s) then image (fixation offset + image onset)
-    recognition_fixation_trigger = show_fixation(0.5, return_onset=True)
-    _signal_photodiode_event()
-    img_stim.draw()
-    win.flip()
-    recognition_image_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+    # Pre-trial fixation (0.5s) then image; photodiode flashes at fixation onset/offset, image onset/offset
+    recognition_fixation_onset_trigger, recognition_fixation_offset_trigger = show_fixation(0.5, return_onset=True, return_offset_trigger=True)
+    _do_photodiode_flash(lambda: img_stim.draw())  # Image onset: black (TTL), white
+    recognition_image_onset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(1.0)  # Show image for 1 second
-    _signal_photodiode_event()  # Image offset (next flip will flash)
+    _do_photodiode_flash(lambda: _blank_rect.draw() if _blank_rect is not None else None)  # Image offset: black (TTL), white
+    recognition_image_offset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     
     # Keep image on screen - don't clear it
     # Determine order: participant first or partner first
     if participant_first:
         # P1: Participant responds first (image stays on screen)
-        participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time, participant_slider_decision_onset_time, participant_slider_click_times = get_slider_response(
+        participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time, participant_slider_decision_onset_time, participant_slider_click_times, participant_commit_trigger = get_slider_response(
             "Rate your memory: OLD or NEW?", image_stim=img_stim, trial_num=trial_num, max_trials=max_trials, timeout=7.0
         )
         
@@ -2537,7 +2552,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         
         # Go straight to switch/stay screen (question + image + scores + buttons all at once)
         # Switch/Stay decision (keep image on screen, show euclidean distance)
-        switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time = get_switch_stay_decision(
+        switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time, switch_stay_response_trigger = get_switch_stay_decision(
             image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL
         )
         
@@ -2565,12 +2580,15 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "trial_type": trial_type,
             "is_studied": is_studied,
             "image_path": image_path,
-            "recognition_fixation_trigger": recognition_fixation_trigger,
-            "recognition_image_trigger": recognition_image_trigger,
+            "recognition_fixation_onset_trigger": recognition_fixation_onset_trigger,
+            "recognition_fixation_offset_trigger": recognition_fixation_offset_trigger,
+            "recognition_image_onset_trigger": recognition_image_onset_trigger,
+            "recognition_image_offset_trigger": recognition_image_offset_trigger,
             "participant_first": True,
             "participant_slider_value": participant_value,
             "participant_rt": participant_rt,
             "participant_commit_time": participant_commit_time,
+            "participant_commit_trigger": participant_commit_trigger,
             "participant_slider_timeout": participant_slider_timeout,
             "participant_slider_stop_time": participant_slider_stop_time,
             "participant_slider_decision_onset_time": participant_slider_decision_onset_time,
@@ -2587,6 +2605,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "switch_commit_time": switch_commit_time,
             "switch_timeout": switch_timeout,
             "switch_stay_trigger": decision_onset_time,
+            "switch_stay_response_trigger": switch_stay_response_trigger,
             "final_answer": final_answer,
             "used_ai_answer": used_ai_answer,
             "ground_truth": correct_answer,
@@ -2611,13 +2630,13 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         ai_slider_display_time, ai_final_slider_display_time = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
         
         # P1: Participant responds (image stays on screen)
-        participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time, participant_slider_decision_onset_time, participant_slider_click_times = get_slider_response(
+        participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time, participant_slider_decision_onset_time, participant_slider_click_times, participant_commit_trigger = get_slider_response(
             "Rate your memory: OLD or NEW?", image_stim=img_stim, trial_num=trial_num, max_trials=max_trials, timeout=7.0
         )
         
         # Go straight to switch/stay screen (question + image + scores + buttons all at once)
         # Switch/Stay decision (keep image on screen, show euclidean distance)
-        switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time = get_switch_stay_decision(
+        switch_decision, switch_rt, switch_commit_time, switch_timeout, decision_onset_time, switch_stay_response_trigger = get_switch_stay_decision(
             image_stim=img_stim, participant_value=participant_value, partner_value=ai_confidence, timeout=7.0, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL
         )
         
@@ -2645,12 +2664,15 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "trial_type": trial_type,
             "is_studied": is_studied,
             "image_path": image_path,
-            "recognition_fixation_trigger": recognition_fixation_trigger,
-            "recognition_image_trigger": recognition_image_trigger,
+            "recognition_fixation_onset_trigger": recognition_fixation_onset_trigger,
+            "recognition_fixation_offset_trigger": recognition_fixation_offset_trigger,
+            "recognition_image_onset_trigger": recognition_image_onset_trigger,
+            "recognition_image_offset_trigger": recognition_image_offset_trigger,
             "participant_first": False,
             "participant_slider_value": participant_value,
             "participant_rt": participant_rt,
             "participant_commit_time": participant_commit_time,
+            "participant_commit_trigger": participant_commit_trigger,
             "participant_slider_timeout": participant_slider_timeout,
             "participant_slider_stop_time": participant_slider_stop_time,
             "participant_slider_decision_onset_time": participant_slider_decision_onset_time,
@@ -2667,6 +2689,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "switch_commit_time": switch_commit_time,
             "switch_timeout": switch_timeout,
             "switch_stay_trigger": decision_onset_time,
+            "switch_stay_response_trigger": switch_stay_response_trigger,
             "final_answer": final_answer,
             "used_ai_answer": used_ai_answer,
             "ground_truth": correct_answer,
@@ -3016,8 +3039,32 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
     exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
+    def draw_switch_stay_content():
+        decision_prompt.draw()
+        if image_stim:
+            image_stim.pos = (0, SWITCH_STAY_CONTENT_OFFSET)
+            image_stim.draw()
+        slider_line.draw()
+        old_label.draw()
+        new_label.draw()
+        if participant_value is not None and p_label_text is not None:
+            p_label_text.draw()
+        if partner_value is not None and a_label_text is not None:
+            a_label_text.draw()
+        if participant_value is not None and p_dot is not None:
+            p_dot.draw()
+        if partner_value is not None and a_dot is not None:
+            a_dot.draw()
+        stay_button.draw()
+        stay_text.draw()
+        switch_button.draw()
+        switch_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
+    
     mouse.setVisible(True)
     decision_onset_time = None  # Will be set when screen first appears
+    decision_response_trigger = None  # Photodiode/TTL timestamp when participant clicks stay/switch (for CSV)
     start_time = None  # Will be set after first flip
     decision_commit_time = None
     decision = None
@@ -3179,13 +3226,15 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                                  switch_y - switch_height/2 - switch_hit_margin_y <= mouse_y <= switch_y + switch_height/2 + switch_hit_margin_y)
                 
                 if stay_clicked:
-                    _signal_photodiode_event()  # Participant response
+                    _do_photodiode_flash(draw_switch_stay_content)  # Participant response: black (TTL), white
+                    decision_response_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                     decision = "stay"
                     decision_rt = time.time() - start_time
                     decision_commit_time = time.time()
                     break
                 elif switch_clicked:
-                    _signal_photodiode_event()  # Participant response
+                    _do_photodiode_flash(draw_switch_stay_content)  # Participant response: black (TTL), white
+                    decision_response_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                     decision = "switch"
                     decision_rt = time.time() - start_time
                     decision_commit_time = time.time()
@@ -3205,13 +3254,15 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     if 'escape' in keys:
                         core.quit()
                     if 'left' in keys:
-                        _signal_photodiode_event()  # Participant response
+                        _do_photodiode_flash(draw_switch_stay_content)  # Participant response: black (TTL), white
+                        decision_response_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         decision = "stay"
                         decision_rt = time.time() - start_time
                         decision_commit_time = time.time()
                         break
                     if 'right' in keys:
-                        _signal_photodiode_event()  # Participant response
+                        _do_photodiode_flash(draw_switch_stay_content)  # Participant response: black (TTL), white
+                        decision_response_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         decision = "switch"
                         decision_rt = time.time() - start_time
                         decision_commit_time = time.time()
@@ -3220,38 +3271,12 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 pass
         
         # Draw everything in correct order
-        decision_prompt.draw()
-        
-        # Draw image above slider (moved up on this screen to avoid overlap)
-        if image_stim:
-            image_stim.pos = (0, SWITCH_STAY_CONTENT_OFFSET)
-            image_stim.draw()
-        
-        # Draw slider visualization below image (with arrows showing both ratings)
-        slider_line.draw()
-        old_label.draw()
-        new_label.draw()
-        # Draw labels above arrows
-        if participant_value is not None and p_label_text is not None:
-            p_label_text.draw()
-        if partner_value is not None and a_label_text is not None:
-            a_label_text.draw()
-        if participant_value is not None and p_dot is not None:
-            p_dot.draw()
-        if partner_value is not None and a_dot is not None:
-            a_dot.draw()
-        
-        # Draw buttons below slider
-        stay_button.draw()
-        stay_text.draw()
-        switch_button.draw()
-        switch_text.draw()
-        exit_btn.draw()
-        exit_text.draw()
         if switch_stay_first_flip:
-            _signal_photodiode_event()  # Switch/stay screen onset
+            _do_photodiode_flash(draw_switch_stay_content)  # Switch/stay onset: black (TTL), white
             switch_stay_first_flip = False
-        win.flip()
+        else:
+            draw_switch_stay_content()
+            win.flip()
         
         # Record decision onset time on first draw (when screen appears with all info)
         if first_draw:
@@ -3275,8 +3300,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         core.wait(0.01)
     
     mouse.setVisible(False)
-    return decision, 
-    decision_rt, decision_commit_time, timed_out, decision_onset_time
+    return decision, decision_rt, decision_commit_time, timed_out, decision_onset_time, decision_response_trigger
 
 def show_ready_to_start_screen(block_num, total_blocks=10):
     """Show 'ready to start sorting?' screen before each block with collections remaining count"""
@@ -3457,11 +3481,11 @@ def show_block_summary(block_num, total_points, max_points):
     )
     
     # Draw initial screen
-    summary_text.draw()
-    continue_button.draw()
-    continue_text.draw()
-    _signal_photodiode_event()  # Block summary screen onset
-    win.flip()
+    def draw_block_summary_content():
+        summary_text.draw()
+        continue_button.draw()
+        continue_text.draw()
+    _do_photodiode_flash(draw_block_summary_content)  # Block summary onset: black (TTL), white
     
     # Wait for button click - use keyboard method for touch screens
     mouse_btn = event.Mouse(win=win)
@@ -3516,12 +3540,7 @@ def show_block_summary(block_num, total_points, max_points):
                                 button_y - button_height/2 - hit_margin_y <= mouseloc_y <= button_y + button_height/2 + hit_margin_y)
                     
                     if on_button:
-                        _signal_photodiode_event()  # Participant response
-                        # Visual feedback (no color change in touch screen mode)
-                        summary_text.draw()
-                        continue_button.draw()
-                        continue_text.draw()
-                        win.flip()
+                        _do_photodiode_flash(draw_block_summary_content)  # Participant response: black (TTL), white
                         core.wait(0.2)
                         clicked = True
                         break
@@ -3544,7 +3563,7 @@ def show_block_summary(block_num, total_points, max_points):
             try:
                 keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                 if keys and 'space' in keys:
-                    _signal_photodiode_event()  # Participant response
+                    _do_photodiode_flash(draw_block_summary_content)  # Participant response: black (TTL), white
                     clicked = True
                     break
                 elif keys and 'escape' in keys:
@@ -3564,7 +3583,7 @@ def show_block_summary(block_num, total_points, max_points):
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
-                        _signal_photodiode_event()  # Participant response
+                        _do_photodiode_flash(draw_block_summary_content)  # Participant response: black (TTL), white
                         clicked = True
                         break
                     if 'escape' in keys:
@@ -3674,9 +3693,7 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
     # Show outcome with curator scoring (display rounded to 1 decimal place)
     outcome_text_full = f"{outcome_text}.\n\nThe in-house curator scored this image: {correctness_points_rounded:.1f} points based on image & your confidence."
     outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06*1.35, pos=(0, 0), wrapWidth=1.4)
-    _signal_photodiode_event()
-    outcome_stim.draw()
-    win.flip()
+    _do_photodiode_flash(lambda: outcome_stim.draw())
     outcome_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(2.0)  # Show for 2.0 seconds (increased from 1.5)
     
@@ -4036,13 +4053,13 @@ def run_experiment():
             pass  # May fail on some systems
     
     # Draw initial screen (first task screen – instruction onset)
-    _signal_photodiode_event()
-    start_screen.draw()
-    start_button.draw()
-    start_button_text.draw()
-    exit_btn.draw()
-    exit_text.draw()
-    win.flip()
+    def draw_start_content():
+        start_screen.draw()
+        start_button.draw()
+        start_button_text.draw()
+        exit_btn.draw()
+        exit_text.draw()
+    _do_photodiode_flash(draw_start_content)  # First task screen onset: black (TTL), white
     
     # Clear any existing events before waiting for click
     event.clearEvents()
@@ -4105,13 +4122,7 @@ def run_experiment():
                     if on_exit:
                         core.quit()
                     elif on_button:
-                        _signal_photodiode_event()  # BEGIN clicked (commit)
-                        start_screen.draw()
-                        start_button.draw()
-                        start_button_text.draw()
-                        exit_btn.draw()
-                        exit_text.draw()
-                        win.flip()
+                        _do_photodiode_flash(draw_start_content)  # BEGIN clicked: black (TTL), white
                         core.wait(0.2)
                         clicked = True
                         break
@@ -4129,7 +4140,7 @@ def run_experiment():
             try:
                 keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                 if 'space' in keys:
-                    _signal_photodiode_event()  # BEGIN pressed (commit)
+                    _do_photodiode_flash(draw_start_content)  # BEGIN pressed: black (TTL), white
                     clicked = True
                     break
                 if 'escape' in keys:
@@ -4151,7 +4162,7 @@ def run_experiment():
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
-                        _signal_photodiode_event()  # BEGIN pressed (commit)
+                        _do_photodiode_flash(draw_start_content)  # BEGIN pressed: black (TTL), white
                         clicked = True
                         break
                     if 'escape' in keys:
@@ -4243,10 +4254,11 @@ def run_experiment():
     first_draw_welcome1 = [True]
     def draw_screen():
         if first_draw_welcome1[0]:
-            _signal_photodiode_event()  # First instruction screen onset (visual change)
+            _do_photodiode_flash(redraw_welcome_1)  # First instruction onset: black (TTL), white
             first_draw_welcome1[0] = False
-        redraw_welcome_1()
-        win.flip()
+        else:
+            redraw_welcome_1()
+            win.flip()
     
     draw_screen()
     
@@ -4287,8 +4299,7 @@ def run_experiment():
                     if on_exit:
                         core.quit()
                     elif on_button:
-                        _signal_photodiode_event()  # Motor response (CONTINUE clicked)
-                        draw_screen()
+                        _do_photodiode_flash(redraw_welcome_1)  # Motor response: black (TTL), white
                         core.wait(0.2)
                         clicked = True
                         break
@@ -4309,7 +4320,7 @@ def run_experiment():
                 keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                 if keys:
                     if 'space' in keys:
-                        _signal_photodiode_event()  # Motor response (CONTINUE pressed)
+                        _do_photodiode_flash(redraw_welcome_1)  # Motor response: black (TTL), white
                         clicked = True
                         break
                     elif 'escape' in keys:
@@ -4326,7 +4337,7 @@ def run_experiment():
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
-                        _signal_photodiode_event()  # Motor response (CONTINUE pressed)
+                        _do_photodiode_flash(redraw_welcome_1)  # Motor response: black (TTL), white
                         clicked = True
                         break
                     elif 'escape' in keys:
@@ -4439,7 +4450,7 @@ def run_experiment():
     
     # Trial 1: Participant only rates (green circle - it's OLD since we just showed it)
     # Show green circle again for Trial 1 (like a study phase presentation)
-    recognition_fixation_trigger_t1 = show_fixation(0.5, return_onset=True)
+    recognition_fixation_onset_trigger_t1, recognition_fixation_offset_trigger_t1 = show_fixation(0.5, return_onset=True, return_offset_trigger=True)
     green_circle = load_image_stimulus(green_circle_path)  # Reload to ensure it renders
     # Don't set position/size - use defaults (0, 0) and (0.3, 0.3) to match regular task
     if hasattr(green_circle, 'draw'):
@@ -4447,11 +4458,13 @@ def run_experiment():
     else:
         green_circle = visual.Circle(win, radius=0.15, fillColor='green', lineColor='black', pos=(0, 0))
         green_circle.draw()
-    _signal_photodiode_event()
-    win.flip()
-    recognition_image_trigger_t1 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+    def draw_green_circle():
+        green_circle.draw()
+    _do_photodiode_flash(draw_green_circle)
+    recognition_image_onset_trigger_t1 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
-    _signal_photodiode_event()  # Image offset
+    _do_photodiode_flash(lambda: _blank_rect.draw() if _blank_rect is not None else None)  # Image offset: black (TTL), white
+    recognition_image_offset_trigger_t1 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     _practice_t1_prompt = (
         "Slide using LEFT or RIGHT arrow keys to show how confident you are you've seen this before (i.e., it is \"old\"). "
         "How close you are to either side indicates how CONFIDENT you are. Press Return when done."
@@ -4459,7 +4472,7 @@ def run_experiment():
         "CLICK ONCE on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
         "How close you are to either side indicates how CONFIDENT you are in your answer."
     )
-    participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1, participant_slider_decision_onset_time_t1, participant_slider_click_times_t1 = get_slider_response(
+    participant_value_t1, participant_rt_t1, participant_commit_time_t1, participant_slider_timeout_t1, participant_slider_stop_time_t1, participant_slider_decision_onset_time_t1, participant_slider_click_times_t1, participant_commit_trigger_t1 = get_slider_response(
         _practice_t1_prompt,
         image_stim=green_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
@@ -4476,9 +4489,7 @@ def run_experiment():
     # Skip in-house curator message in practice - just show correctness
     outcome_stim_t1 = visual.TextStim(win, text=outcome_text_t1, 
                                       color=color_t1, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
-    _signal_photodiode_event()
-    outcome_stim_t1.draw()
-    win.flip()
+    _do_photodiode_flash(lambda: outcome_stim_t1.draw())
     outcome_trigger_t1 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t1
@@ -4491,12 +4502,15 @@ def run_experiment():
         'trial_type': 'studied',
         'is_studied': True,
         'image_path': green_circle_path,
-        'recognition_fixation_trigger': recognition_fixation_trigger_t1,
-        'recognition_image_trigger': recognition_image_trigger_t1,
+        'recognition_fixation_onset_trigger': recognition_fixation_onset_trigger_t1,
+        'recognition_fixation_offset_trigger': recognition_fixation_offset_trigger_t1,
+        'recognition_image_onset_trigger': recognition_image_onset_trigger_t1,
+        'recognition_image_offset_trigger': recognition_image_offset_trigger_t1,
         'participant_first': True,
         'participant_slider_value': participant_value_t1,
         'participant_rt': participant_rt_t1,
         'participant_commit_time': participant_commit_time_t1,
+        'participant_commit_trigger': participant_commit_trigger_t1,
         'participant_slider_timeout': participant_slider_timeout_t1,
         'participant_slider_stop_time': participant_slider_stop_time_t1,
         'participant_slider_decision_onset_time': participant_slider_decision_onset_time_t1,
@@ -4513,6 +4527,7 @@ def run_experiment():
         'switch_commit_time': np.nan,
         'switch_timeout': np.nan,
         'switch_stay_trigger': np.nan,
+        'switch_stay_response_trigger': np.nan,
         'final_answer': final_answer_t1,
         'used_ai_answer': False,
         'ground_truth': correct_answer_t1,
@@ -4530,7 +4545,7 @@ def run_experiment():
     practice_trials.append(trial_data_t1)
     
     # Show red circle
-    recognition_fixation_trigger_t2 = show_fixation(0.5, return_onset=True)
+    recognition_fixation_onset_trigger_t2, recognition_fixation_offset_trigger_t2 = show_fixation(0.5, return_onset=True, return_offset_trigger=True)
     red_circle = load_image_stimulus(red_circle_path)  # Reload to ensure it renders
     # Don't set position/size - use defaults (0, 0) and (0.3, 0.3) to match regular task
     if hasattr(red_circle, 'draw'):
@@ -4538,11 +4553,13 @@ def run_experiment():
     else:
         red_circle = visual.Circle(win, radius=0.15, fillColor='red', lineColor='black', pos=(0, 0))
         red_circle.draw()
-    _signal_photodiode_event()
-    win.flip()
-    recognition_image_trigger_t2 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+    def draw_red_circle():
+        red_circle.draw()
+    _do_photodiode_flash(draw_red_circle)
+    recognition_image_onset_trigger_t2 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(1.0)
-    _signal_photodiode_event()  # Image offset
+    _do_photodiode_flash(lambda: _blank_rect.draw() if _blank_rect is not None else None)  # Image offset: black (TTL), white
+    recognition_image_offset_trigger_t2 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     
     # Trial 2: Show message first, then AI rates (all the way OLD), then participant rates
     # Show message that partner is confident (Carly in practice)
@@ -4575,7 +4592,7 @@ def run_experiment():
         ai_final_slider_display_time_t2 = time.time()
     
     # Participant rates
-    participant_value_t2, participant_rt_t2, participant_commit_time_t2, participant_slider_timeout_t2, participant_slider_stop_time_t2, participant_slider_decision_onset_time_t2, participant_slider_click_times_t2 = get_slider_response(
+    participant_value_t2, participant_rt_t2, participant_commit_time_t2, participant_slider_timeout_t2, participant_slider_stop_time_t2, participant_slider_decision_onset_time_t2, participant_slider_click_times_t2, participant_commit_trigger_t2 = get_slider_response(
         "Rate your memory: OLD or NEW?",
         image_stim=red_circle, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
@@ -4592,9 +4609,7 @@ def run_experiment():
     # Skip in-house curator message in practice - just show correctness
     outcome_stim_t2 = visual.TextStim(win, text=outcome_text_t2, 
                                       color=color_t2, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
-    _signal_photodiode_event()
-    outcome_stim_t2.draw()
-    win.flip()
+    _do_photodiode_flash(lambda: outcome_stim_t2.draw())
     outcome_trigger_t2 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t2
@@ -4608,12 +4623,15 @@ def run_experiment():
         'trial_type': 'studied',
         'is_studied': True,
         'image_path': red_circle_path,
-        'recognition_fixation_trigger': recognition_fixation_trigger_t2,
-        'recognition_image_trigger': recognition_image_trigger_t2,
+        'recognition_fixation_onset_trigger': recognition_fixation_onset_trigger_t2,
+        'recognition_fixation_offset_trigger': recognition_fixation_offset_trigger_t2,
+        'recognition_image_onset_trigger': recognition_image_onset_trigger_t2,
+        'recognition_image_offset_trigger': recognition_image_offset_trigger_t2,
         'participant_first': True,
         'participant_slider_value': participant_value_t2,
         'participant_rt': participant_rt_t2,
         'participant_commit_time': participant_commit_time_t2,
+        'participant_commit_trigger': participant_commit_trigger_t2,
         'participant_slider_timeout': participant_slider_timeout_t2,
         'participant_slider_stop_time': participant_slider_stop_time_t2,
         'participant_slider_decision_onset_time': participant_slider_decision_onset_time_t2,
@@ -4630,6 +4648,7 @@ def run_experiment():
         'switch_commit_time': np.nan,
         'switch_timeout': np.nan,
         'switch_stay_trigger': np.nan,
+        'switch_stay_response_trigger': np.nan,
         'final_answer': final_answer_t2,
         'used_ai_answer': False,
         'ground_truth': correct_answer_t2,
@@ -4654,7 +4673,7 @@ def run_experiment():
     core.wait(2.0)
     
     # Show blue square (it's NEW - not seen before, different from blue circle in encoding)
-    recognition_fixation_trigger_t3 = show_fixation(0.5, return_onset=True)
+    recognition_fixation_onset_trigger_t3, recognition_fixation_offset_trigger_t3 = show_fixation(0.5, return_onset=True, return_offset_trigger=True)
     blue_square = load_image_stimulus(blue_square_path)  # Reload to ensure it renders
     # Use default position and size (same as regular task) - no manual positioning
     # Default from load_image_stimulus is (0, 0) position and (0.3, 0.3) size
@@ -4663,15 +4682,17 @@ def run_experiment():
     else:
         blue_square = visual.Rect(win, width=0.3, height=0.3*1.35, fillColor='blue', lineColor='black', pos=(0, 0))
         blue_square.draw()
-    _signal_photodiode_event()
-    win.flip()
-    recognition_image_trigger_t3 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+    def draw_blue_square():
+        blue_square.draw()
+    _do_photodiode_flash(draw_blue_square)
+    recognition_image_onset_trigger_t3 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     safe_wait(1.0)
-    _signal_photodiode_event()  # Image offset
+    _do_photodiode_flash(lambda: _blank_rect.draw() if _blank_rect is not None else None)  # Image offset: black (TTL), white
+    recognition_image_offset_trigger_t3 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     
     # Trial 3: Full trial with participant, AI, switch/stay
     # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3)
-    participant_value_t3, participant_rt_t3, participant_commit_time_t3, participant_slider_timeout_t3, participant_slider_stop_time_t3, participant_slider_decision_onset_time_t3, participant_slider_click_times_t3 = get_slider_response(
+    participant_value_t3, participant_rt_t3, participant_commit_time_t3, participant_slider_timeout_t3, participant_slider_stop_time_t3, participant_slider_decision_onset_time_t3, participant_slider_click_times_t3, participant_commit_trigger_t3 = get_slider_response(
         "Rate your memory: OLD or NEW?", image_stim=blue_square, trial_num=None, max_trials=3, timeout=999999.0  # No timeout in practice, no trial number display
     )
     
@@ -4692,7 +4713,7 @@ def run_experiment():
     
     # Go straight to switch/stay screen (question + image + scores + buttons all at once)
     # Switch/Stay decision (Carly in practice)
-    switch_decision_t3, switch_rt_t3, switch_commit_time_t3, switch_timeout_t3, decision_onset_time_t3 = get_switch_stay_decision(
+    switch_decision_t3, switch_rt_t3, switch_commit_time_t3, switch_timeout_t3, decision_onset_time_t3, switch_stay_response_trigger_t3 = get_switch_stay_decision(
         image_stim=blue_square, participant_value=participant_value_t3, partner_value=ai_confidence_t3, timeout=999999.0, partner_name="Carly"  # No timeout in practice
     )
     
@@ -4719,9 +4740,7 @@ def run_experiment():
     color_t3 = 'green' if participant_accuracy_t3 else 'red'
     outcome_stim_t3 = visual.TextStim(win, text=outcome_text_t3, 
                                       color=color_t3, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
-    _signal_photodiode_event()
-    outcome_stim_t3.draw()
-    win.flip()
+    _do_photodiode_flash(lambda: outcome_stim_t3.draw())
     outcome_trigger_t3 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(2.0)  # Show for 2.0 seconds (same as regular trials)
     practice_points += correctness_points_t3
@@ -4735,12 +4754,15 @@ def run_experiment():
         'trial_type': 'studied',
         'is_studied': False,  # It's actually NEW (blue square)
         'image_path': blue_square_path,
-        'recognition_fixation_trigger': recognition_fixation_trigger_t3,
-        'recognition_image_trigger': recognition_image_trigger_t3,
+        'recognition_fixation_onset_trigger': recognition_fixation_onset_trigger_t3,
+        'recognition_fixation_offset_trigger': recognition_fixation_offset_trigger_t3,
+        'recognition_image_onset_trigger': recognition_image_onset_trigger_t3,
+        'recognition_image_offset_trigger': recognition_image_offset_trigger_t3,
         'participant_first': True,
         'participant_slider_value': participant_value_t3,
         'participant_rt': participant_rt_t3,
         'participant_commit_time': participant_commit_time_t3,
+        'participant_commit_trigger': participant_commit_trigger_t3,
         'participant_slider_timeout': participant_slider_timeout_t3,
         'participant_slider_stop_time': participant_slider_stop_time_t3,
         'participant_slider_decision_onset_time': participant_slider_decision_onset_time_t3,
@@ -4757,6 +4779,7 @@ def run_experiment():
         'switch_commit_time': switch_commit_time_t3,
         'switch_timeout': switch_timeout_t3,
         'switch_stay_trigger': decision_onset_time_t3,
+        'switch_stay_response_trigger': switch_stay_response_trigger_t3,
         'final_answer': final_answer_t3,
         'used_ai_answer': used_ai_answer_t3,
         'ground_truth': correct_answer_t3,
