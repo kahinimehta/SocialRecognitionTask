@@ -754,11 +754,13 @@ try:
     def _signal_photodiode_event():
         _photodiode_signal_next_flip[0] = True
     def _do_photodiode_flash(draw_func):
-        """Signal photodiode, then flip black (TTL) then white. No artificial delays—timestamps align to screen change."""
+        """Signal photodiode, then flip black (TTL) then white. Computer screen only: 17ms delay between flips so black is shown (fixes vsync coalescing)."""
         _signal_photodiode_event()
         if draw_func:
             draw_func()
         win.flip()  # Black flash, TTL
+        if not USE_TOUCH_SCREEN:
+            core.wait(0.017)  # Computer/laptop only: ~1 frame at 60Hz so black displays before white
         if draw_func:
             draw_func()
         win.flip()  # White (baseline)

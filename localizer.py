@@ -1307,7 +1307,7 @@ def ask_object_question(object_name, timeout=10.0):
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
     
-    def draw_question():
+    def draw_question_content():
         question_stim.draw()
         yes_button.draw()
         yes_text.draw()
@@ -1315,10 +1315,13 @@ def ask_object_question(object_name, timeout=10.0):
         no_text.draw()
         exit_btn.draw()
         exit_text.draw()
+    
+    def draw_question():
+        draw_question_content()
         win.flip()
     
-    draw_question()
-    question_trigger = time.time()
+    _do_photodiode_flash(draw_question_content)  # Question screen onset: flash when screen changes
+    question_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     
     answered = False
     answer = None
@@ -1381,7 +1384,7 @@ def ask_object_question(object_name, timeout=10.0):
                                 response_time = clock.getTime()
                                 answer_click_time = time.time()  # Record absolute timestamp
                                 yes_button.fillColor = 'green'
-                                draw_question()
+                                _do_photodiode_flash(draw_question_content)  # Flash at click
                                 core.wait(0.3)
                                 answered = True
                                 break
@@ -1398,7 +1401,7 @@ def ask_object_question(object_name, timeout=10.0):
                                 response_time = clock.getTime()
                                 answer_click_time = time.time()  # Record absolute timestamp
                                 no_button.fillColor = 'red'
-                                draw_question()
+                                _do_photodiode_flash(draw_question_content)  # Flash at click
                                 core.wait(0.3)
                                 answered = True
                                 break
@@ -1428,7 +1431,7 @@ def ask_object_question(object_name, timeout=10.0):
                             response_time = clock.getTime()
                             answer_click_time = time.time()  # Record absolute timestamp
                             yes_button.fillColor = 'green'
-                            draw_question()
+                            _do_photodiode_flash(draw_question_content)  # Flash at click
                             core.wait(0.3)
                             answered = True
                             break
@@ -1437,7 +1440,7 @@ def ask_object_question(object_name, timeout=10.0):
                             response_time = clock.getTime()
                             answer_click_time = time.time()  # Record absolute timestamp
                             no_button.fillColor = 'red'
-                            draw_question()
+                            _do_photodiode_flash(draw_question_content)  # Flash at click
                             core.wait(0.3)
                             answered = True
                             break
@@ -1798,11 +1801,13 @@ try:
         def _signal_photodiode_event():
             _photodiode_signal_next_flip[0] = True
         def _do_photodiode_flash(draw_func):
-            """Signal photodiode, then flip black (TTL) then white. No artificial delays—timestamps align to screen change."""
+            """Signal photodiode, then flip black (TTL) then white. Computer screen only: 17ms delay between flips so black is shown (fixes vsync coalescing)."""
             _signal_photodiode_event()
             if draw_func:
                 draw_func()
             win.flip()  # Black flash, TTL
+            if not USE_TOUCH_SCREEN:
+                safe_wait(0.017)  # Computer/laptop only: ~1 frame at 60Hz so black displays before white
             if draw_func:
                 draw_func()
             win.flip()  # White (baseline)
