@@ -28,7 +28,10 @@ The code should automatically update every time you open the terminal or run the
 - **Key difference**: Laptop users can exit any time with ESC. Touch screen users can only exit when the Exit button appears (during interactive/decision screens).
 - **Localizer**: ESC and Exit work at all times, including during fixation and image presentation.
 
-**Experimenter note**: Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically. Exit when you see the button."
+**Experimenter note**: 
+- Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically. Exit when you see the button."
+- Also make sure to hit all the information in the script below to ensure participants understand the task and its purpose!
+
 
 ---
 
@@ -250,7 +253,7 @@ Sometimes she goes first, sometimes you do."
 **Display shows:** Image of Amy, "Amy" label below the image, CONTINUE button (bottom right).
 
 **What to say:**
-"Work with Amy to sort this collection. Sometimes she'll rate first, sometimes you will.*Remember, you are only responsible for remembering the last 10 images you saw before sorting. You will not be asked to recall images from previous collections while sorting images. Each collection has a different set of images*. Click CONTINUE when ready to get started."
+"Work with Amy to sort this collection. Sometimes she'll rate first, sometimes you will. Remember that Amy *treasures collaboration in her coworkers, and likes them to work together on these images rather than independently. *Remember, you are only responsible for remembering the last 10 images you saw before sorting. You will not be asked to recall images from previous collections while sorting images. Each collection has a different set of images*. Click CONTINUE when ready to get started."
 
 ---
 
