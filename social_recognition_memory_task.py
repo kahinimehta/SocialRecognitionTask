@@ -91,6 +91,34 @@ USE_TOUCH_SCREEN = False
 EXIT_BTN_POS = (0.45, 0.47)  # Top-right corner (units='height')
 EXIT_HIT_MARGIN = 0.05  # Larger margin for reliable touch registration
 
+# Photodiode detector: black rectangle in bottom-left (0.5" x 1"), drawn on each flip except input/name screens
+PHOTODIODE_ACTIVE = True  # Set False during get_input_method (temp_win) and get_participant_id
+photodiode_patch = None  # Created after main window exists
+
+# TTL trigger: parallel port pulse when photodiode appears (Windows/Linux; no-op on macOS)
+_ttl_parallel = None  # Lazy-init
+def _send_ttl_trigger():
+    """Send a brief TTL pulse via parallel port when photodiode appears. Fails silently if unavailable."""
+    global _ttl_parallel
+    try:
+        if _ttl_parallel is False:
+            return  # Previously failed to init
+        if _ttl_parallel is None:
+            try:
+                from psychopy import parallel
+                addr = int(os.environ.get('PARALLEL_PORT_ADDRESS', '0x0378'), 16)
+                parallel.setPortAddress(addr)
+                _ttl_parallel = parallel
+            except Exception:
+                _ttl_parallel = False
+                return
+        if _ttl_parallel:
+            _ttl_parallel.setData(255)
+            core.wait(0.01)
+            _ttl_parallel.setData(0)
+    except Exception:
+        pass
+
 def safe_window_close(window):
     """Safely close a window, checking if it's still valid to prevent NoneType errors"""
     try:
@@ -718,6 +746,26 @@ try:
     print("="*60)
     print("WINDOW CREATION SUCCESSFUL")
     print("="*60)
+    
+    # Photodiode detector: 0.5" x 1" black rectangle, bottom-left corner (excluded during input/name screens)
+    try:
+        # Size ~0.5" x 1" in height units (approx 0.11 x 0.22 for typical display)
+        photodiode_patch = visual.Rect(
+            win, width=0.11, height=0.22,
+            fillColor='black', lineColor=None,
+            pos=(-0.72, -0.39),  # Bottom-left corner
+            units='height'
+        )
+        _orig_flip = win.flip
+        def _wrapped_flip():
+            if PHOTODIODE_ACTIVE and photodiode_patch is not None:
+                photodiode_patch.draw()
+            _orig_flip()
+            if PHOTODIODE_ACTIVE and photodiode_patch is not None:
+                _send_ttl_trigger()
+        win.flip = _wrapped_flip
+    except Exception as e:
+        print(f"Warning: Could not create photodiode patch: {e}", file=sys.stderr)
     
     # Don't close temp window - keep it open to prevent PsychoPy from auto-quitting
     # Closing it causes PsychoPy to detect all windows are closed and quit
@@ -1567,13 +1615,18 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
     mouse_btn.setVisible(False)
     event.clearEvents()
 
-def show_fixation(duration=1.0):
+def show_fixation(duration=1.0, return_onset=False):
+    """Show fixation for duration. Returns onset time (when photodiode fires) if return_onset=True."""
     fixation.draw()
     win.flip()
+    onset = time.time()
     core.wait(duration)
+    return onset if return_onset else None
 
 def get_participant_id():
     """Get participant ID from PsychoPy screen input with on-screen keyboard for touch screens"""
+    global PHOTODIODE_ACTIVE
+    PHOTODIODE_ACTIVE = False  # Exclude name entry from photodiode
     input_id = ""
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
@@ -1874,6 +1927,7 @@ def get_participant_id():
         safe_wait(0.01)
     
     mouse.setVisible(False)
+    PHOTODIODE_ACTIVE = True  # Re-enable photodiode after name entry
     return input_id.strip() or "P001"
 
 def load_image_stimulus(image_path, maintain_aspect_ratio=False):
@@ -2340,21 +2394,19 @@ def run_study_phase(studied_images, block_num):
     
     # ALWAYS start study phase with a fixation cross
     fixation_duration_first = random.uniform(0.25, 0.75)
-    fixation_onset_first = time.time()
-    show_fixation(fixation_duration_first)
+    study_fixation_trigger_first = show_fixation(fixation_duration_first, return_onset=True)
     fixation_offset_first = time.time()
     
     for i, img_path in enumerate(studied_images, 1):
         # Jittered fixation between images (0.25-0.75 seconds)
         if i > 1:  # Additional fixations between images
             fixation_duration = random.uniform(0.25, 0.75)
-            fixation_onset = time.time()
-            show_fixation(fixation_duration)
+            study_fixation_trigger = show_fixation(fixation_duration, return_onset=True)
             fixation_offset = time.time()
         else:
             # First image uses the initial fixation
             fixation_duration = fixation_duration_first
-            fixation_onset = fixation_onset_first
+            study_fixation_trigger = study_fixation_trigger_first
             fixation_offset = fixation_offset_first
         
         # Load and display image
@@ -2362,7 +2414,7 @@ def run_study_phase(studied_images, block_num):
         img_stim.draw()
         win.flip()
         
-        image_onset = time.time()
+        study_image_trigger = time.time()
         core.wait(image_duration)  # Show each image for 1 second
         image_offset = time.time()
         
@@ -2371,12 +2423,12 @@ def run_study_phase(studied_images, block_num):
             "phase": "study",
             "trial": i,
             "image_path": img_path,
-            "image_onset": image_onset,
-            "image_offset": image_offset,
-            "image_duration": image_duration,
-            "fixation_onset": fixation_onset,
+            "study_fixation_trigger": study_fixation_trigger,
             "fixation_offset": fixation_offset,
-            "fixation_duration": fixation_duration
+            "fixation_duration": fixation_duration,
+            "study_image_trigger": study_image_trigger,
+            "image_offset": image_offset,
+            "image_duration": image_duration
         })
     
     # Final fixation after last image
@@ -2437,11 +2489,11 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     # Load image
     img_stim = load_image_stimulus(image_path)
     
-    # Show image
-    show_fixation(0.5)
+    # Pre-trial fixation (0.5s) then image
+    recognition_fixation_trigger = show_fixation(0.5, return_onset=True)
     img_stim.draw()
     win.flip()
-    image_onset = time.time()
+    recognition_image_trigger = time.time()
     core.wait(1.0)  # Show image for 1 second
     
     # Keep image on screen - don't clear it
@@ -2490,7 +2542,8 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "trial_type": trial_type,
             "is_studied": is_studied,
             "image_path": image_path,
-            "image_onset": image_onset,
+            "recognition_fixation_trigger": recognition_fixation_trigger,
+            "recognition_image_trigger": recognition_image_trigger,
             "participant_first": True,
             "participant_slider_value": participant_value,
             "participant_rt": participant_rt,
@@ -2510,7 +2563,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "switch_rt": switch_rt,
             "switch_commit_time": switch_commit_time,
             "switch_timeout": switch_timeout,
-            "decision_onset_time": decision_onset_time,
+            "switch_stay_trigger": decision_onset_time,
             "final_answer": final_answer,
             "used_ai_answer": used_ai_answer,
             "ground_truth": correct_answer,
@@ -2518,7 +2571,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "euclidean_participant_to_truth": abs(participant_value - correct_answer),
             "euclidean_ai_to_truth": abs(ai_confidence - correct_answer),
             "euclidean_participant_to_ai": abs(participant_value - ai_confidence),
-            "outcome_time": np.nan,  # Will be set after show_trial_outcome
+            "outcome_trigger": np.nan,  # Will be set after show_trial_outcome
             "points_earned": np.nan,  # Will be set after show_trial_outcome
             "block_start_time": np.nan,  # Will be set by update_block_timing_in_csv
             "block_end_time": np.nan,  # Will be set by update_block_timing_in_csv
@@ -2569,7 +2622,8 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "trial_type": trial_type,
             "is_studied": is_studied,
             "image_path": image_path,
-            "image_onset": image_onset,
+            "recognition_fixation_trigger": recognition_fixation_trigger,
+            "recognition_image_trigger": recognition_image_trigger,
             "participant_first": False,
             "participant_slider_value": participant_value,
             "participant_rt": participant_rt,
@@ -2589,7 +2643,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "switch_rt": switch_rt,
             "switch_commit_time": switch_commit_time,
             "switch_timeout": switch_timeout,
-            "decision_onset_time": decision_onset_time,
+            "switch_stay_trigger": decision_onset_time,
             "final_answer": final_answer,
             "used_ai_answer": used_ai_answer,
             "ground_truth": correct_answer,
@@ -2597,7 +2651,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "euclidean_participant_to_truth": abs(participant_value - correct_answer),
             "euclidean_ai_to_truth": abs(ai_confidence - correct_answer),
             "euclidean_participant_to_ai": abs(participant_value - ai_confidence),
-            "outcome_time": None,  # Will be set after show_trial_outcome
+            "outcome_trigger": None,  # Will be set after show_trial_outcome
             "points_earned": None,  # Will be set after show_trial_outcome
             "block_start_time": None,  # Will be set by update_block_timing_in_csv
             "block_end_time": None,  # Will be set by update_block_timing_in_csv
@@ -2606,10 +2660,9 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         }
     
     # Show outcome
-    outcome_time = time.time()
     # Calculate points based on euclidean distance (passed to show_trial_outcome)
-    points_earned = show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, total_points=total_points)
-    trial_data["outcome_time"] = outcome_time
+    points_earned, outcome_trigger = show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, total_points=total_points)
+    trial_data["outcome_trigger"] = outcome_trigger
     trial_data["points_earned"] = points_earned  # Keep CSV field name for compatibility
     
     return trial_data, points_earned
@@ -3587,10 +3640,10 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
     outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06*1.35, pos=(0, 0), wrapWidth=1.4)
     outcome_stim.draw()
     win.flip()
+    outcome_trigger = time.time()
     core.wait(2.0)  # Show for 2.0 seconds (increased from 1.5)
     
-    # Return points earned this trial
-    return correctness_points
+    return correctness_points, outcome_trigger
 
 # =========================
 #  BLOCK STRUCTURE
@@ -4338,7 +4391,7 @@ def run_experiment():
     
     # Trial 1: Participant only rates (green circle - it's OLD since we just showed it)
     # Show green circle again for Trial 1 (like a study phase presentation)
-    show_fixation(0.5)
+    recognition_fixation_trigger_t1 = show_fixation(0.5, return_onset=True)
     green_circle = load_image_stimulus(green_circle_path)  # Reload to ensure it renders
     # Don't set position/size - use defaults (0, 0) and (0.3, 0.3) to match regular task
     if hasattr(green_circle, 'draw'):
@@ -4347,6 +4400,7 @@ def run_experiment():
         green_circle = visual.Circle(win, radius=0.15, fillColor='green', lineColor='black', pos=(0, 0))
         green_circle.draw()
     win.flip()
+    recognition_image_trigger_t1 = time.time()
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
     _practice_t1_prompt = (
         "Slide using LEFT or RIGHT arrow keys to show how confident you are you've seen this before (i.e., it is \"old\"). "
@@ -4374,11 +4428,11 @@ def run_experiment():
                                       color=color_t1, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t1.draw()
     win.flip()
+    outcome_trigger_t1 = time.time()
     core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t1
     
     # Record trial 1 data - include all fields to match regular trial structure
-    image_onset_t1 = time.time()  # Approximate onset time
     trial_data_t1 = {
         'block': 0,
         'trial': 1,
@@ -4386,7 +4440,8 @@ def run_experiment():
         'trial_type': 'studied',
         'is_studied': True,
         'image_path': green_circle_path,
-        'image_onset': image_onset_t1,
+        'recognition_fixation_trigger': recognition_fixation_trigger_t1,
+        'recognition_image_trigger': recognition_image_trigger_t1,
         'participant_first': True,
         'participant_slider_value': participant_value_t1,
         'participant_rt': participant_rt_t1,
@@ -4406,7 +4461,7 @@ def run_experiment():
         'switch_rt': np.nan,
         'switch_commit_time': np.nan,
         'switch_timeout': np.nan,
-        'decision_onset_time': np.nan,
+        'switch_stay_trigger': np.nan,
         'final_answer': final_answer_t1,
         'used_ai_answer': False,
         'ground_truth': correct_answer_t1,
@@ -4414,7 +4469,7 @@ def run_experiment():
         'euclidean_participant_to_truth': abs(participant_value_t1 - correct_answer_t1),
         'euclidean_ai_to_truth': np.nan,
         'euclidean_participant_to_ai': np.nan,
-        'outcome_time': np.nan,
+        'outcome_trigger': outcome_trigger_t1,
         'points_earned': correctness_points_t1,
         'block_start_time': np.nan,
         'block_end_time': np.nan,
@@ -4424,7 +4479,7 @@ def run_experiment():
     practice_trials.append(trial_data_t1)
     
     # Show red circle
-    show_fixation(0.5)
+    recognition_fixation_trigger_t2 = show_fixation(0.5, return_onset=True)
     red_circle = load_image_stimulus(red_circle_path)  # Reload to ensure it renders
     # Don't set position/size - use defaults (0, 0) and (0.3, 0.3) to match regular task
     if hasattr(red_circle, 'draw'):
@@ -4433,6 +4488,7 @@ def run_experiment():
         red_circle = visual.Circle(win, radius=0.15, fillColor='red', lineColor='black', pos=(0, 0))
         red_circle.draw()
     win.flip()
+    recognition_image_trigger_t2 = time.time()
     core.wait(1.0)
     
     # Trial 2: Show message first, then AI rates (all the way OLD), then participant rates
@@ -4485,11 +4541,11 @@ def run_experiment():
                                       color=color_t2, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t2.draw()
     win.flip()
+    outcome_trigger_t2 = time.time()
     core.wait(1.5)  # Brief display for practice
     practice_points += correctness_points_t2
     
     # Record trial 2 data - include all fields to match regular trial structure
-    image_onset_t2 = time.time()  # Approximate onset time
     ai_decision_time_t2 = time.time()  # Approximate AI decision time
     trial_data_t2 = {
         'block': 0,
@@ -4498,7 +4554,8 @@ def run_experiment():
         'trial_type': 'studied',
         'is_studied': True,
         'image_path': red_circle_path,
-        'image_onset': image_onset_t2,
+        'recognition_fixation_trigger': recognition_fixation_trigger_t2,
+        'recognition_image_trigger': recognition_image_trigger_t2,
         'participant_first': True,
         'participant_slider_value': participant_value_t2,
         'participant_rt': participant_rt_t2,
@@ -4518,7 +4575,7 @@ def run_experiment():
         'switch_rt': np.nan,
         'switch_commit_time': np.nan,
         'switch_timeout': np.nan,
-        'decision_onset_time': np.nan,
+        'switch_stay_trigger': np.nan,
         'final_answer': final_answer_t2,
         'used_ai_answer': False,
         'ground_truth': correct_answer_t2,
@@ -4526,7 +4583,7 @@ def run_experiment():
         'euclidean_participant_to_truth': abs(participant_value_t2 - correct_answer_t2),
         'euclidean_ai_to_truth': abs(ai_confidence_t2 - correct_answer_t2),
         'euclidean_participant_to_ai': abs(participant_value_t2 - ai_confidence_t2),
-        'outcome_time': np.nan,
+        'outcome_trigger': outcome_trigger_t2,
         'points_earned': correctness_points_t2,
         'block_start_time': np.nan,
         'block_end_time': np.nan,
@@ -4543,7 +4600,7 @@ def run_experiment():
     core.wait(2.0)
     
     # Show blue square (it's NEW - not seen before, different from blue circle in encoding)
-    show_fixation(0.5)
+    recognition_fixation_trigger_t3 = show_fixation(0.5, return_onset=True)
     blue_square = load_image_stimulus(blue_square_path)  # Reload to ensure it renders
     # Use default position and size (same as regular task) - no manual positioning
     # Default from load_image_stimulus is (0, 0) position and (0.3, 0.3) size
@@ -4553,6 +4610,7 @@ def run_experiment():
         blue_square = visual.Rect(win, width=0.3, height=0.3*1.35, fillColor='blue', lineColor='black', pos=(0, 0))
         blue_square.draw()
     win.flip()
+    recognition_image_trigger_t3 = time.time()
     safe_wait(1.0)
     
     # Trial 3: Full trial with participant, AI, switch/stay
@@ -4607,13 +4665,12 @@ def run_experiment():
                                       color=color_t3, height=0.06*0.75*1.35, pos=(0, 0), wrapWidth=1.2)
     outcome_stim_t3.draw()
     win.flip()
+    outcome_trigger_t3 = time.time()
     core.wait(2.0)  # Show for 2.0 seconds (same as regular trials)
     practice_points += correctness_points_t3
     
     # Record trial 3 data - include all fields to match regular trial structure
-    image_onset_t3 = time.time()  # Approximate onset time
     ai_decision_time_t3 = time.time()  # Approximate AI decision time
-    outcome_time_t3 = time.time()  # Outcome time
     trial_data_t3 = {
         'block': 0,
         'trial': 3,
@@ -4621,7 +4678,8 @@ def run_experiment():
         'trial_type': 'studied',
         'is_studied': False,  # It's actually NEW (blue square)
         'image_path': blue_square_path,
-        'image_onset': image_onset_t3,
+        'recognition_fixation_trigger': recognition_fixation_trigger_t3,
+        'recognition_image_trigger': recognition_image_trigger_t3,
         'participant_first': True,
         'participant_slider_value': participant_value_t3,
         'participant_rt': participant_rt_t3,
@@ -4641,7 +4699,7 @@ def run_experiment():
         'switch_rt': switch_rt_t3,
         'switch_commit_time': switch_commit_time_t3,
         'switch_timeout': switch_timeout_t3,
-        'decision_onset_time': decision_onset_time_t3,
+        'switch_stay_trigger': decision_onset_time_t3,
         'final_answer': final_answer_t3,
         'used_ai_answer': used_ai_answer_t3,
         'ground_truth': correct_answer_t3,
@@ -4649,7 +4707,7 @@ def run_experiment():
         'euclidean_participant_to_truth': abs(participant_value_t3 - correct_answer_t3),
         'euclidean_ai_to_truth': abs(ai_confidence_t3 - correct_answer_t3),
         'euclidean_participant_to_ai': abs(participant_value_t3 - ai_confidence_t3),
-        'outcome_time': outcome_time_t3,
+        'outcome_trigger': outcome_trigger_t3,
         'points_earned': correctness_points_t3,
         'block_start_time': np.nan,
         'block_end_time': np.nan,

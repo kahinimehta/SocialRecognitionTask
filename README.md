@@ -45,6 +45,7 @@ Defines all logged fields, including:
 - AI responses, RTs, correctness  
 - Switch/Stay choices and timings  
 - Distances from ground truth  
+- **Neural data triggers**: Photodiode/TTL variables (`*_trigger`) for fMRI/EEG synchronization—timestamps when each stimulus/screen appeared  
 
 Use this file when analyzing data.
 
