@@ -8,9 +8,41 @@ Photodiode (0.03 × 0.01) at **extreme left** (-0.49, -0.45). **White baseline**
 
 **Computer/laptop screens only**: A 17 ms (~1 frame at 60 Hz) delay is inserted between the black and white flips for every photodiode event. This prevents vsync coalescing where rapid successive flips can cause only the white frame to be displayed. Touch screens do not use this delay.
 
+**TTL timing**: TTL is sent via PsychoPy `callOnFlip` at the exact moment of each black flip (when the photodiode patch flashes black). Every flash event triggers exactly one TTL pulse.
+
+### Complete Photodiode Flash Events (Main Task)
+
+| Event | CSV Variable | File |
+|-------|--------------|------|
+| Fixation onset | `study_fixation_onset_trigger`, `recognition_fixation_onset_trigger` | study, trials |
+| Fixation offset | `study_fixation_offset_trigger`, `recognition_fixation_offset_trigger` | study, trials |
+| Study image onset | `study_image_onset_trigger` | study |
+| Study image offset | `study_image_offset_trigger` | study |
+| Recognition image onset | `recognition_image_onset_trigger` | trials |
+| Recognition image offset | `recognition_image_offset_trigger` | trials |
+| Participant slider submit | `participant_commit_trigger` | trials |
+| Switch/stay screen onset | `switch_stay_trigger` | trials |
+| Participant STAY/SWITCH click | `switch_stay_response_trigger` | trials |
+| Outcome screen | `outcome_trigger` | trials |
+
+**Between-trial events** (instruction onset, CONTINUE/BEGIN, block summary): Photodiode flashes but not logged to per-trial CSV (no trial row).
+
+### Complete Photodiode Flash Events (Localizer)
+
+| Event | CSV Variable | File |
+|-------|--------------|------|
+| Fixation onset | `localizer_fixation_onset_trigger` | localizer |
+| Fixation offset | `localizer_fixation_offset_trigger` | localizer |
+| Image onset | `localizer_image_onset_trigger` | localizer |
+| Image offset | `localizer_image_offset_trigger` | localizer |
+| Question screen onset | `question_trigger` | localizer |
+| Participant YES/NO answer | `question_answer_trigger` | localizer |
+
+**Between-trial events** (instruction onset, BEGIN): Photodiode flashes but not logged to per-image CSV.
+
 ### CSV Trigger Variables
 
-All `*_trigger` variables record the **Unix timestamp** when the photodiode flashed black (TTL fired). Every flash is logged. Use these to align behavioral data with neural recordings:
+All `*_trigger` variables record the **Unix timestamp** when the photodiode flashed black (TTL fired). All trial-associated flashes are logged. Use these to align behavioral data with neural recordings:
 
 | Task | Variables | Event |
 |------|-----------|-------|
@@ -30,7 +62,8 @@ All `*_trigger` variables record the **Unix timestamp** when the photodiode flas
 | **Localizer** | `localizer_fixation_offset_trigger` | Fixation removed (photodiode/TTL) |
 | **Localizer** | `localizer_image_onset_trigger` | Image appeared (photodiode/TTL) |
 | **Localizer** | `localizer_image_offset_trigger` | Image removed (photodiode/TTL) |
-| **Localizer** | `question_trigger` | Question screen onset (photodiode/TTL); also flashes when participant taps YES/NO |
+| **Localizer** | `question_trigger` | Question screen onset (photodiode/TTL) |
+| **Localizer** | `question_answer_trigger` | Participant answered YES/NO (photodiode/TTL at tap or key press) |
 
 ### When the Photodiode Is *Not* Shown
 
@@ -578,9 +611,15 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 
 ### `question_trigger`
 - **Type**: Float (Unix timestamp) or None
-- **Description**: Time when the object question first appeared (photodiode/TTL when YES/NO screen appears). Photodiode also flashes when participant taps YES or NO (touch screen).
+- **Description**: Time when the object question first appeared (photodiode flashed black, TTL fired)
 - **Note**: Only populated for question trials (every 10th trial). `None` for non-question trials.
 - **Example**: `1764818180.1234567`, `None`
+
+### `question_answer_trigger`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when the photodiode flashed black (TTL fired) as the participant answered YES or NO (tap or key press)
+- **Note**: Only populated for question trials where participant answered (not timeout). `None` for non-question trials or timeout.
+- **Example**: `1764818181.5`, `None`
 
 ### `answer`
 - **Type**: Boolean, String, or None

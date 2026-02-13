@@ -1245,7 +1245,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     event.clearEvents()
 
 def ask_object_question(object_name, timeout=10.0):
-    """Ask object question and return (answer, timed_out, response_time, answer_click_time, question_trigger) tuple
+    """Ask object question and return (answer, timed_out, response_time, answer_click_time, question_trigger, question_answer_trigger) tuple
     
     Args:
         object_name: Object name for the question (e.g., "Giraffe", "Elephant")
@@ -1330,6 +1330,7 @@ def ask_object_question(object_name, timeout=10.0):
     clock.reset()
     response_time = None
     answer_click_time = None  # Absolute timestamp when answer was clicked
+    question_answer_trigger = None  # Photodiode/TTL timestamp when participant answered (tap or key)
     
     if USE_TOUCH_SCREEN:
         # Position-change detection for touchscreens
@@ -1385,6 +1386,7 @@ def ask_object_question(object_name, timeout=10.0):
                                 answer_click_time = time.time()  # Record absolute timestamp
                                 yes_button.fillColor = 'green'
                                 _do_photodiode_flash(draw_question_content)  # Flash at click
+                                question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                                 core.wait(0.3)
                                 answered = True
                                 break
@@ -1402,6 +1404,7 @@ def ask_object_question(object_name, timeout=10.0):
                                 answer_click_time = time.time()  # Record absolute timestamp
                                 no_button.fillColor = 'red'
                                 _do_photodiode_flash(draw_question_content)  # Flash at click
+                                question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                                 core.wait(0.3)
                                 answered = True
                                 break
@@ -1432,6 +1435,7 @@ def ask_object_question(object_name, timeout=10.0):
                             answer_click_time = time.time()  # Record absolute timestamp
                             yes_button.fillColor = 'green'
                             _do_photodiode_flash(draw_question_content)  # Flash at click
+                            question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                             core.wait(0.3)
                             answered = True
                             break
@@ -1441,6 +1445,7 @@ def ask_object_question(object_name, timeout=10.0):
                             answer_click_time = time.time()  # Record absolute timestamp
                             no_button.fillColor = 'red'
                             _do_photodiode_flash(draw_question_content)  # Flash at click
+                            question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                             core.wait(0.3)
                             answered = True
                             break
@@ -1466,12 +1471,16 @@ def ask_object_question(object_name, timeout=10.0):
                     if 'escape' in keys:
                         core.quit()
                     elif 'y' in keys:
+                        _do_photodiode_flash(draw_question_content)  # Flash at key press
+                        question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         answer = True
                         response_time = clock.getTime()
                         answer_click_time = time.time()  # Record absolute timestamp
                         answered = True
                         break
                     elif 'n' in keys:
+                        _do_photodiode_flash(draw_question_content)  # Flash at key press
+                        question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         answer = False
                         response_time = clock.getTime()
                         answer_click_time = time.time()  # Record absolute timestamp
@@ -1500,12 +1509,16 @@ def ask_object_question(object_name, timeout=10.0):
                     if 'escape' in keys:
                         core.quit()
                     if 'left' in keys:
+                        _do_photodiode_flash(draw_question_content)  # Flash at key press
+                        question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         answer = True
                         response_time = clock.getTime()
                         answer_click_time = time.time()
                         answered = True
                         break
                     if 'right' in keys:
+                        _do_photodiode_flash(draw_question_content)  # Flash at key press
+                        question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         answer = False
                         response_time = clock.getTime()
                         answer_click_time = time.time()
@@ -1533,7 +1546,7 @@ def ask_object_question(object_name, timeout=10.0):
         win.flip()
         wait_with_escape(2.0)  # Show message for 2 seconds. ESC works during wait.
     
-    return (answer, timed_out, response_time, answer_click_time, question_trigger)
+    return (answer, timed_out, response_time, answer_click_time, question_trigger, question_answer_trigger)
 
 # Create main window with appropriate settings - use try/finally pattern
 print("DEBUG: About to start window creation block", file=sys.stderr)
@@ -1906,7 +1919,7 @@ try:
             'stimulus_type', 'is_lure', 'image_path', 'presentation_time', 
             'localizer_fixation_onset_trigger', 'localizer_fixation_offset_trigger', 'fixation_duration',
             'localizer_image_onset_trigger', 'localizer_image_offset_trigger', 'is_question_trial', 
-            'question_object', 'question_text', 'question_trigger', 
+            'question_object', 'question_text', 'question_trigger', 'question_answer_trigger',
             'answer', 'correct_answer', 'correct', 'timed_out', 'response_time', 'answer_click_time'
         ]
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -1969,7 +1982,7 @@ try:
                     question_object = random.choice(wrong_objects) if wrong_objects else correct_object
                     correct_answer = False
                 
-                answer, timed_out, response_time, answer_click_time, question_trigger = ask_object_question(question_object, timeout=10.0)
+                answer, timed_out, response_time, answer_click_time, question_trigger, question_answer_trigger = ask_object_question(question_object, timeout=10.0)
                 is_correct = (answer == correct_answer) if not timed_out else None
                 
                 # No per-trial feedback; feedback shown at end only
@@ -1992,6 +2005,7 @@ try:
                     'question_object': question_object,
                     'question_text': object_to_question(question_object),
                     'question_trigger': question_trigger,
+                    'question_answer_trigger': question_answer_trigger,
                     'answer': answer if not timed_out else 'TIMEOUT',
                     'correct_answer': correct_answer,
                     'correct': is_correct,
@@ -2019,6 +2033,7 @@ try:
                     'question_object': None,
                     'question_text': None,
                     'question_trigger': None,
+                    'question_answer_trigger': None,
                     'answer': None,
                     'correct_answer': None,
                     'correct': None,
