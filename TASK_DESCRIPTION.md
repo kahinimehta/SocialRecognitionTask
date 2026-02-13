@@ -260,7 +260,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Neural Data Logging (Photodiode & TTL)
 
-Photodiode patch at **extreme right** (0.49, -0.45), white baseline. **Flashes black** (and sends TTL) on every visual change and motor response: fixation onset/offset, image onset/offset, instruction onset, outcome onset, participant commits (SUBMIT, CONTINUE, BEGIN, stay/switch). TTL sent with every black flash. Not shown until first task screen. See `CSV_VARIABLES_DOCUMENTATION.md` for variable mapping.
+Photodiode patch at **extreme left** (-0.49, -0.45). White baseline; at each event it briefly flashes black (TTL sent) then white via `win.flip()`—never stays black. Covers: fixation onset/offset, image onset/offset, instruction onset, outcome onset, participant commits. Every flash logged in CSV. See `CSV_VARIABLES_DOCUMENTATION.md` for variable mapping.
 
 ---
 

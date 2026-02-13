@@ -1109,8 +1109,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
     first_draw_done = [False]
-    def draw_screen():
-        # Draw additional stimuli first (e.g., instructions)
+    def draw_content():
         if additional_stimuli:
             for stim in additional_stimuli:
                 stim.draw()
@@ -1118,10 +1117,13 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         continue_text.draw()
         exit_btn.draw()
         exit_text.draw()
+    def draw_screen():
         if not first_draw_done[0]:
-            _signal_photodiode_event()  # Instruction/continue screen onset
+            _do_photodiode_flash(draw_content)  # Instruction/continue onset: black (TTL), white
             first_draw_done[0] = True
-        win.flip()
+        else:
+            draw_content()
+            win.flip()
     
     draw_screen()
     
@@ -1168,9 +1170,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                             core.quit()
                         elif continue_button.contains(mouseloc):
                             if t > minRT:
-                                _signal_photodiode_event()  # Participant response
-                                continue_button.fillColor = 'lightgreen'
-                                draw_screen()
+                                _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
                                 core.wait(0.2)
                                 clicked = True
                                 break
@@ -1190,9 +1190,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                         if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
                             if t > minRT:
-                                _signal_photodiode_event()  # Participant response
-                                continue_button.fillColor = 'lightgreen'
-                                draw_screen()
+                                _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
                                 core.wait(0.2)
                                 clicked = True
                                 break
@@ -1218,7 +1216,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                     if 'escape' in keys:
                         core.quit()
                     elif 'space' in keys:
-                        _signal_photodiode_event()  # Participant response
+                        _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
                         clicked = True
                         break
             except (AttributeError, RuntimeError) as e:
@@ -1234,7 +1232,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
-                        _signal_photodiode_event()  # Participant response
+                        _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
                         clicked = True
                         break
                     if 'escape' in keys:
@@ -1753,15 +1751,16 @@ try:
     # Create fixation cross
     fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     
-    def show_fixation(duration=1.0, return_onset=False):
-        """Display fixation cross for specified duration. Photodiode flashes black on fixation onset and offset (TTL sent with each)."""
-        _signal_photodiode_event()  # Fixation onset – black flash, then white
-        fixation.draw()
-        win.flip()
-        onset = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+    def show_fixation(duration=1.0, return_onset=False, return_offset_trigger=False):
+        """Display fixation cross for specified duration. Photodiode stays white; flashes black (TTL) then white at onset/offset."""
+        _do_photodiode_flash(lambda: fixation.draw())  # Onset: black (TTL), white
+        onset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
         wait_with_escape(duration)
-        _signal_photodiode_event()  # Fixation offset – black flash on next flip, then white
-        return onset if return_onset else None
+        _do_photodiode_flash(lambda: _blank_rect.draw())  # Offset: black (TTL), white
+        offset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+        if return_onset and return_offset_trigger:
+            return onset_trigger, offset_trigger
+        return onset_trigger if return_onset else None
 
     # Get participant ID
     print("About to call get_participant_id()...")
@@ -1785,19 +1784,28 @@ try:
         core.quit()
         exit(1)
 
-    # Create photodiode and install wrapper AFTER name is submitted (not visible during input method or name entry)
-    # 1/4 exit button size, positioned up and right of bottom-left (no fixation signaling)
+    # Create photodiode and install wrapper AFTER name is submitted. White baseline; flashes black (TTL) then white per event.
     PHOTODIODE_ACTIVE = True  # Re-enable for main task
+    _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
     try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # 1/4 exit button size
             fillColor='white', lineColor=None,
-            pos=(0.49, -0.45),  # Extreme right of screen
+            pos=(-0.49, -0.45),  # Extreme left of screen
             units='height'
         )
         _photodiode_signal_next_flip = [False]
         def _signal_photodiode_event():
             _photodiode_signal_next_flip[0] = True
+        def _do_photodiode_flash(draw_func):
+            """Signal photodiode, then flip black (TTL) then white. No artificial delays—timestamps align to screen change."""
+            _signal_photodiode_event()
+            if draw_func:
+                draw_func()
+            win.flip()  # Black flash, TTL
+            if draw_func:
+                draw_func()
+            win.flip()  # White (baseline)
         _orig_flip = win.flip
         def _wrapped_flip(*args, **kwargs):
             did_flash = False
@@ -1809,11 +1817,13 @@ try:
                     _photodiode_signal_next_flip[0] = False
                     did_flash = True
                 photodiode_patch.draw()
-            result = _orig_flip(*args, **kwargs)
-            # TTL only when photodiode flashes – same event, same timestamp for CSV alignment
+            # TTL at exact flip moment – callOnFlip fires when screen changes, same time as photodiode flash
             if PHOTODIODE_ACTIVE and photodiode_patch is not None and did_flash:
-                _last_photodiode_ttl_timestamp[0] = time.time()
-                _send_ttl_trigger()
+                def _on_flash():
+                    _last_photodiode_ttl_timestamp[0] = time.time()
+                    _send_ttl_trigger()
+                win.callOnFlip(_on_flash)
+            result = _orig_flip(*args, **kwargs)
             return result
         win.flip = _wrapped_flip
     except Exception as e:
@@ -1866,9 +1876,9 @@ try:
         wrapWidth=1.4*0.75
     )
 
-    _signal_photodiode_event()  # First instruction screen onset (visual change)
-    instructions.draw()
-    win.flip()
+    def draw_instructions():
+        instructions.draw()
+    _do_photodiode_flash(draw_instructions)  # First instruction onset: black (TTL), white
     wait_for_button("BEGIN", additional_stimuli=[instructions])
 
     # Data storage
@@ -1889,8 +1899,8 @@ try:
         fieldnames = [
             'participant_id', 'trial', 'stimulus_number', 'object_name', 'category',
             'stimulus_type', 'is_lure', 'image_path', 'presentation_time', 
-            'localizer_fixation_trigger', 'fixation_offset_time', 'fixation_duration',
-            'localizer_image_trigger', 'image_offset_time', 'is_question_trial', 
+            'localizer_fixation_onset_trigger', 'localizer_fixation_offset_trigger', 'fixation_duration',
+            'localizer_image_onset_trigger', 'localizer_image_offset_trigger', 'is_question_trial', 
             'question_object', 'question_text', 'question_trigger', 
             'answer', 'correct_answer', 'correct', 'timed_out', 'response_time', 'answer_click_time'
         ]
@@ -1903,8 +1913,7 @@ try:
     # Show images
     # Start with a fixation cross before the first image
     fixation_duration_first = random.uniform(0.25, 0.75)
-    localizer_fixation_trigger_first = show_fixation(fixation_duration_first, return_onset=True)
-    fixation_offset_first = time.time()
+    localizer_fixation_onset_trigger_first, localizer_fixation_offset_trigger_first = show_fixation(fixation_duration_first, return_onset=True, return_offset_trigger=True)
     
     for idx, stimulus in enumerate(all_stimuli, 1):
         # Record presentation time
@@ -1914,28 +1923,22 @@ try:
         # Show jittered fixation between images (except before first image, which was already shown)
         if idx > 1:
             fixation_duration = random.uniform(0.25, 0.75)
-            localizer_fixation_trigger = show_fixation(fixation_duration, return_onset=True)
-            fixation_offset = time.time()
+            localizer_fixation_onset_trigger, localizer_fixation_offset_trigger = show_fixation(fixation_duration, return_onset=True, return_offset_trigger=True)
         else:
-            # First image uses the initial fixation
             fixation_duration = fixation_duration_first
-            localizer_fixation_trigger = localizer_fixation_trigger_first
-            fixation_offset = fixation_offset_first
+            localizer_fixation_onset_trigger = localizer_fixation_onset_trigger_first
+            localizer_fixation_offset_trigger = localizer_fixation_offset_trigger_first
         
-        # Load and display image (fixation offset + image onset)
+        # Load and display image; photodiode flashes at fixation onset/offset, image onset/offset
         try:
-            _signal_photodiode_event()
             img = visual.ImageStim(win, image=stimulus['path'], size=(0.8*0.75*1.35, 0.8*0.75*1.35))
-            img.draw()
-            win.flip()
-            localizer_image_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+            _do_photodiode_flash(lambda: img.draw())  # Image onset: black (TTL), white
+            localizer_image_onset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
             
             # Show image for exactly 0.5 seconds (fixed duration). ESC works during wait.
             wait_with_escape(0.5)
-            _signal_photodiode_event()  # Image offset (next flip will flash)
-            
-            # Record image offset time
-            image_offset_time = time.time()
+            _do_photodiode_flash(lambda: _blank_rect.draw())  # Image offset: black (TTL), white
+            localizer_image_offset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
             
             # Check if this is the 10th image (or every 10th after the first)
             is_question_trial = (idx % 10 == 0)
@@ -1975,11 +1978,11 @@ try:
                     'is_lure': current_stimulus['is_lure'],
                     'image_path': current_stimulus['path'],
                     'presentation_time': presentation_timestamp,
-                    'localizer_fixation_trigger': localizer_fixation_trigger,
-                    'fixation_offset_time': fixation_offset,
+                    'localizer_fixation_onset_trigger': localizer_fixation_onset_trigger,
+                    'localizer_fixation_offset_trigger': localizer_fixation_offset_trigger,
                     'fixation_duration': fixation_duration,
-                    'localizer_image_trigger': localizer_image_trigger,
-                    'image_offset_time': image_offset_time,
+                    'localizer_image_onset_trigger': localizer_image_onset_trigger,
+                    'localizer_image_offset_trigger': localizer_image_offset_trigger,
                     'is_question_trial': True,
                     'question_object': question_object,
                     'question_text': object_to_question(question_object),
@@ -2002,11 +2005,11 @@ try:
                     'is_lure': stimulus['is_lure'],
                     'image_path': stimulus['path'],
                     'presentation_time': presentation_timestamp,
-                    'localizer_fixation_trigger': localizer_fixation_trigger,
-                    'fixation_offset_time': fixation_offset,
+                    'localizer_fixation_onset_trigger': localizer_fixation_onset_trigger,
+                    'localizer_fixation_offset_trigger': localizer_fixation_offset_trigger,
                     'fixation_duration': fixation_duration,
-                    'localizer_image_trigger': localizer_image_trigger,
-                    'image_offset_time': image_offset_time,
+                    'localizer_image_onset_trigger': localizer_image_onset_trigger,
+                    'localizer_image_offset_trigger': localizer_image_offset_trigger,
                     'is_question_trial': False,
                     'question_object': None,
                     'question_text': None,
