@@ -773,7 +773,7 @@ try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # 1/4 exit button size
             fillColor='white', lineColor=None,
-            pos=(-0.495, -0.48),  # Extreme left, slightly down
+            pos=(-0.49, -0.49),  # Bottom-left corner
             units='height'
         )
         _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
