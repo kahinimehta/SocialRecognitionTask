@@ -30,8 +30,10 @@ Photodiode (0.03 × 0.01) at **extreme left** (-0.49, -0.45). **White baseline**
 | Switch/stay screen onset | `switch_stay_trigger` | trials |
 | Participant STAY/SWITCH click | `switch_stay_response_trigger` | trials |
 | Outcome screen | `outcome_trigger` | trials |
+| Partner "[Name] is rating..." appears | `partner_rating_onset` | TTL events |
+| Partner "[Name] rates: OLD/NEW" appears | `partner_rating_complete` | TTL events |
 
-**All events** (including start_task_onset, begin_click, instruction onset, instruction_continue, block_summary_onset, block_summary_continue, welcome_onset, motor_response, practice_*) trigger photodiode+TTL and are logged to `recognition_ttl_events_*.csv`. Per-trial CSVs log only trial-associated triggers.
+**All events** (including start_task_onset, begin_click, instruction_onset, instruction_continue, block_summary_onset, block_summary_continue, welcome_onset, motor_response, practice_*, partner_rating_onset, partner_rating_complete) trigger photodiode+TTL and are logged to `recognition_ttl_events_*.csv`. Per-trial CSVs log only trial-associated triggers.
 
 ### Complete Photodiode Flash Events (Localizer)
 
@@ -80,7 +82,7 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
 | `timestamp` | Float (Unix) | Time when TTL fired (same as photodiode black flash) |
 | `event_type` | String | Event identifier (matches CSV variable names where applicable) |
 
-**Main task event types**: `study_fixation_onset_trigger`, `study_fixation_offset_trigger`, `study_image_onset_trigger`, `study_image_offset_trigger`, `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger`, `instruction_onset`, `instruction_continue`, `block_summary_onset`, `block_summary_continue`, `start_task_onset`, `begin_click`, `welcome_onset`, `motor_response`, `practice_fixation_onset`, `practice_fixation_offset`
+**Main task event types**: `study_fixation_onset_trigger`, `study_fixation_offset_trigger`, `study_image_onset_trigger`, `study_image_offset_trigger`, `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger`, `instruction_onset`, `instruction_continue`, `block_summary_onset`, `block_summary_continue`, `start_task_onset`, `begin_click`, `welcome_onset`, `motor_response`, `practice_fixation_onset`, `practice_fixation_offset`, `partner_rating_onset`, `partner_rating_complete`
 
 **Localizer event types**: `localizer_fixation_onset_trigger`, `localizer_fixation_offset_trigger`, `localizer_image_onset_trigger`, `localizer_image_offset_trigger`, `question_trigger`, `question_answer_trigger`, `instruction_onset`, `instruction_continue`
 
