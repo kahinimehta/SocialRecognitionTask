@@ -4,7 +4,7 @@
 
 This task examines how participants collaborate with an AI partner during a recognition memory task. Participants study images and then test their memory by rating images as "OLD" (studied) or "NEW" (not studied), while collaborating with an AI partner who also provides ratings.
 
-**Duration**: 35-45 minutes (50-60 minutes for slower participants)  
+**Duration**: 20-35 minutes (40-50 minutes for slower participants)  
 **Structure**: 10 blocks × 10 trials = 100 total trials  
 **Response Timeout**: 7 seconds per response (slider and switch/stay decisions)
 
@@ -53,7 +53,6 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Recognition Trial Distribution
 
-- All 10 studied images from each block appear in the recognition phase
 - **50% show the studied image** (original Image version): These are "studied" trials
 - **50% show the lure version** (Lure version of the **same object** as the studied item): These are "lure" trials
   - **Important**: Lures correspond to the same category/object as the studied image (e.g., if `Image_041.jpg` was studied, the lure would be `Lure_041.jpg`, not a random lure from a different object)
@@ -85,7 +84,7 @@ Each of the 10 trials follows this structure:
 2. **Image Presentation**: Shows either the studied image or its lure (50% chance each) for 1.0 second (fixed duration)
    - Image remains visible until participant responds or timeout (7 seconds)
 3. **Participant Rating**: Rate memory confidence on a continuous slider
-   - Click anywhere on the slider line to set rating (mouse mode allows dragging, touch screen uses tap-to-set)
+   - Click anywhere on the slider line to set rating (modes allow dragging and would log drag onset/offset to be safe, but clicking is encouraged)
    - Click SUBMIT button to confirm
    - Timeout: 7 seconds (random answer selected if timeout)
 4. **AI Partner Rating**: AI partner also rates the image
@@ -222,7 +221,7 @@ All scoring is framed as "in-house curator" evaluations:
 #### Participant Data
 - **Response Time (RT)**: Time to click on slider and submit
 - **Decision Commitment Time**: Time when submit button is clicked
-- **Slider Stop Time**: Time when slider value is set (clicked)
+- **Slider Start/Stop/Click Time**: Time when slider value is set (clicked) or all slider movements
 - **Old-New Slider Value**: Final slider position (0.0 = OLD, 1.0 = NEW)
 - **Switch/Stay Decision**: Choice made
 - **Switch/Stay RT**: Time to make decision
@@ -314,8 +313,6 @@ All scoring is framed as "in-house curator" evaluations:
 - **Anonymized participant names**: P01-P05
 - Participant shown as "[ID] (you)" at their rank
 - **No scores displayed** - only rank and participant names
-- **Continue button** is positioned lower on the screen to avoid overlap with the leaderboard text
-- Based on total points earned across all experimental blocks
 
 ### Transition Screens
 
@@ -328,79 +325,6 @@ All scoring is framed as "in-house curator" evaluations:
 
 ---
 
-## Randomization and Counterbalancing
-
-### Stimulus Randomization
-
-- **100 stimuli** organized by category, with items shuffled within each category
-- **Each block contains exactly 1 item from each of the 10 categories (10 stimuli per block)**
-- Each stimulus appears exactly once across all experimental blocks
-- **First recognition image** is never the same as the last study image
-- Items within each block are randomized for presentation order
-
-### Trial Randomization
-
-- **Studied vs. lure**: Each of the 10 block images appears once in recognition (5 studied, 5 lures)
-- **Trial order**: Randomized within each block
-- **Image assignments**: Randomly assigned to studied/lure conditions
-
-### Block Counterbalancing
-
-- **Turn-taking**: Randomized within each block - AI goes first on 5 random trials out of 10 per block
-- **AI Accuracy**: Fixed order - Blocks 1-3, 6-7 reliable (Amy, 90%); Blocks 4-5, 8-10 unreliable (Ben, 40%)
-- **Structure**: 
-  - Blocks 1-3: Reliable (Amy, 90%), randomized turn order (AI first on 5 random trials)
-  - Blocks 4-5: Unreliable (Ben, 40%), randomized turn order (AI first on 5 random trials)
-  - Blocks 6-7: Reliable (Amy, 90%), randomized turn order (AI first on 5 random trials)
-  - Blocks 8-10: Unreliable (Ben, 40%), randomized turn order (AI first on 5 random trials)
-
-### AI Behavior Randomization
-
-- **AI RT**: Log-normal distribution (mu=0.5, sigma=0.3, capped at 5.0s)
-- **AI Confidence**:
-  - Amy (reliable): When correct, 0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0); when incorrect, 0.5–0.75 or 0.25–0.5 on wrong side (depending on which side)
-  - Ben (unreliable): Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW). Categorical accuracy 40% via pre-generated sequence; confidence uninformative about correctness.
-- **AI Accuracy**: Controlled at block level (90% reliable or 40% unreliable)
-
----
-
-## Technical Details
-
-### Timing Specifications
-
-#### Study Phase Timing
-- **Image duration**: 1.0 second per image (fixed, no jitter)
-- **Fixation jitter**: 
-  - Duration: 0.25-0.75 seconds (uniform random distribution)
-  - Distribution: `random.uniform(0.25, 0.75)`
-  - Appears before EVERY image, including the first image
-  - 10 fixations per block (before each of the 10 images)
-- **Total study phase duration**: Approximately 15-17.5 seconds per block
-  - 10 images × 1.0 second = 10 seconds
-  - 10 fixations × (0.25-0.75 seconds average 0.5) = ~5 seconds
-
-#### Recognition Phase Timing
-- **Pre-trial fixation**: 0.5 seconds (fixed duration, shown before each image)
-- **Image duration**: 1.0 second per image (fixed, no jitter)
-  - Image remains visible until participant responds or timeout (7 seconds)
-- **Inter-trial jitter**: 
-  - Duration: 0.25-0.75 seconds (uniform random distribution)
-  - Distribution: `random.uniform(0.25, 0.75)` - each jitter independently drawn
-  - Appears between trials (after trial N completes, before trial N+1 starts)
-  - Shown as fixation cross during jitter period
-  - **No jitter after the last trial** in each block
-  - **9 jittered fixations per block** (between 10 trials)
-
-#### Participant Response Timeouts (Main Task)
-**Note**: These timeout settings apply to the main social recognition memory task only. The localizer task uses a 10.0 second timeout for questions (see README.md).
-
-- **Slider response**: 7.0 seconds (fixed)
-  - Image remains visible until timeout or submission
-  - Random answer selected if timeout (not center position)
-- **Switch/Stay decision**: 7.0 seconds (fixed)
-  - Decision screen remains visible until timeout or button click
-  - Random decision (STAY or SWITCH) selected if timeout
-
 #### Localizer Task
 
 Separate task for object verification. Participants view 200 images (100 Image + 100 Lure) in random order.
@@ -412,7 +336,6 @@ Separate task for object verification. Participants view 200 images (100 Image +
   - Pre-generated sequence ensures exactly 10 correct and 10 incorrect questions in randomized order
 - **Feedback**: No per-trial feedback. Accuracy summary ("Your accuracy: X/20 (Y%)") shown at the very end only.
 - **Question timeout**: 10.0 seconds (differs from main task's 7.0 second timeouts)
-- **Exit fullscreen**: Laptop: ESC always works. Touch: Exit button on instruction and question screens. In the localizer, ESC and Exit work at all times (including during fixation and image presentation).
 
 **Timing**:
 - **Fixation cross**: Jittered 0.25-0.75 seconds before each image (`random.uniform(0.25, 0.75)`), 200 fixations total
@@ -420,32 +343,6 @@ Separate task for object verification. Participants view 200 images (100 Image +
 - **Question timing**: Asked at trials 10, 20, 30, ..., 200 (20 questions total)
 - **Total duration**: Approximately 3-5 minutes
 
-#### AI Response Timing
-- **AI RT distribution**: Log-normal
-  - Underlying normal: mu = 0.5, sigma = 0.3
-  - Mean RT: ~1.5-2.5 seconds
-  - Maximum RT: 5.0 seconds (capped)
-  - Formula: `min(np.random.lognormal(0.5, 0.3), 5.0)`
-
-#### Outcome Feedback Timing
-- Outcome screen displayed immediately after decision
-- Shows correctness ("Correct" or "Incorrect") and curator scoring message
-- Visual feedback duration: 2 seconds (fixed)
-- Brief pause before next trial (jittered fixation: 0.25-0.75 seconds)
-
-#### General Timing Notes
-- All timeouts: Random answer/decision selected if timeout occurs
-- All timeout flags recorded in CSV data
-- All reaction times recorded from stimulus onset to response
-- Timestamps recorded in Unix time (seconds since epoch)
-
-### Response Timeouts (Main Task)
-
-**Note**: These timeout settings apply to the main social recognition memory task only. The localizer task has different timeout settings (see README.md for localizer details).
-
-- **Slider response**: 7.0 seconds (fixed)
-- **Switch/Stay decision**: 7.0 seconds (fixed)
-- If timeout: Random answer/decision selected, timeout flag recorded in data
 
 ### Window and Display
 
@@ -463,44 +360,6 @@ Separate task for object verification. Participants view 200 images (100 Image +
 - **Placeholder stimuli**: Generated automatically if missing or incorrect
 - **Data files**: Created with participant ID and timestamp
 - **Incremental saving**: Data saved after each trial for robustness
-
----
-
-## Experimental Design Considerations
-
-### Manipulations
-
-1. **Turn-Taking**: Who responds first (participant vs. AI)
-2. **AI Accuracy**: High (90%) vs. Low (40%) accuracy blocks
-
-### Research Questions
-
-- How does turn order affect collaboration decisions?
-- How does AI accuracy influence trust and switching behavior?
-- What strategies do participants use to maximize points?
-- How does confidence level affect point earning?
-
-### Potential Limitations
-
-- **Not fully counterbalanced**: Some manipulation combinations may occur more frequently
-- **AI accuracy**: Fixed at block level, not trial level
-
----
-
-## Instructions for Participants
-
-### Key Points Emphasized
-
-1. **Confidence matters**: Slider position indicates confidence level
-2. **Points = accuracy + confidence**: More confident + correct = more points
-3. **Collaboration**: Can switch even if both agree (to match confidence levels)
-4. **Leaderboard**: See how you compare to others at the end
-
-### Practice Instructions
-
-- "This is just for practice, but go as quick as you can!"
-- Practice uses 4 shape stimuli (3 circles in study + blue square in trial 3)
-- Same mechanics as experimental blocks
 
 ---
 
