@@ -41,11 +41,11 @@ Complete dictionary of every variable saved in the output CSVs.
 Defines all logged fields, including:
 
 - Trial metadata  
-- Participant slider values, RTs, commit times  
+- Participant slider values, RTs, commit times (all variables written for analysis flexibility)  
 - AI responses, RTs, correctness  
 - Switch/Stay choices and timings  
 - Distances from ground truth  
-- **Neural data triggers**: Photodiode/TTL variables (`*_trigger`) for fMRI/EEG synchronization—timestamps when each stimulus/screen appeared  
+- **Neural data triggers**: Event-based photodiode/TTL variables (`*_trigger`) for fMRI/EEG synchronization—flashes only on stimulus onset and participant responses (e.g., submit, stay/switch), not on slider movements  
 
 Use this file when analyzing data.
 

@@ -8,8 +8,8 @@ The task supports **fMRI/EEG synchronization** via a photodiode detector and par
 
 ### Hardware Setup
 
-- **Photodiode patch**: A small rectangle (~0.5 cm × 1 cm) in the **bottom-left corner** is **white by default** (baseline) and **flashes black** on each screen flip. Light-level changes (white→black = onset, black→white = offset) are used to detect stimulus onset/offset. Shown on every flip during the main experiment (except input-method selection and name entry).
-- **TTL pulse**: When the photodiode rectangle is drawn, a brief TTL pulse is sent via the **parallel port** (Windows/Linux):
+- **Photodiode patch**: A small rectangle (same size as Exit button: 0.12 × 0.04 height units) in the **bottom-left corner** (-0.45, -0.47). **White by default** (baseline); **flashes black only on stimulus/event onset** (event-based, not on every flip). Events include: fixation onset/offset, image onset/offset, instruction/outcome screen onset, and **participant responses** (submit, stay/switch, continue). During slider and switch/stay decision screens, the patch **stays white**; it flashes black only when participants **commit** (e.g., hit SUBMIT or click STAY/SWITCH). In the localizer, the YES/NO object-question screen does **not** trigger flashes. Not shown during input-method selection or name entry.
+- **TTL pulse**: Sent only when the photodiode flashes black (i.e., on event onset), via the **parallel port** (Windows/Linux):
   - Default address: `0x0378` (LPT1). Override with env var: `PARALLEL_PORT_ADDRESS=0x0378`
   - Pulse: pins high (255) for 10 ms, then low (0)
   - *Note*: Parallel port is not available on macOS; the task runs normally but no TTL is sent.
@@ -206,7 +206,7 @@ The localizer task generates one CSV file:
 
 ### `participant_slider_stop_time`
 - **Type**: Float (Unix timestamp) or None
-- **Description**: Time when participant last clicked/tapped on the slider to set their rating (final position). None if they never clicked on the slider.
+- **Description**: Time when participant last clicked/tapped on the slider to set their rating (final position). None if they never clicked on the slider. All slider-related variables are written to the CSV for analysis; the **photodiode/TTL fires only on submit** (commit time), not on slider movements.
 - **Note**: For touch screens, this may be different from `participant_slider_decision_onset_time` if the participant taps multiple times to adjust their rating.
 - **Derived measure**: Time from image onset to last slider click = `participant_slider_stop_time - recognition_image_trigger` (when not None)
 - **Example**: `1764818195.5`, `None`
@@ -444,7 +444,8 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 
 ## Notes
 
-- **Photodiode/TTL triggers**: Variables named `*_trigger` record the Unix timestamp when the photodiode rectangle (and parallel-port TTL pulse) fired for each stimulus/screen onset. See **Neural Data Logging (Photodiode & TTL)** above for hardware setup and variable mapping.
+- **Photodiode/TTL triggers**: Variables named `*_trigger` record the Unix timestamp when the photodiode rectangle (and parallel-port TTL pulse) fired for each stimulus/screen onset. See **Neural Data Logging (Photodiode & TTL)** above for hardware setup and variable mapping. For the slider screen, photodiode/TTL fires **only on submit** (decision commit), not on slider movements or slider screen onset.
+- **CSV variables**: All variables (including `participant_slider_click_times`, `participant_slider_decision_onset_time`, `participant_slider_stop_time`, etc.) are written to the CSV for analysis flexibility.
 - All timestamps are in Unix time (seconds since January 1, 1970)
 - All slider values range from 0.0 (OLD/studied) to 1.0 (NEW/lure)
 - **Timeout settings (Main Task only)**: Timeout variables are True if the participant didn't respond within the time limit:

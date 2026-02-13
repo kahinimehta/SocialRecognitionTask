@@ -262,9 +262,10 @@ All scoring is framed as "in-house curator" evaluations:
 
 The task outputs **photodiode and TTL signals** for fMRI/EEG synchronization:
 
-- **Photodiode patch**: A small rectangle (~0.5 cm × 1 cm) in the bottom-left corner is white (baseline) and flashes black on each screen flip. Light-level changes (white→black = onset, black→white = offset) mark stimulus onset/offset. Shown on every flip (except input-method selection and name entry).
-- **TTL pulses**: When the photodiode is drawn, a brief parallel-port pulse is sent (Windows/Linux; default port 0x0378). Set `PARALLEL_PORT_ADDRESS` to override.
+- **Photodiode patch**: A small rectangle (same size as the Exit button: 0.12 × 0.04 height units) in the **bottom-left corner** (-0.45, -0.47). **White by default** (baseline); **flashes black only on stimulus/event onset** (not on every flip). Events include: fixation onset/offset, image onset/offset, instruction/outcome screen onset, and **participant responses** (submit, stay/switch, continue). During decision screens (slider, switch/stay) the patch stays white; it flashes black only when participants commit (e.g., hit SUBMIT or click STAY/SWITCH). In the localizer, the YES/NO object-question screen does **not** trigger photodiode flashes. Not shown during input-method selection or name entry.
+- **TTL pulses**: Sent only when the photodiode flashes black (Windows/Linux; default port 0x0378). Set `PARALLEL_PORT_ADDRESS` to override.
 - **CSV trigger variables**: All `*_trigger` columns (e.g., `study_fixation_trigger`, `recognition_image_trigger`, `switch_stay_trigger`, `outcome_trigger`) record the Unix timestamp when the photodiode/TTL fired—use these to align behavioral data with neural recordings. See `CSV_VARIABLES_DOCUMENTATION.md` for the full mapping.
+- **CSV data**: All slider-related variables (`participant_slider_click_times`, `participant_slider_decision_onset_time`, `participant_commit_time`, etc.) are written to the CSV for analysis flexibility, regardless of photodiode event timing.
 
 ---
 
@@ -351,7 +352,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 - **Question timing**: Asked at trials 10, 20, 30, ..., 200 (20 questions total)
 - **Total duration**: Approximately 3-5 minutes
 
-**Neural data**: Same photodiode and TTL output as the main task. CSV variables: `localizer_fixation_trigger`, `localizer_image_trigger`, `question_trigger` (for question trials).
+**Neural data**: Same event-based photodiode and TTL output as the main task (white baseline, flashes black only on stimulus/event onset and participant responses). CSV variables: `localizer_fixation_trigger`, `localizer_image_trigger`, `question_trigger` (for question trials).
 
 
 ### Window and Display
