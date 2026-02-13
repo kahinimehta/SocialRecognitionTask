@@ -333,7 +333,7 @@ def get_input_method():
         # Show confirmation - use height units to match temp window
         confirm_text = visual.TextStim(
             temp_win,
-            text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'KEYBOARD'}",
+            text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'KEYBOARD'}\n\n{'Use Return for all buttons.' if not USE_TOUCH_SCREEN else ''}",
             color='black',
             height=40/720*0.75,
             pos=(0, 100/720*0.6),
@@ -347,7 +347,7 @@ def get_input_method():
         cont_x = 0
         cont_y = -150/720*0.6
         continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y), units='height')
-        continue_text = visual.TextStim(temp_win, text="CONTINUE (Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
+        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
         
         clicked = False
         continue_click_time = None  # Record when continue is clicked
@@ -747,18 +747,21 @@ try:
     print("WINDOW CREATION SUCCESSFUL")
     print("="*60)
     
-    # Photodiode detector: 0.5" x 1" black rectangle, bottom-left corner (excluded during input/name screens)
+    # Photodiode: white baseline, flashes black on each flip for onset/offset detection
     try:
-        # Size ~0.5" x 1" in height units (approx 0.11 x 0.22 for typical display)
         photodiode_patch = visual.Rect(
-            win, width=0.11, height=0.22,
-            fillColor='black', lineColor=None,
+            win, width=0.05, height=0.1,  # ~0.5cm x 1cm
+            fillColor='white', lineColor=None,
             pos=(-0.72, -0.39),  # Bottom-left corner
             units='height'
         )
+        _photodiode_flip_state = [1]  # 1=white (baseline), 0=black (flash); start white
         _orig_flip = win.flip
         def _wrapped_flip():
             if PHOTODIODE_ACTIVE and photodiode_patch is not None:
+                # Alternate: white (baseline) <-> black (flash). Onset = drop, offset = rise.
+                photodiode_patch.fillColor = 'white' if _photodiode_flip_state[0] else 'black'
+                _photodiode_flip_state[0] = 1 - _photodiode_flip_state[0]
                 photodiode_patch.draw()
             _orig_flip()
             if PHOTODIODE_ACTIVE and photodiode_patch is not None:
@@ -1282,8 +1285,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
     
     if button_y is None:
         button_y = -0.4*0.6
-    # For computer/keyboard mode, add "(Press Return)" to button text
-    display_button_text = f"{button_text}\n(Press Return)" if (not USE_TOUCH_SCREEN and button_text in ("CONTINUE", "BEGIN")) else button_text
+    display_button_text = button_text
     # Create continue button
     continue_button = visual.Rect(
         win,
@@ -1494,7 +1496,7 @@ def show_instructions(text, header_color='darkblue', body_color='black', header_
         lineColor='black',
         pos=(0, -0.25)
     )
-    _cont_text = "CONTINUE\n(Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE"
+    _cont_text = "CONTINUE"
     continue_text = visual.TextStim(
         win,
         text=_cont_text,
@@ -2005,7 +2007,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         lineColor='black',
         pos=(0, submit_y)
     )
-    submit_text = visual.TextStim(win, text="SUBMIT (Press Return)" if not USE_TOUCH_SCREEN else "SUBMIT", color='black', height=0.035*0.75*1.35, pos=(0, submit_y))
+    submit_text = visual.TextStim(win, text="SUBMIT", color='black', height=0.035*0.75*1.35, pos=(0, submit_y))
     exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
     exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
@@ -3271,7 +3273,7 @@ def show_ready_to_start_screen(block_num, total_blocks=10):
     )
     begin_text = visual.TextStim(
         win,
-        text="BEGIN (Press Return)" if not USE_TOUCH_SCREEN else "BEGIN",
+        text="BEGIN",
         color='black',
         height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
         pos=(0, -0.4*0.6)  # Moved away from edge for better clickability
@@ -3418,7 +3420,7 @@ def show_block_summary(block_num, total_points, max_points):
     )
     continue_text = visual.TextStim(
         win,
-        text="CONTINUE (Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE",
+        text="CONTINUE",
         color='black',
         height=0.04*1.35,  # Reduced to ensure text fits within button
         pos=(0, -0.4)  # Moved away from edge for better clickability
@@ -3979,7 +3981,7 @@ def run_experiment():
     )
     start_button_text = visual.TextStim(
         win,
-        text="BEGIN (Press Return)" if not USE_TOUCH_SCREEN else "BEGIN",
+        text="BEGIN",
         color='black',
         height=0.04*0.75*1.35,
         pos=(0, -0.45*0.6)  # Match button position
@@ -4177,7 +4179,7 @@ def run_experiment():
     )
     continue_text_welcome = visual.TextStim(
         win,
-        text="CONTINUE (Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE",
+        text="CONTINUE",
         color='black',
         height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
         pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
@@ -4294,7 +4296,7 @@ def run_experiment():
     welcome_text_2 = visual.TextStim(
         win,
         text="Before you begin the real work, you'll complete a short training round to get familiar with the process.\n\n"
-             "For now, simply memorize the shapes you're about to see. " + ("Press Return" if not USE_TOUCH_SCREEN else "Click CONTINUE") + " when you're ready to get started!",
+             "For now, simply memorize the shapes you're about to see. Continue when you're ready to get started!",
         color='black',
         height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
         pos=(0, 0.0),
@@ -4800,7 +4802,7 @@ def run_experiment():
     )
     continue_text_amy_intro = visual.TextStim(
         win,
-        text="CONTINUE (Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE",
+        text="CONTINUE",
         color='black',
         height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
         pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
@@ -5002,7 +5004,7 @@ def run_experiment():
                         )
                         continue_text_ben = visual.TextStim(
                             win,
-                            text="CONTINUE (Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE",
+                            text="CONTINUE",
                             color='black',
                             height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
                             pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
@@ -5058,7 +5060,7 @@ def run_experiment():
                         )
                         continue_text_ben_continue = visual.TextStim(
                             win,
-                            text="CONTINUE (Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE",
+                            text="CONTINUE",
                             color='black',
                             height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
                             pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
@@ -5223,7 +5225,7 @@ def run_experiment():
                         )
                         continue_text_amy_return = visual.TextStim(
                             win,
-                            text="CONTINUE (Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE",
+                            text="CONTINUE",
                             color='black',
                             height=0.04*0.75*1.35,  # Reduced to ensure text fits within button
                             pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock

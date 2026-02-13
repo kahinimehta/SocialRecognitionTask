@@ -262,7 +262,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 The task outputs **photodiode and TTL signals** for fMRI/EEG synchronization:
 
-- **Photodiode patch**: A black rectangle (0.5" × 1") in the bottom-left corner appears on every screen flip during the experiment (except input-method selection and name entry).
+- **Photodiode patch**: A small rectangle (~0.5 cm × 1 cm) in the bottom-left corner is white (baseline) and flashes black on each screen flip. Light-level changes (white→black = onset, black→white = offset) mark stimulus onset/offset. Shown on every flip (except input-method selection and name entry).
 - **TTL pulses**: When the photodiode is drawn, a brief parallel-port pulse is sent (Windows/Linux; default port 0x0378). Set `PARALLEL_PORT_ADDRESS` to override.
 - **CSV trigger variables**: All `*_trigger` columns (e.g., `study_fixation_trigger`, `recognition_image_trigger`, `switch_stay_trigger`, `outcome_trigger`) record the Unix timestamp when the photodiode/TTL fired—use these to align behavioral data with neural recordings. See `CSV_VARIABLES_DOCUMENTATION.md` for the full mapping.
 
