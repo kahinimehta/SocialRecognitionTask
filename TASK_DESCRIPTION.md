@@ -139,15 +139,15 @@ Each of the 10 trials follows this structure:
 
 ### AI Accuracy Manipulation
 
-- **Reliable blocks**: 70–80% accuracy (Blocks 1-3 and 6-7, Amy)—7–8 correct per 10-trial block
-- **Unreliable blocks**: 20–30% accuracy (Blocks 4-5 and 8-10, Ben)—2–3 correct per 10-trial block
+- **Reliable blocks**: 90% accuracy (Blocks 1-3 and 6-7, Amy)—9 correct per 10-trial block
+- **Unreliable blocks**: 40% accuracy (Blocks 4-5 and 8-10, Ben)—4 correct per 10-trial block
 - **Block structure**:
-  - Blocks 1-3: Reliable (Amy, 70–80%), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 4-5: Unreliable (Ben, 20–30%), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 6-7: Reliable (Amy, 70–80%), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 8-10: Unreliable (Ben, 20–30%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 1-3: Reliable (Amy, 90%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 4-5: Unreliable (Ben, 40%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 6-7: Reliable (Amy, 90%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 8-10: Unreliable (Ben, 40%), turn order randomized within block (AI first on 5 random trials)
 
-**Implementation details**: The AI collaborator uses a pre-generated randomized sequence to target 70–80% (reliable/Amy) or 20–30% (unreliable/Ben) accuracy per block. Reliable blocks yield 7–8 correct, unreliable blocks yield 2–3 correct.
+**Implementation details**: The AI collaborator uses a pre-generated randomized sequence to target 90% (reliable/Amy) or 40% (unreliable/Ben) accuracy per block. Reliable blocks yield 9 correct, unreliable blocks yield 4 correct.
 
 ### Collaboration Decision (STAY/SWITCH)
 
@@ -347,20 +347,20 @@ All scoring is framed as "in-house curator" evaluations:
 ### Block Counterbalancing
 
 - **Turn-taking**: Randomized within each block - AI goes first on 5 random trials out of 10 per block
-- **AI Accuracy**: Fixed order - Blocks 1-3, 6-7 reliable (Amy, 70–80%); Blocks 4-5, 8-10 unreliable (Ben, 20–30%)
+- **AI Accuracy**: Fixed order - Blocks 1-3, 6-7 reliable (Amy, 90%); Blocks 4-5, 8-10 unreliable (Ben, 40%)
 - **Structure**: 
-  - Blocks 1-3: Reliable (Amy), randomized turn order (AI first on 5 random trials)
-  - Blocks 4-5: Unreliable (Ben), randomized turn order (AI first on 5 random trials)
-  - Blocks 6-7: Reliable (Amy), randomized turn order (AI first on 5 random trials)
-  - Blocks 8-10: Unreliable (Ben), randomized turn order (AI first on 5 random trials)
+  - Blocks 1-3: Reliable (Amy, 90%), randomized turn order (AI first on 5 random trials)
+  - Blocks 4-5: Unreliable (Ben, 40%), randomized turn order (AI first on 5 random trials)
+  - Blocks 6-7: Reliable (Amy, 90%), randomized turn order (AI first on 5 random trials)
+  - Blocks 8-10: Unreliable (Ben, 40%), randomized turn order (AI first on 5 random trials)
 
 ### AI Behavior Randomization
 
 - **AI RT**: Log-normal distribution (mu=0.5, sigma=0.3, capped at 5.0s)
 - **AI Confidence**:
   - Amy (reliable): When correct, 0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0); when incorrect, 0.5–0.75 or 0.25–0.5 on wrong side (depending on which side)
-  - Ben (unreliable): Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW). Categorical accuracy 20–30% via pre-generated sequence; confidence uninformative about correctness.
-- **AI Accuracy**: Controlled at block level (70–80% reliable or 20–30% unreliable)
+  - Ben (unreliable): Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW). Categorical accuracy 40% via pre-generated sequence; confidence uninformative about correctness.
+- **AI Accuracy**: Controlled at block level (90% reliable or 40% unreliable)
 
 ---
 
@@ -471,7 +471,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 ### Manipulations
 
 1. **Turn-Taking**: Who responds first (participant vs. AI)
-2. **AI Accuracy**: High (70–80%) vs. Low (20–30%) accuracy blocks
+2. **AI Accuracy**: High (90%) vs. Low (40%) accuracy blocks
 
 ### Research Questions
 

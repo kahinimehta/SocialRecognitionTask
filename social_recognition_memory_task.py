@@ -2402,7 +2402,7 @@ class AICollaborator:
     def __init__(self, accuracy_rate=0.5, num_trials=20):
         """
         AI collaborator for recognition memory task
-        accuracy_rate: Overall accuracy (0.5 = 50% practice, 0.75 = 70-80% Amy, 0.25 = 20-30% Ben)
+        accuracy_rate: Overall accuracy (0.5 = 50% practice, 0.9 = 90% Amy, 0.4 = 40% Ben)
         num_trials: Number of trials in the block (default 20)
         """
         self.accuracy_rate = accuracy_rate
@@ -2430,8 +2430,8 @@ class AICollaborator:
     
     def generate_confidence(self, is_studied, ground_truth_correct):
         """Generate AI confidence.
-        Amy (reliable, 0.75): When correct, 0.75–1.0 (on correct side). When wrong, 0.5–0.75 or 0.25–0.5 (depending on which wrong side).
-        Ben (unreliable, 0.25): Categorical accuracy 20–30% (from correctness_sequence). Confidence is random *within* the chosen category
+        Amy (reliable, 0.9): When correct, 0.75–1.0 (on correct side). When wrong, 0.5–0.75 or 0.25–0.5 (depending on which wrong side).
+        Ben (unreliable, 0.4): Categorical accuracy 40% (from correctness_sequence). Confidence is random *within* the chosen category
         (0–0.25 for OLD, 0.75–1.0 for NEW)—uninformative about correctness.
         """
         if self.accuracy_rate >= 0.5:
@@ -2451,7 +2451,7 @@ class AICollaborator:
                     # Correct was NEW, AI said OLD: confidence 0.25–0.5
                     confidence = np.random.uniform(0.25, 0.5)
         else:
-            # Ben (unreliable): categorical accuracy from correctness_sequence (20–30%). Confidence random *within* chosen category.
+            # Ben (unreliable): categorical accuracy from correctness_sequence (40%). Confidence random *within* chosen category.
             if ground_truth_correct:
                 # Correct: random within correct side
                 if is_studied:
@@ -2475,8 +2475,8 @@ class AICollaborator:
         
         Uses pre-generated randomized sequence to ensure target accuracy rate
         while randomizing which trials are correct/Incorrect:
-        - 70-80% accuracy (Amy): 7-8 out of 10 trials correct (randomized order)
-        - 20-30% accuracy (Ben): 2-3 out of 10 trials correct (randomized order)
+        - 90% accuracy (Amy): 9 out of 10 trials correct (randomized order)
+        - 40% accuracy (Ben): 4 out of 10 trials correct (randomized order)
         """
         # Ground truth: studied items should be rated OLD, lures should be rated NEW
         if is_studied:
@@ -3972,7 +3972,7 @@ def run_block(block_num, studied_images, block_start_participant_first, ai_colla
         )
     
     # Determine partner name based on block accuracy (Amy = reliable, Ben = unreliable)
-    partner_name = "Amy" if ai_collaborator.accuracy_rate == 0.75 else "Ben"
+    partner_name = "Amy" if ai_collaborator.accuracy_rate >= 0.5 else "Ben"
     
     # Transition screen: switching to recognition phase
     show_instructions(
@@ -5342,23 +5342,23 @@ def run_experiment():
     
     try:
         # Block structure:
-        # Blocks 1-3: Amy (Reliable 0.75)
-        # Blocks 4-5: Ben (Unreliable 0.25)
-        # Blocks 6-7: Amy (Reliable 0.75)
-        # Blocks 8-10: Ben (Unreliable 0.25)
+        # Blocks 1-3: Amy (Reliable 90%)
+        # Blocks 4-5: Ben (Unreliable 40%)
+        # Blocks 6-7: Amy (Reliable 90%)
+        # Blocks 8-10: Ben (Unreliable 40%)
         # Turn order is randomized within each block: AI goes first on a random 5 out of 10 trials
         # The 5 trials where AI goes first are randomly selected for each block
         block_conditions = [
-            (True, 0.75),   # Block 1: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
-            (True, 0.75),   # Block 2: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
-            (True, 0.75),   # Block 3: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
-            (True, 0.25),   # Block 4: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
-            (True, 0.25),   # Block 5: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
-            (True, 0.75),   # Block 6: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
-            (True, 0.75),   # Block 7: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
-            (True, 0.25),   # Block 8: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
-            (True, 0.25),   # Block 9: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
-            (True, 0.25),   # Block 10: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.9),   # Block 1: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.9),   # Block 2: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.9),   # Block 3: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.4),   # Block 4: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.4),   # Block 5: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.9),   # Block 6: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.9),   # Block 7: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
+            (True, 0.4),   # Block 8: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.4),   # Block 9: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.4),   # Block 10: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
         ]
         
         # Assign stimuli to blocks: each block has 1 item from each category (10 stimuli), no repeats
@@ -5375,7 +5375,7 @@ def run_experiment():
             
             # Get conditions for this block
             block_start_participant_first, block_accuracy = block_conditions[block_num - 1]
-            current_partner_reliable = (block_accuracy == 0.75)
+            current_partner_reliable = (block_accuracy >= 0.5)
             
             # Show partner switch message if partner changed
             if previous_partner_reliable is not None:
