@@ -329,7 +329,7 @@ def get_input_method():
         # Show confirmation - use height units to match temp window
         confirm_text = visual.TextStim(
             temp_win,
-            text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'KEYBOARD'}",
+            text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'KEYBOARD'}\n\n{'Use Return for all buttons.' if not USE_TOUCH_SCREEN else ''}",
             color='black',
             height=40/720*0.75,
             pos=(0, 100/720*0.6),
@@ -343,7 +343,7 @@ def get_input_method():
         cont_x = 0
         cont_y = -150/720*0.6
         continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y), units='height')
-        continue_text = visual.TextStim(temp_win, text="CONTINUE (Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
+        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
         
         clicked = False
         continue_click_time = None  # Record when continue is clicked
@@ -1095,7 +1095,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         lineColor='black',
         pos=(0, -0.5*0.6)  # Moved even closer to bottom
     )
-    display_button_text = f"{button_text}\n(Press Return)" if (not USE_TOUCH_SCREEN and button_text in ("CONTINUE", "BEGIN", "EXIT")) else button_text
+    display_button_text = button_text
     continue_text = visual.TextStim(
         win,
         text=display_button_text,
@@ -1599,17 +1599,21 @@ try:
         sys.stdout.flush()
         sys.stderr.flush()
         
-        # Photodiode detector: 0.5" x 1" black rectangle, bottom-left corner (excluded during input/name screens)
+        # Photodiode: white baseline, flashes black on each flip for onset/offset detection
         try:
             photodiode_patch = visual.Rect(
-                win, width=0.11, height=0.22,
-                fillColor='black', lineColor=None,
+                win, width=0.05, height=0.1,  # ~0.5cm x 1cm
+                fillColor='white', lineColor=None,
                 pos=(-0.72, -0.39),  # Bottom-left corner
                 units='height'
             )
+            _photodiode_flip_state = [1]  # 1=white (baseline), 0=black (flash); start white
             _orig_flip = win.flip
             def _wrapped_flip():
                 if PHOTODIODE_ACTIVE and photodiode_patch is not None:
+                    # Alternate: white (baseline) <-> black (flash). Onset = drop, offset = rise.
+                    photodiode_patch.fillColor = 'white' if _photodiode_flip_state[0] else 'black'
+                    _photodiode_flip_state[0] = 1 - _photodiode_flip_state[0]
                     photodiode_patch.draw()
                 _orig_flip()
                 if PHOTODIODE_ACTIVE and photodiode_patch is not None:

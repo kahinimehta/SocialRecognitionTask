@@ -8,7 +8,7 @@ The task supports **fMRI/EEG synchronization** via a photodiode detector and par
 
 ### Hardware Setup
 
-- **Photodiode patch**: A black rectangle (0.5" × 1") appears in the **bottom-left corner** of the display whenever the task draws it. It is shown on every screen flip during the main experiment (except during input-method selection and participant name entry).
+- **Photodiode patch**: A small rectangle (~0.5 cm × 1 cm) in the **bottom-left corner** is **white by default** (baseline) and **flashes black** on each screen flip. Light-level changes (white→black = onset, black→white = offset) are used to detect stimulus onset/offset. Shown on every flip during the main experiment (except input-method selection and name entry).
 - **TTL pulse**: When the photodiode rectangle is drawn, a brief TTL pulse is sent via the **parallel port** (Windows/Linux):
   - Default address: `0x0378` (LPT1). Override with env var: `PARALLEL_PORT_ADDRESS=0x0378`
   - Pulse: pins high (255) for 10 ms, then low (0)

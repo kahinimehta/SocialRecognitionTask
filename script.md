@@ -55,7 +55,7 @@ Touch/click the button below, or press 1 for Touch Screen, 2 for Keyboard:
 - **Touch screen:** "First, double-tap the Touch Screen button."
 - **Keyboard (laptop):** "Or press 2 for Keyboard if you're using a laptop with the keyboard."
 
-**After selection:** Display confirms "Input method set to: TOUCH SCREEN" or "Input method set to: KEYBOARD" with a CONTINUE button (keyboard: "CONTINUE (Press Return)").
+**After selection:** Display confirms "Input method set to: TOUCH SCREEN" or "Input method set to: KEYBOARD. Use Return for all buttons." with a CONTINUE button.
 
 **Exit fullscreen:** **ESC** (laptop) or tap **Exit** (top-right). Same on all screens with CONTINUE/instruction buttons.
 
@@ -65,7 +65,7 @@ Touch/click the button below, or press 1 for Touch Screen, 2 for Keyboard:
 **Display says:**
 "Hello & welcome to the social memory game! Pay careful attention to the text on the screen. Some images will be very deceptively similar."
 
-**Display shows:** A BEGIN button (light blue). Button label: "BEGIN (Press Return)" for keyboard, or "BEGIN" for touch screen.
+**Display shows:** A BEGIN button (light blue).
 
 **What to say:**
 "Welcome! You'll see a welcome message on the screen. Please read it carefully. When you're ready, press Return" — *keyboard* — "or tap BEGIN" — *touch screen* — "to continue."
@@ -92,7 +92,7 @@ You've just joined Amy's photography studio. She's preparing images for an upcom
 
 Carly, her assistant, will walk you through a short practice to get familiar with the task."
 
-**Display shows:** Image of Carly (same as Amy) below the text, CONTINUE button (bottom right). Button label: "CONTINUE (Press Return)" for keyboard, or "CONTINUE" for touch screen.
+**Display shows:** Image of Carly (same as Amy) below the text, CONTINUE button (bottom right).
 
 **What to say:**
 "This is Carly, Amy's assistant. She'll walk you through a short practice to learn the task. The actual work will be with Amy. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — "when you're ready."
@@ -103,12 +103,12 @@ Carly, her assistant, will walk you through a short practice to get familiar wit
 **Display says:**
 "Before you begin the real work, you'll complete a short training round to get familiar with the process.
 
-For now, simply memorize the shapes you're about to see. *Keyboard:* Press Return when you're ready to get started! *Touch screen:* Click CONTINUE when you're ready to get started!
+For now, simply memorize the shapes you're about to see. Continue when you're ready to get started!
 
-**Display shows:** CONTINUE button. Label: "CONTINUE (Press Return)" for keyboard, or "CONTINUE" for touch screen.
+**Display shows:** CONTINUE button.
 
 **What to say:**
-"You'll start with a practice round to learn how the task works. First, you'll see some shapes—just memorize them. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready."
+"You'll start with a practice round to learn how the task works. First, you'll see some shapes—just memorize them. Continue when ready."
 
 ---
 
@@ -138,7 +138,7 @@ For now, simply memorize the shapes you're about to see. *Keyboard:* Press Retur
   - **Keyboard:** "Slide using LEFT or RIGHT arrow keys to show how confident you are you've seen this before (i.e., it is \"old\"). How close you are to either side indicates how CONFIDENT you are. Press Return when done."
   - **Touch screen:** "CLICK ONCE on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). How close you are to either side indicates how CONFIDENT you are in your answer."
 - Slider with OLD on left, NEW on right
-- SUBMIT button (label: "SUBMIT (Press Return)" for keyboard, or "SUBMIT" for touch screen)
+- SUBMIT button
 
 **What to say:**
 
@@ -218,7 +218,7 @@ Rate each image: OLD (belongs) or NEW (doesn't belong).
 Use LEFT/RIGHT arrow keys to move the slider, then press Return to submit." — *keyboard*
 "Click on the slider, then SUBMIT." — *touch screen*
 
-**Display shows:** CONTINUE button. Label: "CONTINUE (Press Return)" for keyboard, or "CONTINUE" for touch screen.
+**Display shows:** CONTINUE button.
 
 **What to say:**
 "Read these instructions carefully. You'll need to remember which photos belong in each collection. Important: For each collection, you will only be sorting the 10 images you just saw for that collection—nothing from prior collections. These will be more complex images—like animals, objects, etc. Use the slider to rate each image—OLD means it belongs, NEW means it doesn't. Keyboard: use the LEFT and RIGHT arrow keys to move the slider, then press Return to submit. Touch screen: click on the slider line to set your rating, then tap SUBMIT."
@@ -232,7 +232,7 @@ Amy will also rate each photo. You can STAY with your answer or SWITCH to hers.
 
 You can switch even if you both agree, to match her confidence level."
 
-**Display shows:** CONTINUE button. Label: "CONTINUE (Press Return)" for keyboard, or "CONTINUE" for touch screen.
+**Display shows:** CONTINUE button.
 
 **What to say:**
 "Amy will rate each image too. After you both rate, you can STAY with your answer or SWITCH to Amy's answer. You can switch even if you both agree, to match her confidence level. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " to continue."
@@ -246,7 +246,7 @@ Confidence matters. An in-house curator scores based on accuracy and confidence.
 
 10 collections, 10 images each. Time limit per decision."
 
-**Display shows:** CONTINUE button. Label: "CONTINUE (Press Return)" for keyboard, or "CONTINUE" for touch screen.
+**Display shows:** CONTINUE button.
 
 **What to say:**
 "The scoring system considers both accuracy and confidence. If you are confident but wrong, you lose more points than if you are not confident and wrong. If you are right but not confident, you will not get as many points as if you were both right and confident. There are 10 collections total, with 10 images in each. You'll have a time limit for each decision. Some of the image differences will be extremely, extremely subtle, so pay close attention! *You will see how you compared against other anonymous players at the end via a leaderboard!*"
@@ -273,7 +273,7 @@ Sometimes she goes first, sometimes you do."
 
 X collection(s) remaining"
 
-**Display shows:** BEGIN button. Label: "BEGIN (Press Return)" for keyboard, or "BEGIN" for touch screen. (Number of collections remaining updates each block.)
+**Display shows:** BEGIN button. (Number of collections remaining updates each block.)
 
 **What to say:**
 "When you see this screen, press Return" — *keyboard* — "or tap BEGIN" — *touch screen* — " when you're ready to start the next collection."
@@ -286,7 +286,7 @@ Make sure participants get all the way to the end of the task. If they do, there
 
 - **Timing**: Participants have 7 seconds to respond to each slider and switch/stay decision
 - **Touch Screen Mode**: Participants tap once on the slider line to set their rating (CLICK/TAP, not drag), then tap SUBMIT
-- **Keyboard Mode**: Participants use LEFT/RIGHT arrow keys to move the slider, then press Return to submit. On the switch/stay screen: LEFT = STAY, RIGHT = SWITCH. CONTINUE and BEGIN buttons: press Return instead of clicking
+- **Keyboard Mode**: Participants use LEFT/RIGHT arrow keys to move the slider, then Return to submit. On the switch/stay screen: LEFT = STAY, RIGHT = SWITCH. Use Return for all buttons (told once at input method selection).
 - **Button Positions**: All buttons are positioned away from screen edges for better clickability
 - **Decision screen labels**: On the switch/stay screen, "you" (green) and the partner name "Amy" or "Ben" (blue) appear below the scale next to the markers
 - **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; CONTINUE button is placed lower to avoid overlap with text
