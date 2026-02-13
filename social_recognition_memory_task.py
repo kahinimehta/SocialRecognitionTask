@@ -1,4 +1,5 @@
 
+
 # Suppress iohub import errors (numpy/tables compatibility issue)
 import warnings
 import sys
@@ -774,7 +775,7 @@ try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # 1/4 exit button size
             fillColor='white', lineColor=None,
-            pos=(-0.8, -0.49),  # Far left, bottom
+            pos=(-0.6, -0.49),  # Left, bottom
             units='height'
         )
         _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
