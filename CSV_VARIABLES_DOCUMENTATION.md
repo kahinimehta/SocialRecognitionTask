@@ -8,7 +8,7 @@ The task supports **fMRI/EEG synchronization** via a photodiode detector and par
 
 ### Hardware Setup
 
-- **Photodiode patch**: A small rectangle (same size as Exit button: 0.12 × 0.04 height units) in the **bottom-left corner** (-0.45, -0.47). **White by default** (baseline); **flashes black only on stimulus/event onset** (event-based, not on every flip). Events include: fixation onset/offset, image onset/offset, instruction/outcome screen onset, and **participant responses** (submit, stay/switch, continue). During slider and switch/stay decision screens, the patch **stays white**; it flashes black only when participants **commit** (e.g., hit SUBMIT or click STAY/SWITCH). In the localizer, the YES/NO object-question screen does **not** trigger flashes. Not shown during input-method selection or name entry.
+- **Photodiode patch**: A small rectangle (0.03 × 0.01 height units) at **(-0.25, -0.45)**. **White by default** (baseline); **flashes black only** on: **images**, **responses** (submit, stay/switch, continue), **screen changes** (instructions, outcomes). No flash on fixation. During slider and switch/stay decision screens, the patch **stays white**; it flashes black only when participants **commit**. In the localizer, the YES/NO object-question screen does **not** trigger flashes. Not shown during input-method selection or name entry.
 - **TTL pulse**: Sent only when the photodiode flashes black (i.e., on event onset), via the **parallel port** (Windows/Linux):
   - Default address: `0x0378` (LPT1). Override with env var: `PARALLEL_PORT_ADDRESS=0x0378`
   - Pulse: pins high (255) for 10 ms, then low (0)
@@ -20,13 +20,13 @@ All `*_trigger` variables in the CSVs record the **Unix timestamp** when the pho
 
 | Task | Variables | Event |
 |------|-----------|-------|
-| **Study** | `study_fixation_trigger` | Fixation cross onset |
-| **Study** | `study_image_trigger` | Study image onset |
-| **Recognition** | `recognition_fixation_trigger` | Pre-trial fixation onset |
-| **Recognition** | `recognition_image_trigger` | Recognition image onset |
+| **Study** | `study_fixation_trigger` | Behavioral timestamp (fixation onset; no photodiode) |
+| **Study** | `study_image_trigger` | Study image onset (photodiode/TTL) |
+| **Recognition** | `recognition_fixation_trigger` | Behavioral timestamp (fixation onset; no photodiode) |
+| **Recognition** | `recognition_image_trigger` | Recognition image onset (photodiode/TTL) |
 | **Recognition** | `switch_stay_trigger` | Switch/stay decision screen onset |
 | **Recognition** | `outcome_trigger` | Outcome feedback onset |
-| **Localizer** | `localizer_fixation_trigger` | Fixation onset before image |
+| **Localizer** | `localizer_fixation_trigger` | Behavioral timestamp (fixation onset; no photodiode) |
 | **Localizer** | `localizer_image_trigger` | Image onset |
 | **Localizer** | `question_trigger` | Object question onset (every 10th trial) |
 

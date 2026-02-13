@@ -14,7 +14,7 @@
 1. Open terminal
 2. Enter `y` when prompted
 
-This will run the localizer and upload the log files. The localizer uses the same input method screen (Touch Screen or Keyboard). Keyboard: use Return for CONTINUE/BEGIN/EXIT, LEFT for YES, RIGHT for NO on object questions. 
+This will run the localizer and upload the log files. The localizer uses the same input method screen (Touch Screen or Keyboard). For input selection: press Right Arrow to choose Keyboard. During task: use Return for CONTINUE/BEGIN/EXIT, LEFT for YES, RIGHT for NO on object questions. 
 
 ### For Pushing Log Files:
 If you only want to push the log files without running anything else, you may open a new *Anaconda PowerShell Prompt Terminal* and enter "n" and enter when prompted to run the localizer. 
@@ -45,15 +45,15 @@ The code should automatically update every time you open the terminal or run the
 **Display says:**
 "What input method are you using?
 
-Double tap for touch screen, or press 2 for keyboard:
+Double tap for touch screen, or press Right Arrow for keyboard:
 
 (Press ESC or tap Exit to leave fullscreen)"
 
-**Display shows:** Two buttons: "TOUCH SCREEN (Double tap)" and "KEYBOARD (Press 2)". A small **Exit** button (top-right corner).
+**Display shows:** Two buttons: "TOUCH SCREEN (Double tap)" and "KEYBOARD (Press Right Arrow)". A small **Exit** button (top-right corner).
 
 **What to say:**
 - **Touch screen:** "First, double-tap the Touch Screen button."
-- **Keyboard (laptop):** "Or press 2 for Keyboard if you're using a laptop with the keyboard."
+- **Keyboard (laptop):** "Or press the Right Arrow key for Keyboard if you're using a laptop with the keyboard."
 
 **After selection:** Display confirms "Input method set to: TOUCH SCREEN" or "Input method set to: KEYBOARD. Use Return for all buttons." with a CONTINUE button.
 

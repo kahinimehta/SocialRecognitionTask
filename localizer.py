@@ -135,7 +135,7 @@ def get_input_method():
         prompt_text = visual.TextStim(
             temp_win,
             text="What input method are you using?\n\n"
-                 "Double tap for touch screen, or press 2 for keyboard:\n\n"
+                 "Double tap for touch screen, or press Right Arrow for keyboard:\n\n"
                  "(Press ESC or tap Exit to leave fullscreen)",
             color='black',
             height=30/720*0.75,
@@ -177,7 +177,7 @@ def get_input_method():
         )
         button2_text = visual.TextStim(
             temp_win, 
-            text="KEYBOARD\n(Press 2)", 
+            text="KEYBOARD\n(Press Right Arrow)", 
             color='black', 
             height=24/720*0.75, 
             pos=(320/720*0.6, -80/720*0.6),
@@ -219,23 +219,23 @@ def get_input_method():
         prev_mouse_buttons = [False, False, False]
         
         while selected is None:
-            # Check for escape key FIRST, before clearing events
+            # Check for keys FIRST with explicit keyList for reliable registration
             try:
-                # Get all keys to handle different key naming across systems (numpad vs number row)
-                keys = event.getKeys(keyList=None)
+                keys = event.getKeys(keyList=['escape', '1', '2', 'right', 'num_1', 'num_2'])
                 if keys:
                     if 'escape' in keys:
                         return None, None  # Signal to exit - window will be closed in exception handler
-                    if '1' in keys:
+                    if '1' in keys or 'num_1' in keys:
                         USE_TOUCH_SCREEN = True
                         selected = 'touch'
                         break
-                    if '2' in keys:
+                    # Right arrow (preferred) or 2 for keyboard - more reliable than 2 alone
+                    if 'right' in keys or '2' in keys or 'num_2' in keys:
                         USE_TOUCH_SCREEN = False
                         selected = 'click'
                         break
             except (AttributeError, RuntimeError) as e:
-                print(f"Warning: Error checking escape key: {e}", file=sys.stderr)
+                print(f"Warning: Error checking keys: {e}", file=sys.stderr)
             
             # Redraw screen
             draw_selection_screen()
@@ -323,11 +323,8 @@ def get_input_method():
             except Exception as e:
                 pass
             
-            # Clear events only once per loop iteration, after all checks
-            event.clearEvents()
-            
-            # Reduced polling delay for faster touch response
-            core.wait(0.001)  # Very fast polling
+            # Do NOT clear events every iteration - preserves key presses for reliable registration
+            core.wait(0.02)  # 20 ms polling - allows key to register before next check
         
         # Show confirmation - use height units to match temp window
         confirm_text = visual.TextStim(
@@ -1161,10 +1158,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                 t = clock.getTime()
                 
                 # Check if mouse position has changed (touch moved)
-                if mouseloc_x == mouserec_x and mouseloc_y == mouserec_y:
-                    # Position hasn't changed, just redraw
-                    draw_screen()
-                else:
+                if mouseloc_x != mouserec_x or mouseloc_y != mouserec_y:
                     # Position has changed - check if touch is within button
                     # Exit button: use explicit bounds for reliable touch registration
                     on_exit_btn = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
@@ -1210,9 +1204,9 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                                     print(f"Warning: Could not parse mouse position in wait_for_button: {e}", file=sys.stderr)
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                 
-                # Redraw every frame
+                # Redraw once per iteration (avoids double-flip that could cause photodiode flicker)
                 draw_screen()
-                safe_wait(0.001)  # Very fast polling (macOS-safe)
+                safe_wait(0.016)  # ~60 Hz to reduce photodiode flicker on touch
             except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 # Log specific errors instead of silently ignoring
                 print(f"Warning: Error in wait_for_button touch screen loop: {e}", file=sys.stderr)
@@ -1760,11 +1754,10 @@ try:
     fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     
     def show_fixation(duration=1.0, return_onset=False):
-        """Display fixation cross for specified duration. ESC works during wait. Returns onset (photodiode/TTL trigger time) if return_onset=True."""
-        _signal_photodiode_event()  # Fixation onset
+        """Display fixation cross for specified duration. ESC works during wait. Returns onset if return_onset=True (no photodiode on fixation)."""
         fixation.draw()
         win.flip()
-        onset = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+        onset = time.time()
         wait_with_escape(duration)
         return onset if return_onset else None
 
@@ -1791,33 +1784,35 @@ try:
         exit(1)
 
     # Create photodiode and install wrapper AFTER name is submitted (not visible during input method or name entry)
+    # 1/4 exit button size, positioned up and right of bottom-left (no fixation signaling)
     PHOTODIODE_ACTIVE = True  # Re-enable for main task
     try:
         photodiode_patch = visual.Rect(
-            win, width=0.12, height=0.04,  # Same size as exit button
+            win, width=0.03, height=0.01,  # 1/4 exit button size
             fillColor='white', lineColor=None,
-            pos=(-0.45, -0.47),  # Bottom-left corner (mirrors exit button position)
+            pos=(-0.25, -0.45),  # Slightly up, much more to the right
             units='height'
         )
         _photodiode_signal_next_flip = [False]
         def _signal_photodiode_event():
             _photodiode_signal_next_flip[0] = True
         _orig_flip = win.flip
-        def _wrapped_flip():
+        def _wrapped_flip(*args, **kwargs):
             did_flash = False
             if PHOTODIODE_ACTIVE and photodiode_patch is not None:
-                # Default: white (baseline). Only flash black when explicitly signaled.
+                # Always start white (baseline). Flash black only when explicitly signaled.
                 photodiode_patch.fillColor = 'white'
                 if _photodiode_signal_next_flip[0]:
                     photodiode_patch.fillColor = 'black'
                     _photodiode_signal_next_flip[0] = False
                     did_flash = True
                 photodiode_patch.draw()
-            _orig_flip()
+            result = _orig_flip(*args, **kwargs)
             # TTL only when photodiode flashes – same event, same timestamp for CSV alignment
             if PHOTODIODE_ACTIVE and photodiode_patch is not None and did_flash:
                 _last_photodiode_ttl_timestamp[0] = time.time()
                 _send_ttl_trigger()
+            return result
         win.flip = _wrapped_flip
     except Exception as e:
         print(f"Warning: Could not create photodiode patch: {e}", file=sys.stderr)
