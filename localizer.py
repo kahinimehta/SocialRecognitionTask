@@ -1532,7 +1532,7 @@ def ask_object_question(object_name, timeout=10.0):
     mouse.setVisible(False)
     event.clearEvents()
     
-    # Show timeout message if timed out
+    # Show timeout message if timed out (photodiode at onset and offset)
     if timed_out:
         timeout_message = visual.TextStim(
             win,
@@ -1542,9 +1542,11 @@ def ask_object_question(object_name, timeout=10.0):
             pos=(0, 0),
             wrapWidth=1.4
         )
-        timeout_message.draw()
-        win.flip()
+        def draw_timeout_message():
+            timeout_message.draw()
+        _do_photodiode_flash(draw_timeout_message, event_type="timeout_warning_onset")
         wait_with_escape(2.0)  # Show message for 2 seconds. ESC works during wait.
+        _do_photodiode_flash(lambda: _blank_rect.draw(), event_type="timeout_warning_offset")
     
     return (answer, timed_out, response_time, answer_click_time, question_trigger, question_answer_trigger)
 
@@ -1807,7 +1809,7 @@ try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # 1/4 exit button size
             fillColor='white', lineColor=None,
-            pos=(-0.49, -0.45),  # Extreme left of screen
+            pos=(-0.495, -0.48),  # Extreme left, slightly down
             units='height'
         )
         _photodiode_signal_next_flip = [False]

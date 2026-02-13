@@ -773,7 +773,7 @@ try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # 1/4 exit button size
             fillColor='white', lineColor=None,
-            pos=(-0.49, -0.45),  # Extreme left of screen
+            pos=(-0.495, -0.48),  # Extreme left, slightly down
             units='height'
         )
         _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
@@ -2114,7 +2114,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
             
             slider_commit_time = time.time()
             
-            # Show timeout alert
+            # Show timeout alert (photodiode at onset and offset)
             timeout_alert = visual.TextStim(
                 win,
                     text="Time's up! A random answer was selected. This will be logged as an invalid trial.",
@@ -2122,11 +2122,13 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                 height=0.06*0.75*1.35,
                 pos=(0, 0)
             )
-            if image_stim:
-                image_stim.draw()
-            timeout_alert.draw()
-            win.flip()
+            def draw_timeout_alert():
+                if image_stim:
+                    image_stim.draw()
+                timeout_alert.draw()
+            _do_photodiode_flash(draw_timeout_alert, event_type="timeout_warning_onset")
             core.wait(1.5)
+            _do_photodiode_flash(lambda: (_blank_rect.draw() if _blank_rect is not None else None), event_type="timeout_warning_offset")
             
             timed_out = True
             break
@@ -3122,7 +3124,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                 decision_commit_time = time.time()
                 timed_out = True
                 
-                # Show timeout alert
+                # Show timeout alert (photodiode at onset and offset)
                 timeout_alert = visual.TextStim(
                     win,
                     text="Time's up! A random decision was selected.",
@@ -3130,26 +3132,26 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
                     height=0.06*1.35,
                     pos=(0, -0.35)  # Lower to avoid overlap with buttons
                 )
-                decision_prompt.draw()
-                if image_stim:
-                    # Position image higher on switch/stay screen to avoid overlap
-                    image_stim.pos = (0, SWITCH_STAY_CONTENT_OFFSET)
-                    image_stim.draw()
-                slider_line.draw()
-                old_label.draw()
-                new_label.draw()
-                # Draw labels above arrows
-                if participant_value is not None and p_label_text is not None:
-                    p_label_text.draw()
-                if partner_value is not None and a_label_text is not None:
-                    a_label_text.draw()
-                if participant_value is not None and p_dot is not None:
-                    p_dot.draw()
-                if partner_value is not None and a_dot is not None:
-                    a_dot.draw()
-                timeout_alert.draw()
-                win.flip()
+                def draw_timeout_alert_switch_stay():
+                    decision_prompt.draw()
+                    if image_stim:
+                        image_stim.pos = (0, SWITCH_STAY_CONTENT_OFFSET)
+                        image_stim.draw()
+                    slider_line.draw()
+                    old_label.draw()
+                    new_label.draw()
+                    if participant_value is not None and p_label_text is not None:
+                        p_label_text.draw()
+                    if partner_value is not None and a_label_text is not None:
+                        a_label_text.draw()
+                    if participant_value is not None and p_dot is not None:
+                        p_dot.draw()
+                    if partner_value is not None and a_dot is not None:
+                        a_dot.draw()
+                    timeout_alert.draw()
+                _do_photodiode_flash(draw_timeout_alert_switch_stay, event_type="timeout_warning_onset")
                 core.wait(1.5)
+                _do_photodiode_flash(lambda: (_blank_rect.draw() if _blank_rect is not None else None), event_type="timeout_warning_offset")
                 break
         
         # Get mouse position and button state (with error handling for macOS)
