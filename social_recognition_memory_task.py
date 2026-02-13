@@ -756,7 +756,7 @@ try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # 1/4 exit button size
             fillColor='white', lineColor=None,
-            pos=(-0.25, -0.45),  # Slightly up, much more to the right
+            pos=(0.49, -0.45),  # Extreme right of screen
             units='height'
         )
         _orig_flip = win.flip
@@ -1943,7 +1943,7 @@ def get_participant_id():
         safe_wait(0.01)
     
     mouse.setVisible(False)
-    PHOTODIODE_ACTIVE = True  # Re-enable photodiode after name entry
+    # Photodiode enabled only when first task screen (BEGIN) is shown in run_experiment
     return input_id.strip() or "P001"
 
 def load_image_stimulus(image_path, maintain_aspect_ratio=False):
@@ -2434,6 +2434,7 @@ def run_study_phase(studied_images, block_num):
         win.flip()
         study_image_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
         core.wait(image_duration)  # Show each image for 1 second
+        _signal_photodiode_event()  # Image offset (next flip will flash)
         image_offset = time.time()
         
         study_data.append({
@@ -2514,6 +2515,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
     win.flip()
     recognition_image_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(1.0)  # Show image for 1 second
+    _signal_photodiode_event()  # Image offset (next flip will flash)
     
     # Keep image on screen - don't clear it
     # Determine order: participant first or partner first
@@ -3271,7 +3273,8 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         core.wait(0.01)
     
     mouse.setVisible(False)
-    return decision, decision_rt, decision_commit_time, timed_out, decision_onset_time
+    return decision, 
+    decision_rt, decision_commit_time, timed_out, decision_onset_time
 
 def show_ready_to_start_screen(block_num, total_blocks=10):
     """Show 'ready to start sorting?' screen before each block with collections remaining count"""
@@ -3978,6 +3981,8 @@ def save_data_incremental(all_study_data, all_trial_data, participant_id,
 # =========================
 def run_experiment():
     """Run the full experiment"""
+    global PHOTODIODE_ACTIVE
+    PHOTODIODE_ACTIVE = True  # Enable photodiode only from first task screen
     # Force window to front and ensure it has focus
     try:
         win.winHandle.activate()  # Bring window to front (macOS)
@@ -4028,7 +4033,8 @@ def run_experiment():
         except:
             pass  # May fail on some systems
     
-    # Draw initial screen
+    # Draw initial screen (first task screen – instruction onset)
+    _signal_photodiode_event()
     start_screen.draw()
     start_button.draw()
     start_button_text.draw()
@@ -4097,7 +4103,7 @@ def run_experiment():
                     if on_exit:
                         core.quit()
                     elif on_button:
-                        # Visual feedback (no color change in touch screen mode)
+                        _signal_photodiode_event()  # BEGIN clicked (commit)
                         start_screen.draw()
                         start_button.draw()
                         start_button_text.draw()
@@ -4121,6 +4127,7 @@ def run_experiment():
             try:
                 keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                 if 'space' in keys:
+                    _signal_photodiode_event()  # BEGIN pressed (commit)
                     clicked = True
                     break
                 if 'escape' in keys:
@@ -4142,6 +4149,7 @@ def run_experiment():
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
+                        _signal_photodiode_event()  # BEGIN pressed (commit)
                         clicked = True
                         break
                     if 'escape' in keys:
@@ -4230,7 +4238,11 @@ def run_experiment():
     mouse = event.Mouse(win=win)
     mouse.setVisible(True)
     
+    first_draw_welcome1 = [True]
     def draw_screen():
+        if first_draw_welcome1[0]:
+            _signal_photodiode_event()  # First instruction screen onset (visual change)
+            first_draw_welcome1[0] = False
         redraw_welcome_1()
         win.flip()
     
@@ -4273,7 +4285,7 @@ def run_experiment():
                     if on_exit:
                         core.quit()
                     elif on_button:
-                        # Visual feedback (no color change in touch screen mode)
+                        _signal_photodiode_event()  # Motor response (CONTINUE clicked)
                         draw_screen()
                         core.wait(0.2)
                         clicked = True
@@ -4295,6 +4307,7 @@ def run_experiment():
                 keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                 if keys:
                     if 'space' in keys:
+                        _signal_photodiode_event()  # Motor response (CONTINUE pressed)
                         clicked = True
                         break
                     elif 'escape' in keys:
@@ -4311,6 +4324,7 @@ def run_experiment():
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
+                        _signal_photodiode_event()  # Motor response (CONTINUE pressed)
                         clicked = True
                         break
                     elif 'escape' in keys:
@@ -4435,6 +4449,7 @@ def run_experiment():
     win.flip()
     recognition_image_trigger_t1 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(1.5)  # Show for 1.5 seconds to match sequential presentation timing
+    _signal_photodiode_event()  # Image offset
     _practice_t1_prompt = (
         "Slide using LEFT or RIGHT arrow keys to show how confident you are you've seen this before (i.e., it is \"old\"). "
         "How close you are to either side indicates how CONFIDENT you are. Press Return when done."
@@ -4525,6 +4540,7 @@ def run_experiment():
     win.flip()
     recognition_image_trigger_t2 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(1.0)
+    _signal_photodiode_event()  # Image offset
     
     # Trial 2: Show message first, then AI rates (all the way OLD), then participant rates
     # Show message that partner is confident (Carly in practice)
@@ -4649,6 +4665,7 @@ def run_experiment():
     win.flip()
     recognition_image_trigger_t3 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     safe_wait(1.0)
+    _signal_photodiode_event()  # Image offset
     
     # Trial 3: Full trial with participant, AI, switch/stay
     # Don't set position/size - use defaults from load_image_stimulus (0, 0) and (0.3, 0.3)
