@@ -773,9 +773,9 @@ try:
         win.flip()  # White (baseline)
     try:
         photodiode_patch = visual.Rect(
-            win, width=0.12, height=0.04,  # Same size as exit button (original working config)
+            win, width=0.03, height=0.01,  # Quarter of exit-button size
             fillColor='white', lineColor=None,
-            pos=(-0.45, -0.47),  # Bottom-left (original working config – within visible range on all aspect ratios)
+            pos=(-0.65, -0.48),  # Far left, slightly up
             units='height'
         )
         _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
