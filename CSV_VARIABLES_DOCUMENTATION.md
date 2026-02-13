@@ -31,8 +31,8 @@ The localizer task generates one CSV file:
 
 ### `block`
 - **Type**: Integer
-- **Description**: Block number (0 = practice block, 1-10 = experimental blocks)
-- **Example**: `0`, `1`, `2`, `10`
+- **Description**: Block number (1-10 only). The study phase CSV contains only experimental blocks; the practice block (block 0) uses a different procedure and does not appear in this file.
+- **Example**: `1`, `2`, `10`
 
 ### `phase`
 - **Type**: String
@@ -148,7 +148,7 @@ The localizer task generates one CSV file:
 
 ### `participant_rt`
 - **Type**: Float (seconds)
-- **Description**: Participant's reaction time from image onset to when they clicked SUBMIT
+- **Description**: Participant's reaction time from when the slider screen appeared to when they clicked SUBMIT. *Not* measured from image onset—the slider appears after the image is shown for 1.0 second (participant-first trials) or after the image + AI animation (AI-first trials).
 - **Timeout**: If participant doesn't respond within 7.0 seconds, random answer selected and RT = 7.0
 - **Example**: `4.68976616859436`, `2.981760025024414`, `7.0` (timeout)
 
@@ -165,8 +165,9 @@ The localizer task generates one CSV file:
 
 ### `participant_slider_stop_time`
 - **Type**: Float (Unix timestamp) or None
-- **Description**: Time when participant clicked on the slider to set their rating (final position). None if they never clicked on the slider.
+- **Description**: Time when participant last clicked/tapped on the slider to set their rating (final position). None if they never clicked on the slider.
 - **Note**: For touch screens, this may be different from `participant_slider_decision_onset_time` if the participant taps multiple times to adjust their rating.
+- **Derived measure**: Time from image onset to last slider click = `participant_slider_stop_time - image_onset` (when not None)
 - **Example**: `1764818195.5`, `None`
 
 ### `participant_slider_decision_onset_time`
