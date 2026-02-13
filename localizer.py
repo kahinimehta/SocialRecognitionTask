@@ -38,6 +38,7 @@ EXIT_HIT_MARGIN = 0.05  # Larger margin for reliable touch registration
 # Photodiode detector: black rectangle in bottom-left (0.5" x 1"), drawn on each flip except input/name screens
 PHOTODIODE_ACTIVE = True  # Set False during get_input_method (temp_win) and get_participant_id
 photodiode_patch = None  # Created after main window exists
+_last_photodiode_ttl_timestamp = [None]  # Set at exact moment of photodiode flash + TTL (for CSV alignment)
 
 # TTL trigger: parallel port pulse when photodiode appears (Windows/Linux; no-op on macOS)
 _ttl_parallel = None  # Lazy-init
@@ -134,7 +135,7 @@ def get_input_method():
         prompt_text = visual.TextStim(
             temp_win,
             text="What input method are you using?\n\n"
-                 "Touch/click the button below, or press 1 for Touch Screen, 2 for Keyboard:\n\n"
+                 "Double tap for touch screen, or press 2 for keyboard:\n\n"
                  "(Press ESC or tap Exit to leave fullscreen)",
             color='black',
             height=30/720*0.75,
@@ -156,7 +157,7 @@ def get_input_method():
         )
         button1_text = visual.TextStim(
             temp_win, 
-            text="TOUCH SCREEN\n(Double tap with finger)", 
+            text="TOUCH SCREEN\n(Double tap)", 
             color='black', 
             height=24/720*0.75, 
             pos=(-320/720*0.6, -80/720*0.6),
@@ -176,7 +177,7 @@ def get_input_method():
         )
         button2_text = visual.TextStim(
             temp_win, 
-            text="KEYBOARD\n(Press arrow keys & Return)", 
+            text="KEYBOARD\n(Press 2)", 
             color='black', 
             height=24/720*0.75, 
             pos=(320/720*0.6, -80/720*0.6),
@@ -220,17 +221,19 @@ def get_input_method():
         while selected is None:
             # Check for escape key FIRST, before clearing events
             try:
-                keys = event.getKeys(keyList=['escape', '1', '2'])
-                if keys and 'escape' in keys:
-                    return None, None  # Signal to exit - window will be closed in exception handler
-                if keys and '1' in keys:
-                    USE_TOUCH_SCREEN = True
-                    selected = 'touch'
-                    break
-                if keys and '2' in keys:
-                    USE_TOUCH_SCREEN = False
-                    selected = 'click'
-                    break
+                # Get all keys to handle different key naming across systems (numpad vs number row)
+                keys = event.getKeys(keyList=None)
+                if keys:
+                    if 'escape' in keys:
+                        return None, None  # Signal to exit - window will be closed in exception handler
+                    if '1' in keys:
+                        USE_TOUCH_SCREEN = True
+                        selected = 'touch'
+                        break
+                    if '2' in keys:
+                        USE_TOUCH_SCREEN = False
+                        selected = 'click'
+                        break
             except (AttributeError, RuntimeError) as e:
                 print(f"Warning: Error checking escape key: {e}", file=sys.stderr)
             
@@ -1108,6 +1111,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
     exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
     exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
     
+    first_draw_done = [False]
     def draw_screen():
         # Draw additional stimuli first (e.g., instructions)
         if additional_stimuli:
@@ -1117,6 +1121,9 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         continue_text.draw()
         exit_btn.draw()
         exit_text.draw()
+        if not first_draw_done[0]:
+            _signal_photodiode_event()  # Instruction/continue screen onset
+            first_draw_done[0] = True
         win.flip()
     
     draw_screen()
@@ -1167,6 +1174,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                             core.quit()
                         elif continue_button.contains(mouseloc):
                             if t > minRT:
+                                _signal_photodiode_event()  # Participant response
                                 continue_button.fillColor = 'lightgreen'
                                 draw_screen()
                                 core.wait(0.2)
@@ -1188,6 +1196,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                         if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
                             if t > minRT:
+                                _signal_photodiode_event()  # Participant response
                                 continue_button.fillColor = 'lightgreen'
                                 draw_screen()
                                 core.wait(0.2)
@@ -1215,6 +1224,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                     if 'escape' in keys:
                         core.quit()
                     elif 'space' in keys:
+                        _signal_photodiode_event()  # Participant response
                         clicked = True
                         break
             except (AttributeError, RuntimeError) as e:
@@ -1230,6 +1240,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
+                        _signal_photodiode_event()  # Participant response
                         clicked = True
                         break
                     if 'escape' in keys:
@@ -1599,29 +1610,7 @@ try:
         sys.stdout.flush()
         sys.stderr.flush()
         
-        # Photodiode: white baseline, flashes black on each flip for onset/offset detection
-        try:
-            photodiode_patch = visual.Rect(
-                win, width=0.05, height=0.1,  # ~0.5cm x 1cm
-                fillColor='white', lineColor=None,
-                pos=(-0.72, -0.39),  # Bottom-left corner
-                units='height'
-            )
-            _photodiode_flip_state = [1]  # 1=white (baseline), 0=black (flash); start white
-            _orig_flip = win.flip
-            def _wrapped_flip():
-                if PHOTODIODE_ACTIVE and photodiode_patch is not None:
-                    # Alternate: white (baseline) <-> black (flash). Onset = drop, offset = rise.
-                    photodiode_patch.fillColor = 'white' if _photodiode_flip_state[0] else 'black'
-                    _photodiode_flip_state[0] = 1 - _photodiode_flip_state[0]
-                    photodiode_patch.draw()
-                _orig_flip()
-                if PHOTODIODE_ACTIVE and photodiode_patch is not None:
-                    _send_ttl_trigger()
-            win.flip = _wrapped_flip
-        except Exception as e:
-            print(f"Warning: Could not create photodiode patch: {e}", file=sys.stderr)
-        
+        # Photodiode created AFTER name entry (see below) - not during window creation
         # Don't close temp window yet - wait until main window is fully set up
     except Exception as e:
         # If window creation fails, show error
@@ -1771,10 +1760,11 @@ try:
     fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     
     def show_fixation(duration=1.0, return_onset=False):
-        """Display fixation cross for specified duration. ESC works during wait. Returns onset (photodiode trigger time) if return_onset=True."""
+        """Display fixation cross for specified duration. ESC works during wait. Returns onset (photodiode/TTL trigger time) if return_onset=True."""
+        _signal_photodiode_event()  # Fixation onset
         fixation.draw()
         win.flip()
-        onset = time.time()
+        onset = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
         wait_with_escape(duration)
         return onset if return_onset else None
 
@@ -1799,6 +1789,38 @@ try:
                 traceback.print_exc()
         core.quit()
         exit(1)
+
+    # Create photodiode and install wrapper AFTER name is submitted (not visible during input method or name entry)
+    PHOTODIODE_ACTIVE = True  # Re-enable for main task
+    try:
+        photodiode_patch = visual.Rect(
+            win, width=0.12, height=0.04,  # Same size as exit button
+            fillColor='white', lineColor=None,
+            pos=(-0.45, -0.47),  # Bottom-left corner (mirrors exit button position)
+            units='height'
+        )
+        _photodiode_signal_next_flip = [False]
+        def _signal_photodiode_event():
+            _photodiode_signal_next_flip[0] = True
+        _orig_flip = win.flip
+        def _wrapped_flip():
+            did_flash = False
+            if PHOTODIODE_ACTIVE and photodiode_patch is not None:
+                # Default: white (baseline). Only flash black when explicitly signaled.
+                photodiode_patch.fillColor = 'white'
+                if _photodiode_signal_next_flip[0]:
+                    photodiode_patch.fillColor = 'black'
+                    _photodiode_signal_next_flip[0] = False
+                    did_flash = True
+                photodiode_patch.draw()
+            _orig_flip()
+            # TTL only when photodiode flashes – same event, same timestamp for CSV alignment
+            if PHOTODIODE_ACTIVE and photodiode_patch is not None and did_flash:
+                _last_photodiode_ttl_timestamp[0] = time.time()
+                _send_ttl_trigger()
+        win.flip = _wrapped_flip
+    except Exception as e:
+        print(f"Warning: Could not create photodiode patch: {e}", file=sys.stderr)
 
     # Load all stimuli
     print("Loading stimuli...")
@@ -1902,14 +1924,13 @@ try:
             localizer_fixation_trigger = localizer_fixation_trigger_first
             fixation_offset = fixation_offset_first
         
-        # Load and display image
+        # Load and display image (fixation offset + image onset)
         try:
+            _signal_photodiode_event()
             img = visual.ImageStim(win, image=stimulus['path'], size=(0.8*0.75*1.35, 0.8*0.75*1.35))
             img.draw()
             win.flip()
-            
-            # Record image trigger (when photodiode fires)
-            localizer_image_trigger = time.time()
+            localizer_image_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
             
             # Show image for exactly 0.5 seconds (fixed duration). ESC works during wait.
             wait_with_escape(0.5)

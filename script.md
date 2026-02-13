@@ -45,11 +45,11 @@ The code should automatically update every time you open the terminal or run the
 **Display says:**
 "What input method are you using?
 
-Touch/click the button below, or press 1 for Touch Screen, 2 for Keyboard:
+Double tap for touch screen, or press 2 for keyboard:
 
 (Press ESC or tap Exit to leave fullscreen)"
 
-**Display shows:** Two buttons: "TOUCH SCREEN (Double tap with finger)" and "KEYBOARD (Press arrow keys & Return)". A small **Exit** button (top-right corner).
+**Display shows:** Two buttons: "TOUCH SCREEN (Double tap)" and "KEYBOARD (Press 2)". A small **Exit** button (top-right corner).
 
 **What to say:**
 - **Touch screen:** "First, double-tap the Touch Screen button."
