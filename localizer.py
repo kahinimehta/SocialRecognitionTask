@@ -1810,7 +1810,7 @@ try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # Quarter of exit-button size
             fillColor='white', lineColor=None,
-            pos=(-0.65, -0.48),  # Far left, slightly up
+            pos=(-0.75, -0.48),  # Far left, slightly up
             units='height'
         )
         _photodiode_signal_next_flip = [False]
