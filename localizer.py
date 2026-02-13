@@ -106,7 +106,7 @@ def get_input_method():
         prompt_text = visual.TextStim(
             temp_win,
             text="What input method are you using?\n\n"
-                 "Touch or click the button below:\n\n"
+                 "Touch/click the button below, or press 1 for Touch Screen, 2 for Keyboard:\n\n"
                  "(Press ESC or tap Exit to leave fullscreen)",
             color='black',
             height=30/720*0.75,
@@ -148,7 +148,7 @@ def get_input_method():
         )
         button2_text = visual.TextStim(
             temp_win, 
-            text="MOUSE/TRACKPAD\n(Click)", 
+            text="KEYBOARD\n(Press arrow keys & Return)", 
             color='black', 
             height=24/720*0.75, 
             pos=(320/720*0.6, -80/720*0.6),
@@ -192,9 +192,17 @@ def get_input_method():
         while selected is None:
             # Check for escape key FIRST, before clearing events
             try:
-                keys = event.getKeys(keyList=['escape'])
+                keys = event.getKeys(keyList=['escape', '1', '2'])
                 if keys and 'escape' in keys:
                     return None, None  # Signal to exit - window will be closed in exception handler
+                if keys and '1' in keys:
+                    USE_TOUCH_SCREEN = True
+                    selected = 'touch'
+                    break
+                if keys and '2' in keys:
+                    USE_TOUCH_SCREEN = False
+                    selected = 'click'
+                    break
             except (AttributeError, RuntimeError) as e:
                 print(f"Warning: Error checking escape key: {e}", file=sys.stderr)
             
@@ -293,7 +301,7 @@ def get_input_method():
         # Show confirmation - use height units to match temp window
         confirm_text = visual.TextStim(
             temp_win,
-            text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'CLICK/MOUSE'}",
+            text=f"Input method set to:\n{'TOUCH SCREEN' if USE_TOUCH_SCREEN else 'KEYBOARD'}",
             color='black',
             height=40/720*0.75,
             pos=(0, 100/720*0.6),
@@ -307,7 +315,7 @@ def get_input_method():
         cont_x = 0
         cont_y = -150/720*0.6
         continue_button = visual.Rect(temp_win, width=cont_w, height=cont_h, fillColor='lightblue', lineColor='black', pos=(cont_x, cont_y), units='height')
-        continue_text = visual.TextStim(temp_win, text="CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
+        continue_text = visual.TextStim(temp_win, text="CONTINUE (Press Return)" if not USE_TOUCH_SCREEN else "CONTINUE", color='black', height=30/720*0.75, pos=(cont_x, cont_y), units='height')
         
         clicked = False
         continue_click_time = None  # Record when continue is clicked
@@ -407,72 +415,26 @@ def get_input_method():
                 # Reduced polling delay for faster touch response
                 core.wait(0.005)  # Faster polling for touch screens
         else:
-            # BUTTON PRESS/RELEASE DETECTION for mouse/click mode
-            prev_mouse_buttons_cont = [False, False, False]
-            
+            # KEYBOARD mode: wait for Return key press (no mouse)
             while not clicked:
-                # Check for escape key FIRST
                 try:
-                    keys = event.getKeys(keyList=['escape'])
+                    keys = event.getKeys(keyList=['escape', 'return'])
                     if keys and 'escape' in keys:
                         return None, None
+                    if keys and 'return' in keys:
+                        continue_click_time = time.time()
+                        clicked = True
+                        break
                 except (AttributeError, RuntimeError) as e:
-                    print(f"Warning: Error checking escape key in continue loop: {e}", file=sys.stderr)
+                    print(f"Warning: Error checking keys in continue loop: {e}", file=sys.stderr)
                 
                 confirm_text.draw()
                 continue_button.draw()
                 continue_text.draw()
                 temp_win.flip()
                 
-                try:
-                    mouse_buttons_cont = mouse_temp.getPressed()
-                    mouseloc_cont = mouse_temp.getPos()
-                    
-                    # Check for button release (was pressed, now released)
-                    if prev_mouse_buttons_cont[0] and not mouse_buttons_cont[0]:
-                        # Button was released - check if it was over the continue button
-                        try:
-                            if continue_button.contains(mouseloc_cont):
-                                continue_click_time = time.time()  # Record exact time of click
-                                clicked = True
-                                break
-                        except Exception as e:
-                            # Fallback to manual calculation
-                            print(f"ERROR in button.contains() fallback: {repr(e)}", file=sys.stderr)
-                            traceback.print_exc()
-                            try:
-                                mouseloc_cont_x, mouseloc_cont_y = float(mouseloc_cont[0]), float(mouseloc_cont[1])
-                            except:
-                                mouseloc_cont_x, mouseloc_cont_y = 0.0, 0.0
-                            hit_margin = 50/720*0.75
-                            button_x, button_y = 0.0, -150.0/720*0.6
-                            button_width, button_height = 300/720*0.75, 80/720*0.75
-                            if (button_x - button_width/2 - hit_margin <= mouseloc_cont_x <= button_x + button_width/2 + hit_margin and
-                                button_y - button_height/2 - hit_margin <= mouseloc_cont_y <= button_y + button_height/2 + hit_margin):
-                                continue_click_time = time.time()  # Record exact time of click
-                                clicked = True
-                                break
-                    
-                    # Update previous button state
-                    prev_mouse_buttons_cont = mouse_buttons_cont.copy() if hasattr(mouse_buttons_cont, 'copy') else list(mouse_buttons_cont)
-                except Exception as e:
-                    pass
-                
-                # Check for space key (escape already checked at start of loop)
-                try:
-                    keys = event.getKeys(keyList=['space'])
-                    if keys and 'space' in keys:
-                        continue_click_time = time.time()  # Record exact time of space key press
-                        clicked = True
-                        break
-                except (AttributeError, RuntimeError) as e:
-                    print(f"Warning: Error checking space key: {e}", file=sys.stderr)
-                
-                # Clear events AFTER checking keys
                 event.clearEvents()
-                
-                # Reduced polling delay for faster touch response
-                core.wait(0.001)  # Very fast polling
+                core.wait(0.01)
         
         mouse_temp.setVisible(False)
         
@@ -746,7 +708,7 @@ def get_participant_id():
             print("input_display created")
         else:
             print("Creating mouse/trackpad text stimuli...")
-            id_prompt = visual.TextStim(win, text="Enter participant ID:", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
+            id_prompt = visual.TextStim(win, text="Enter participant ID:\n\nHit Enter when done.", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
             print("id_prompt created")
             input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75*1.35, pos=(0, 0.1*0.6))
             print("input_display created")
@@ -1099,9 +1061,10 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         lineColor='black',
         pos=(0, -0.5*0.6)  # Moved even closer to bottom
     )
+    display_button_text = f"{button_text}\n(Press Return)" if (not USE_TOUCH_SCREEN and button_text in ("CONTINUE", "BEGIN", "EXIT")) else button_text
     continue_text = visual.TextStim(
         win,
-        text=button_text,
+        text=display_button_text,
         color='black',
         height=0.05*0.75*1.35,
         pos=(0, -0.5*0.6)  # Moved even closer to bottom
@@ -1226,91 +1189,19 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
             # Clear events AFTER checking keys
             event.clearEvents()
     else:
-        # Standard mouse click detection for non-touch screens
-        prev_mouse_buttons = [False, False, False]
-        last_hover_state = None
-        
+        # Keyboard mode: wait for Return key press (no mouse)
         while not clicked:
-            # Check for escape FIRST, before any other processing
+            draw_screen()
             try:
-                keys = event.getKeys(keyList=['escape'])
-                if keys and 'escape' in keys:
-                    core.quit()
+                keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
+                if keys:
+                    if 'return' in keys:
+                        clicked = True
+                        break
+                    if 'escape' in keys:
+                        core.quit()
             except (AttributeError, RuntimeError):
                 pass
-            try:
-                mouse_buttons = mouse.getPressed()
-                mouse_pos = mouse.getPos()
-                
-                try:
-                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                        mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
-                    else:
-                        mouse_x, mouse_y = 0.0, 0.0
-                except (TypeError, ValueError):
-                    mouse_x, mouse_y = 0.0, 0.0
-                
-                # Get button position
-                try:
-                    button_pos = continue_button.pos
-                    if hasattr(button_pos, '__len__') and len(button_pos) >= 2:
-                        button_x = float(button_pos[0])
-                        button_y = float(button_pos[1])
-                    else:
-                        button_x, button_y = 0.0, -0.5*0.6  # Updated to match new button position
-                        continue_button.pos = (button_x, button_y)
-                except (TypeError, ValueError, IndexError):
-                    button_x, button_y = 0.0, -0.35*0.6
-                    continue_button.pos = (button_x, button_y)
-                
-                # Get button dimensions
-                try:
-                    button_width = float(continue_button.width)
-                    button_height = float(continue_button.height)
-                    if button_width <= 0 or button_height <= 0:
-                        button_width, button_height = 0.3, 0.1
-                except (TypeError, ValueError):
-                    button_width, button_height = 0.3, 0.1
-                
-                on_button = (button_x - button_width/2 <= mouse_x <= button_x + button_width/2 and
-                            button_y - button_height/2 <= mouse_y <= button_y + button_height/2)
-                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
-                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
-                
-                if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_exit:
-                        core.quit()
-                    elif on_button:
-                        continue_button.fillColor = 'lightgreen'
-                        draw_screen()
-                        core.wait(0.2)
-                        clicked = True
-                        break
-                
-                if on_button != last_hover_state:
-                    if on_button:
-                        continue_button.fillColor = 'lightcyan'
-                    else:
-                        continue_button.fillColor = 'lightblue'
-                    draw_screen()
-                    last_hover_state = on_button
-                
-                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-            except (AttributeError, Exception):
-                pass
-            
-            # Safe event.getKeys() handling
-            try:
-                keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
-                if keys:
-                    if 'space' in keys:
-                        clicked = True
-                        break
-                    elif 'escape' in keys:
-                        core.quit()
-            except (AttributeError, Exception):
-                pass
-            
             safe_wait(0.01)
     
     mouse.setVisible(False)
@@ -1327,6 +1218,8 @@ def ask_object_question(object_name, timeout=10.0):
         tuple: (answer: bool or None, timed_out: bool, response_time: float, answer_click_time: float or None)
     """
     question_text = object_to_question(object_name)
+    if not USE_TOUCH_SCREEN:
+        question_text += "\n\n(Press LEFT for YES, RIGHT for NO)"
     
     # Create question display
     question_stim = visual.TextStim(
@@ -1549,18 +1442,9 @@ def ask_object_question(object_name, timeout=10.0):
             # Clear events AFTER checking keys
             event.clearEvents()
     else:
-        # Standard mouse click detection for non-touch screens
-        prev_mouse_buttons = [False, False, False]
-        
+        # Keyboard mode: LEFT = YES, RIGHT = NO
         while not answered:
-            # Check for escape FIRST, before any other processing
-            try:
-                keys = event.getKeys(keyList=['escape'])
-                if keys and 'escape' in keys:
-                    core.quit()
-            except (AttributeError, RuntimeError):
-                pass
-            # Check for timeout
+            # Check for timeout first
             elapsed_time = clock.getTime()
             if elapsed_time >= timeout:
                 timed_out = True
@@ -1568,77 +1452,24 @@ def ask_object_question(object_name, timeout=10.0):
                 answered = True
                 break
             
+            draw_question()
             try:
-                mouse_buttons = mouse.getPressed()
-                mouse_pos = mouse.getPos()
-                
-                try:
-                    if hasattr(mouse_pos, '__len__') and len(mouse_pos) >= 2:
-                        mouse_x, mouse_y = float(mouse_pos[0]), float(mouse_pos[1])
-                    else:
-                        mouse_x, mouse_y = 0.0, 0.0
-                except (TypeError, ValueError):
-                    mouse_x, mouse_y = 0.0, 0.0
-                
-                # Check YES button
-                yes_x, yes_y = -0.3*0.6, -0.2*0.6
-                yes_width, yes_height = 0.25*0.75, 0.1*0.75
-                on_yes = (yes_x - yes_width/2 <= mouse_x <= yes_x + yes_width/2 and
-                         yes_y - yes_height/2 <= mouse_y <= yes_y + yes_height/2)
-                
-                # Check NO button
-                no_x, no_y = 0.3*0.6, -0.2*0.6
-                no_width, no_height = 0.25*0.75, 0.1*0.75
-                on_no = (no_x - no_width/2 <= mouse_x <= no_x + no_width/2 and
-                        no_y - no_height/2 <= mouse_y <= no_y + no_height/2)
-                on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouse_x <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
-                          EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouse_y <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
-                
-                if prev_mouse_buttons[0] and not mouse_buttons[0]:
-                    if on_exit:
-                        core.quit()
-                    elif on_yes:
-                        answer = True
-                        response_time = clock.getTime()
-                        answer_click_time = time.time()  # Record absolute timestamp
-                        yes_button.fillColor = 'green'
-                        draw_question()
-                        core.wait(0.3)
-                        answered = True
-                        break
-                    elif on_no:
-                        answer = False
-                        response_time = clock.getTime()
-                        answer_click_time = time.time()  # Record absolute timestamp
-                        no_button.fillColor = 'red'
-                        draw_question()
-                        core.wait(0.3)
-                        answered = True
-                        break
-                
-                prev_mouse_buttons = mouse_buttons.copy() if hasattr(mouse_buttons, 'copy') else list(mouse_buttons)
-            except (AttributeError, RuntimeError, ValueError, TypeError) as e:
-                # Log specific errors instead of silently ignoring
-                print(f"Warning: Error in ask_category_question mouse button handling: {e}", file=sys.stderr)
-            
-            # Safe event.getKeys() handling
-            try:
-                keys = event.getKeys(keyList=['y', 'n', 'escape'], timeStamped=False)
+                keys = event.getKeys(keyList=['left', 'right', 'escape'], timeStamped=False)
                 if keys:
-                    if 'y' in keys:
+                    if 'escape' in keys:
+                        core.quit()
+                    if 'left' in keys:
                         answer = True
                         response_time = clock.getTime()
-                        answer_click_time = time.time()  # Record absolute timestamp
+                        answer_click_time = time.time()
                         answered = True
                         break
-                    elif 'n' in keys:
+                    if 'right' in keys:
                         answer = False
                         response_time = clock.getTime()
-                        answer_click_time = time.time()  # Record absolute timestamp
+                        answer_click_time = time.time()
                         answered = True
                         break
-                    elif 'escape' in keys:
-                        core.quit()
             except (AttributeError, RuntimeError) as e:
                 print(f"Warning: Error checking keys in ask_object_question: {e}", file=sys.stderr)
             
