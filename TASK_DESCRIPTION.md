@@ -138,15 +138,15 @@ Each of the 10 trials follows this structure:
 
 ### AI Accuracy Manipulation
 
-- **Reliable blocks**: 90% accuracy (Blocks 1-3 and 6-7, Amy)—9 correct per 10-trial block
-- **Unreliable blocks**: 40% accuracy (Blocks 4-5 and 8-10, Ben)—4 correct per 10-trial block
+- **Reliable blocks**: 75% accuracy (Blocks 1-3 and 6-7, Amy)—7-8 correct per 10-trial block
+- **Unreliable blocks**: 35% accuracy (Blocks 4-5 and 8-10, Ben)—3-4 correct per 10-trial block
 - **Block structure**:
-  - Blocks 1-3: Reliable (Amy, 90%), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 4-5: Unreliable (Ben, 40%), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 6-7: Reliable (Amy, 90%), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 8-10: Unreliable (Ben, 40%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 1-3: Reliable (Amy, 75%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 4-5: Unreliable (Ben, 35%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 6-7: Reliable (Amy, 75%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 8-10: Unreliable (Ben, 35%), turn order randomized within block (AI first on 5 random trials)
 
-**Implementation details**: The AI collaborator uses a pre-generated randomized sequence to target 90% (reliable/Amy) or 40% (unreliable/Ben) accuracy per block. Reliable blocks yield 9 correct, unreliable blocks yield 4 correct.
+**Implementation details**: The AI collaborator uses a pre-generated randomized sequence to target 75% (reliable/Amy) or 35% (unreliable/Ben) accuracy per block. Reliable blocks yield 7-8 correct, unreliable blocks yield 3-4 correct.
 
 ### Collaboration Decision (STAY/SWITCH)
 

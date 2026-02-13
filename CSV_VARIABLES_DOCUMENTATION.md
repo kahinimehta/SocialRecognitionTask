@@ -237,11 +237,11 @@ The localizer task generates one CSV file:
 ### `ai_reliability`
 - **Type**: Float (0.0 to 1.0)
 - **Description**: AI's accuracy rate/reliability for this trial
-  - `0.9` = Reliable partner (Amy in blocks 1-3 and 6-7) - 90% accurate per block (9/10 trials)
-  - `0.4` = Unreliable partner (Ben in blocks 4-5 and 8-10) - 40% accurate per block (4/10 trials)
+  - `0.75` = Reliable partner (Amy in blocks 1-3 and 6-7) - 75% accurate per block (7-8/10 trials)
+  - `0.35` = Unreliable partner (Ben in blocks 4-5 and 8-10) - 35% accurate per block (3-4/10 trials)
   - `0.5` = Practice block (50% reliability)
-- **Note**: With 10 trials per block, reliable blocks yield 9 correct (90%), unreliable blocks yield 4 correct (40%).
-- **Example**: `0.9`, `0.4`, `0.5`
+- **Note**: With 10 trials per block, reliable blocks yield 7-8 correct (75%), unreliable blocks yield 3-4 correct (35%).
+- **Example**: `0.75`, `0.35`, `0.5`
 
 ---
 
