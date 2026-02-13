@@ -1119,7 +1119,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
         exit_text.draw()
     def draw_screen():
         if not first_draw_done[0]:
-            _do_photodiode_flash(draw_content)  # Instruction/continue onset: black (TTL), white
+            _do_photodiode_flash(draw_content, event_type="instruction_onset")  # Instruction/continue onset: black (TTL), white
             first_draw_done[0] = True
         else:
             draw_content()
@@ -1170,7 +1170,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                             core.quit()
                         elif continue_button.contains(mouseloc):
                             if t > minRT:
-                                _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
+                                _do_photodiode_flash(draw_content, event_type="instruction_continue")  # Participant response: black (TTL), white
                                 core.wait(0.2)
                                 clicked = True
                                 break
@@ -1190,7 +1190,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                         if (button_x - button_width/2 - hit_margin <= mouseloc_x <= button_x + button_width/2 + hit_margin and
                             button_y - button_height/2 - hit_margin <= mouseloc_y <= button_y + button_height/2 + hit_margin):
                             if t > minRT:
-                                _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
+                                _do_photodiode_flash(draw_content, event_type="instruction_continue")  # Participant response: black (TTL), white
                                 core.wait(0.2)
                                 clicked = True
                                 break
@@ -1216,7 +1216,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                     if 'escape' in keys:
                         core.quit()
                     elif 'space' in keys:
-                        _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
+                        _do_photodiode_flash(draw_content, event_type="instruction_continue")  # Participant response: black (TTL), white
                         clicked = True
                         break
             except (AttributeError, RuntimeError) as e:
@@ -1232,7 +1232,7 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                 keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                 if keys:
                     if 'return' in keys:
-                        _do_photodiode_flash(draw_content)  # Participant response: black (TTL), white
+                        _do_photodiode_flash(draw_content, event_type="instruction_continue")  # Participant response: black (TTL), white
                         clicked = True
                         break
                     if 'escape' in keys:
@@ -1320,7 +1320,7 @@ def ask_object_question(object_name, timeout=10.0):
         draw_question_content()
         win.flip()
     
-    _do_photodiode_flash(draw_question_content)  # Question screen onset: flash when screen changes
+    _do_photodiode_flash(draw_question_content, event_type="question_trigger")  # Question screen onset: flash when screen changes
     question_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     
     answered = False
@@ -1385,7 +1385,7 @@ def ask_object_question(object_name, timeout=10.0):
                                 response_time = clock.getTime()
                                 answer_click_time = time.time()  # Record absolute timestamp
                                 yes_button.fillColor = 'green'
-                                _do_photodiode_flash(draw_question_content)  # Flash at click
+                                _do_photodiode_flash(draw_question_content, event_type="question_answer_trigger")  # Flash at click
                                 question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                                 core.wait(0.3)
                                 answered = True
@@ -1403,7 +1403,7 @@ def ask_object_question(object_name, timeout=10.0):
                                 response_time = clock.getTime()
                                 answer_click_time = time.time()  # Record absolute timestamp
                                 no_button.fillColor = 'red'
-                                _do_photodiode_flash(draw_question_content)  # Flash at click
+                                _do_photodiode_flash(draw_question_content, event_type="question_answer_trigger")  # Flash at click
                                 question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                                 core.wait(0.3)
                                 answered = True
@@ -1434,7 +1434,7 @@ def ask_object_question(object_name, timeout=10.0):
                             response_time = clock.getTime()
                             answer_click_time = time.time()  # Record absolute timestamp
                             yes_button.fillColor = 'green'
-                            _do_photodiode_flash(draw_question_content)  # Flash at click
+                            _do_photodiode_flash(draw_question_content, event_type="question_answer_trigger")  # Flash at click
                             question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                             core.wait(0.3)
                             answered = True
@@ -1444,7 +1444,7 @@ def ask_object_question(object_name, timeout=10.0):
                             response_time = clock.getTime()
                             answer_click_time = time.time()  # Record absolute timestamp
                             no_button.fillColor = 'red'
-                            _do_photodiode_flash(draw_question_content)  # Flash at click
+                            _do_photodiode_flash(draw_question_content, event_type="question_answer_trigger")  # Flash at click
                             question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                             core.wait(0.3)
                             answered = True
@@ -1471,7 +1471,7 @@ def ask_object_question(object_name, timeout=10.0):
                     if 'escape' in keys:
                         core.quit()
                     elif 'y' in keys:
-                        _do_photodiode_flash(draw_question_content)  # Flash at key press
+                        _do_photodiode_flash(draw_question_content, event_type="question_answer_trigger")  # Flash at key press
                         question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         answer = True
                         response_time = clock.getTime()
@@ -1479,7 +1479,7 @@ def ask_object_question(object_name, timeout=10.0):
                         answered = True
                         break
                     elif 'n' in keys:
-                        _do_photodiode_flash(draw_question_content)  # Flash at key press
+                        _do_photodiode_flash(draw_question_content, event_type="question_answer_trigger")  # Flash at key press
                         question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         answer = False
                         response_time = clock.getTime()
@@ -1509,7 +1509,7 @@ def ask_object_question(object_name, timeout=10.0):
                     if 'escape' in keys:
                         core.quit()
                     if 'left' in keys:
-                        _do_photodiode_flash(draw_question_content)  # Flash at key press
+                        _do_photodiode_flash(draw_question_content, event_type="question_answer_trigger")  # Flash at key press
                         question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         answer = True
                         response_time = clock.getTime()
@@ -1517,7 +1517,7 @@ def ask_object_question(object_name, timeout=10.0):
                         answered = True
                         break
                     if 'right' in keys:
-                        _do_photodiode_flash(draw_question_content)  # Flash at key press
+                        _do_photodiode_flash(draw_question_content, event_type="question_answer_trigger")  # Flash at key press
                         question_answer_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                         answer = False
                         response_time = clock.getTime()
@@ -1767,12 +1767,12 @@ try:
     # Create fixation cross
     fixation = visual.TextStim(win, text="+", color='black', height=0.08*0.75*1.35, pos=(0, 0))
     
-    def show_fixation(duration=1.0, return_onset=False, return_offset_trigger=False):
+    def show_fixation(duration=1.0, return_onset=False, return_offset_trigger=False, onset_event_type=None, offset_event_type=None):
         """Display fixation cross for specified duration. Photodiode stays white; flashes black (TTL) then white at onset/offset."""
-        _do_photodiode_flash(lambda: fixation.draw())  # Onset: black (TTL), white
+        _do_photodiode_flash(lambda: fixation.draw(), event_type=onset_event_type)  # Onset: black (TTL), white
         onset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
         wait_with_escape(duration)
-        _do_photodiode_flash(lambda: _blank_rect.draw())  # Offset: black (TTL), white
+        _do_photodiode_flash(lambda: _blank_rect.draw(), event_type=offset_event_type)  # Offset: black (TTL), white
         offset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
         if return_onset and return_offset_trigger:
             return onset_trigger, offset_trigger
@@ -1811,10 +1811,14 @@ try:
             units='height'
         )
         _photodiode_signal_next_flip = [False]
+        _ttl_events = []
+        _pending_ttl_event_type = [None]
         def _signal_photodiode_event():
             _photodiode_signal_next_flip[0] = True
-        def _do_photodiode_flash(draw_func):
-            """Signal photodiode, then flip black (TTL) then white. Computer screen only: 17ms delay between flips so black is shown (fixes vsync coalescing)."""
+        def _do_photodiode_flash(draw_func, event_type=None):
+            """Signal photodiode, then flip black (TTL) then white. Computer screen only: 17ms delay between flips so black is shown (fixes vsync coalescing). Logs TTL if event_type given."""
+            if event_type is not None:
+                _pending_ttl_event_type[0] = event_type
             _signal_photodiode_event()
             if draw_func:
                 draw_func()
@@ -1838,8 +1842,12 @@ try:
             # TTL at exact flip moment – callOnFlip fires when screen changes, same time as photodiode flash
             if PHOTODIODE_ACTIVE and photodiode_patch is not None and did_flash:
                 def _on_flash():
-                    _last_photodiode_ttl_timestamp[0] = time.time()
+                    ts = time.time()
+                    _last_photodiode_ttl_timestamp[0] = ts
                     _send_ttl_trigger()
+                    if _pending_ttl_event_type[0] is not None:
+                        _ttl_events.append({"timestamp": ts, "event_type": _pending_ttl_event_type[0]})
+                        _pending_ttl_event_type[0] = None
                 win.callOnFlip(_on_flash)
             result = _orig_flip(*args, **kwargs)
             return result
@@ -1896,7 +1904,7 @@ try:
 
     def draw_instructions():
         instructions.draw()
-    _do_photodiode_flash(draw_instructions)  # First instruction onset: black (TTL), white
+    _do_photodiode_flash(draw_instructions, event_type="instruction_onset")  # First instruction onset: black (TTL), white
     wait_for_button("BEGIN", additional_stimuli=[instructions])
 
     # Data storage
@@ -1931,7 +1939,7 @@ try:
     # Show images
     # Start with a fixation cross before the first image
     fixation_duration_first = random.uniform(0.25, 0.75)
-    localizer_fixation_onset_trigger_first, localizer_fixation_offset_trigger_first = show_fixation(fixation_duration_first, return_onset=True, return_offset_trigger=True)
+    localizer_fixation_onset_trigger_first, localizer_fixation_offset_trigger_first = show_fixation(fixation_duration_first, return_onset=True, return_offset_trigger=True, onset_event_type="localizer_fixation_onset_trigger", offset_event_type="localizer_fixation_offset_trigger")
     
     for idx, stimulus in enumerate(all_stimuli, 1):
         # Record presentation time
@@ -1941,7 +1949,7 @@ try:
         # Show jittered fixation between images (except before first image, which was already shown)
         if idx > 1:
             fixation_duration = random.uniform(0.25, 0.75)
-            localizer_fixation_onset_trigger, localizer_fixation_offset_trigger = show_fixation(fixation_duration, return_onset=True, return_offset_trigger=True)
+            localizer_fixation_onset_trigger, localizer_fixation_offset_trigger = show_fixation(fixation_duration, return_onset=True, return_offset_trigger=True, onset_event_type="localizer_fixation_onset_trigger", offset_event_type="localizer_fixation_offset_trigger")
         else:
             fixation_duration = fixation_duration_first
             localizer_fixation_onset_trigger = localizer_fixation_onset_trigger_first
@@ -1950,12 +1958,12 @@ try:
         # Load and display image; photodiode flashes at fixation onset/offset, image onset/offset
         try:
             img = visual.ImageStim(win, image=stimulus['path'], size=(0.8*0.75*1.35, 0.8*0.75*1.35))
-            _do_photodiode_flash(lambda: img.draw())  # Image onset: black (TTL), white
+            _do_photodiode_flash(lambda: img.draw(), event_type="localizer_image_onset_trigger")  # Image onset: black (TTL), white
             localizer_image_onset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
             
             # Show image for exactly 0.5 seconds (fixed duration). ESC works during wait.
             wait_with_escape(0.5)
-            _do_photodiode_flash(lambda: _blank_rect.draw())  # Image offset: black (TTL), white
+            _do_photodiode_flash(lambda: _blank_rect.draw(), event_type="localizer_image_offset_trigger")  # Image offset: black (TTL), white
             localizer_image_offset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
             
             # Check if this is the 10th image (or every 10th after the first)
@@ -2096,6 +2104,26 @@ try:
             print(f"✓ Closed localizer CSV file: {csv_file_path}")
         else:
             print(f"✓ Closed localizer CSV file")
+
+    # Save TTL events log (every photodiode flash with timestamp and event type)
+    if not is_test_participant(participant_id) and csv_file_path:
+        try:
+            ttl_events = _ttl_events
+        except NameError:
+            ttl_events = []
+        if ttl_events:
+            try:
+                log_dir = get_log_directory()
+                base = os.path.basename(csv_file_path)  # localizer_P001_20260213_143022.csv
+                ttl_filename = base.replace("localizer_", "localizer_ttl_events_", 1)  # localizer_ttl_events_P001_...
+                ttl_file = os.path.join(log_dir, ttl_filename)
+                with open(ttl_file, 'w', newline='') as f:
+                    writer = csv.DictWriter(f, fieldnames=['timestamp', 'event_type'])
+                    writer.writeheader()
+                    writer.writerows(ttl_events)
+                print(f"✓ TTL events saved to {ttl_file} ({len(ttl_events)} triggers)")
+            except Exception as e:
+                print(f"⚠ Could not save TTL events: {e}", file=sys.stderr)
 
     # Save data (backup - in case CSV wasn't created incrementally)
     if not is_test_participant(participant_id) and not csv_initialized:

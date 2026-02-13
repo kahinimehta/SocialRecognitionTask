@@ -61,18 +61,7 @@ Double tap for touch screen, or press Right Arrow for keyboard:
 
 ---
 
-### Initial Screen
-**Display says:**
-"Hello & welcome to the social memory game! Pay careful attention to the text on the screen. Some images will be very deceptively similar."
-
-**Display shows:** A BEGIN button (light blue).
-
-**What to say:**
-"Welcome! You'll see a welcome message on the screen. Please read it carefully. When you're ready, press Return" — *keyboard* — "or tap BEGIN" — *touch screen* — "to continue."
-
----
-
-### Participant ID Screen
+### Participant ID Screen (first)
 **Display says:**
 "Enter your first name and last initial with no spaces/capitals:"
 (Keyboard mode: "Hit Enter when done." also shown.)
@@ -81,6 +70,19 @@ Double tap for touch screen, or press Right Arrow for keyboard:
 
 **What to say:**
 "Enter your first name and last initial, no spaces or capitals. When you're done, press Enter" — *keyboard* — "or tap CONTINUE" — *touch screen* — "."
+
+*Note: Name entry happens first (like localizer). Photodiode/TTL is off during name entry; after name is submitted, photodiode is on for every subsequent screen change, stimulus, and response.*
+
+---
+
+### Initial Screen (BEGIN)
+**Display says:**
+"Hello & welcome to the social memory game! Pay careful attention to the text on the screen. Some images will be very deceptively similar."
+
+**Display shows:** A BEGIN button (light blue).
+
+**What to say:**
+"Welcome! You'll see a welcome message on the screen. Please read it carefully. When you're ready, press Return" — *keyboard* — "or tap BEGIN" — *touch screen* — "to continue."
 
 ---
 

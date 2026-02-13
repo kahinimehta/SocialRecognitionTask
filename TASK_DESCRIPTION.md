@@ -260,7 +260,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Neural Data Logging (Photodiode & TTL)
 
-Photodiode patch at **extreme left** (-0.49, -0.45). White baseline; at each event it briefly flashes black (TTL sent) then white via `win.flip()`—never stays black. Covers: fixation onset/offset, image onset/offset, instruction onset, outcome onset, participant commits. **TTL is sent at the exact moment of each black flip** via PsychoPy `callOnFlip`. Every flash that can be associated with a trial is logged in CSV. See `CSV_VARIABLES_DOCUMENTATION.md` for complete event list and variable mapping.
+Photodiode patch at **extreme left** (-0.49, -0.45). White baseline; at each event it briefly flashes black (TTL sent) then white via `win.flip()`—never stays black. **Photodiode is off only during participant name entry.** After name entry, photodiode and TTL are **on for every screen change, stimulus change, and response**—same as localizer. Covers: BEGIN screen onset/click, fixation onset/offset, image onset/offset, instruction onset, CONTINUE clicks, outcome onset, participant commits (slider submit, STAY/SWITCH). **TTL is sent at the exact moment of each black flip** via PsychoPy `callOnFlip` (triggers and diode change simultaneously). Every flash that can be associated with a trial is logged in per-trial CSV. **Every TTL trigger is also logged chronologically** to `recognition_ttl_events_[participant_id]_[timestamp].csv` (timestamp + event_type per row). See `CSV_VARIABLES_DOCUMENTATION.md` for complete event list and variable mapping.
 
 **Computer/laptop screens only**: A 17 ms delay (~1 frame at 60 Hz) is used between the black and white flips for every photodiode event. This prevents vsync coalescing where rapid flips can cause only the white frame to display. Touch screens do not use this delay.
 
@@ -322,6 +322,7 @@ Photodiode patch at **extreme left** (-0.49, -0.45). White baseline; at each eve
 
 ### Transition Screens
 
+- **Task flow**: Participant enters name first (photodiode off); then BEGIN screen and all subsequent screens have photodiode/TTL for every change.
 - **Initial screen**: "Hello & welcome to the social memory game! Pay careful attention to the text on the screen. Some images will be very deceptively similar."
 - **Before practice**: Welcome message—Amy's studio; Carly (her assistant) will walk through practice (same image as Amy)
 - **After practice**: Transition message explaining the real work begins with Amy organizing photographs
@@ -349,7 +350,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 - **Question timing**: Asked at trials 10, 20, 30, ..., 200 (20 questions total)
 - **Total duration**: Approximately 3-5 minutes
 
-**Neural data**: Same as main task (fixation onset/offset, image onset/offset). YES/NO question onset (`question_trigger`) and participant answer tap/key (`question_answer_trigger`) trigger flashes; both logged in localizer CSV.
+**Neural data**: Same as main task (fixation onset/offset, image onset/offset). YES/NO question onset (`question_trigger`) and participant answer tap/key (`question_answer_trigger`) trigger flashes; both logged in localizer CSV. Every TTL trigger is also logged to `localizer_ttl_events_[participant_id]_[timestamp].csv`.
 
 
 ### Window and Display
