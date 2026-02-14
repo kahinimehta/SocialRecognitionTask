@@ -38,14 +38,7 @@ Use this file to understand the conceptual design.
 #### **`CSV_VARIABLES_DOCUMENTATION.md`**
 Complete dictionary of every variable saved in the output CSVs.
 
-Defines all logged fields, including:
-
-- Trial metadata  
-- Participant slider values, RTs, commit times (all variables written for analysis flexibility)  
-- AI responses, RTs, correctness  
-- Switch/Stay choices and timings  
-- Distances from ground truth  
-- **Neural data triggers**: Photodiode (0.03 × 0.01); touch screen at (-0.70, -0.48), keyboard at (-0.75, -0.48); in both main experiment and localizer; white baseline, flashes black (TTL) then white per event. **All CSVs (trials, study, TTL) are written incrementally** with flush to disk—data is preserved if the task crashes or is interrupted. Off only during name entry; after name, **every screen change, stimulus change, and response** triggers photodiode+TTL (same as localizer). TTL sent at exact flip moment via `callOnFlip` (triggers and diode change simultaneously). All triggers logged to `recognition_ttl_events_*.csv` and `localizer_ttl_events_*.csv`. See `CSV_VARIABLES_DOCUMENTATION.md` for complete event list.  
+Defines all logged fields: trial metadata, participant slider values, RTs, commit times, AI responses, switch/stay decisions, distances from ground truth, and neural data (photodiode/TTL triggers). All CSVs are written incrementally with flush to disk, preserving data if the task is interrupted.
 
 Use this file when analyzing data.
 

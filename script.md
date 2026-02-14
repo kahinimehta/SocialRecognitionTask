@@ -29,12 +29,13 @@ The code should automatically update every time you open the terminal or run the
 - **Localizer**: ESC and Exit work at all times, including during fixation and image presentation.
 
 **Experimenter note**: 
-- Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically. Exit when you see the button."
+- Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically
+. Exit when you see the button."
 - Also make sure to hit all the information in the script below to ensure participants understand the task and its purpose!
 - Make sure to emphasize the leaderboard + stress the importance of collaboration so participants engage with the AI!
 - Make it clear that some images are very similar to the lures (so participants don't wonder why they're incorrect on some trials in the beginning). 
 - Be sure to emphasize that confidence matters so people use the sliding scale. 
-- **Touch screen**: Make sure people CLICK/TAP ONCE on the slider, NOT slide/drag. **Keyboard**: Use LEFT/RIGHT arrow keys to move, then press Return to submit. 
+- **Touch screen**: Tap once on the slider (no drag). **Keyboard (computer)**: Press LEFT/RIGHT arrow keys repeatedly to move the slider—holding keys won't work, press multiple times. Return to submit. 
 
 
 ---
@@ -137,14 +138,14 @@ For now, simply memorize the shapes you're about to see. Continue when you're re
 **Display shows:**
 - Green circle
 - Prompt varies by mode:
-  - **Keyboard:** "Slide using LEFT or RIGHT arrow keys to show how confident you are you've seen this before (i.e., it is \"old\"). How close you are to either side indicates how CONFIDENT you are. Press Return when done."
+  - **Keyboard:** "Press LEFT or RIGHT arrow keys repeatedly to move the slider (holding won't work). How close you are to either side indicates how CONFIDENT you are. Press Return when done."
   - **Touch screen:** "CLICK ONCE on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). How close you are to either side indicates how CONFIDENT you are in your answer."
 - Slider with OLD on left, NEW on right
 - SUBMIT button
 
 **What to say:**
 
-- **Keyboard:** "Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the LEFT and RIGHT arrow keys to move the slider—how far left or right shows your confidence. Press Return when you're ready to submit."
+- **Keyboard:** "Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Press the LEFT and RIGHT arrow keys repeatedly to move the slider—you have to press multiple times, holding the key won't work. Press Return when you're ready to submit."
 - **Touch screen:** ***Make sure they know to CLICK/TAP ONCE, not DRAG the slider.*** "Now you'll see images one at a time. For each one, decide if you've seen it before (OLD) or if it's new (NEW). Use the slider—CLICK or TAP ONCE, not slide, anywhere on the line to set your rating, then tap SUBMIT. How far you tap shows how confident you are."
 
 ---
@@ -217,13 +218,13 @@ Now we'll begin the actual work."
 Remember which photos belong in each collection.
 
 Rate each image: OLD (belongs) or NEW (doesn't belong).
-Use LEFT/RIGHT arrow keys to move the slider, then press Return to submit." — *keyboard*
+Press LEFT/RIGHT arrow keys repeatedly to move the slider (holding won't work—press multiple times), then Return to submit." — *keyboard*
 "Click on the slider, then SUBMIT." — *touch screen*
 
 **Display shows:** CONTINUE button.
 
 **What to say:**
-"Read these instructions carefully. You'll need to remember which photos belong in each collection. Important: For each collection, you will only be sorting the 10 images you just saw for that collection—nothing from prior collections. These will be more complex images—like animals, objects, etc. Use the slider to rate each image—OLD means it belongs, NEW means it doesn't. Keyboard: use the LEFT and RIGHT arrow keys to move the slider, then press Return to submit. Touch screen: click on the slider line to set your rating, then tap SUBMIT."
+"Read these instructions carefully. You'll need to remember which photos belong in each collection. Important: For each collection, you will only be sorting the 10 images you just saw for that collection—nothing from prior collections. These will be more complex images—like animals, objects, etc. Use the slider to rate each image—OLD means it belongs, NEW means it doesn't. Keyboard: press LEFT/RIGHT repeatedly to move the slider—holding won't work. Then Return. Touch screen: tap the slider to set your rating, then SUBMIT."
 
 ---
 
@@ -286,16 +287,17 @@ Make sure participants get all the way to the end of the task. If they do, there
 
 ## Notes for Experimenters
 
-- **Timing**: Participants have 7 seconds to respond to each slider and switch/stay decision
-- **Touch Screen Mode**: Participants tap once on the slider line to set their rating (CLICK/TAP, not drag), then tap SUBMIT
-- **Keyboard Mode**: Participants use LEFT/RIGHT arrow keys to move the slider, then Return to submit. On the switch/stay screen: LEFT = STAY, RIGHT = SWITCH. Use Return for all buttons (told once at input method selection).
+- **Timing**: Participants have 7 seconds per slider and switch/stay decision
+- **Touch Screen**: Tap once on the slider line to set rating, then SUBMIT (no drag)
+- **Keyboard (computer)**: Press LEFT/RIGHT arrows repeatedly to move the slider (holding won't work—must press multiple times). Return to submit. Switch/stay: LEFT = STAY, RIGHT = SWITCH. Return for all buttons.
 - **Button Positions**: All buttons are positioned away from screen edges for better clickability
 - **Decision screen labels**: On the switch/stay screen, "you" (green) and the partner name "Amy" or "Ben" (blue) appear below the scale next to the markers
 - **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; CONTINUE button is placed lower to avoid overlap with text
 - **Practice vs. Real**: The practice block uses Carly (Amy's assistant; same image as Amy) and 4 simple shapes: green circle, red circle, blue circle (study phase), and blue square (trial 3 recognition—the NEW item). Carly only appears in practice. The real experiment uses Amy or Ben as partners and photographs from the THINGS dataset
 - **Amy vs. Ben accuracy**: Amy (reliable blocks): 75% accuracy (7-8 correct per 10-trial block). Ben (unreliable blocks): 35% accuracy (3-4 correct per 10-trial block).
 - **Amy vs. Ben confidence**: Amy (reliable blocks): Confidence correlated with correctness—when correct, high confidence (0.75–1.0 on correct side); when wrong, moderate confidence (0.5–0.75 or 0.25–0.5 depending on which wrong side). Ben (unreliable blocks): Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—participants cannot infer accuracy from Ben's confidence.
-- **Partner rating text**: When Amy, Ben, or Carly is rating, "[Partner name] is rating..." appears below the slider bar and above the SUBMIT button (in blue).
+- **Partner rating text**: When Amy, Ben, or Carly is rating, "[Partner name] is rating..." appears below the slider bar and above the SUBMIT button (in blue). Photodiode/TTL fires at onset of this text and when "[Partner name] rates: OLD/NEW" appears (logged in per-trial CSV and recognition_ttl_events_*.csv).
+- **Outcome onset**: Photodiode flashes, TTL fires, and event is written to CSV at outcome screen onset (Correct/Incorrect) in **both touch-screen and keyboard modes**.
 - **Exit instructions (tell participants before task)**: Laptop users can press ESC any time to exit. Touch screen users: the Exit button only appears when you need to tap a button or make a decision—not during image display, fixation, or outcome screens. Exit when you see it.
 
 ---

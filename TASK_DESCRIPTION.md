@@ -84,8 +84,8 @@ Each of the 10 trials follows this structure:
 2. **Image Presentation**: Shows either the studied image or its lure (50% chance each) for 1.0 second (fixed duration)
    - Image remains visible until participant responds or timeout (7 seconds)
 3. **Participant Rating**: Rate memory confidence on a continuous slider
-   - Click anywhere on the slider line to set rating (modes allow dragging and would log drag onset/offset to be safe, but clicking is encouraged)
-   - Click SUBMIT button to confirm
+   - **Touch screen**: Tap once on the slider line to set rating, then tap SUBMIT
+   - **Keyboard (computer)**: Press LEFT/RIGHT arrow keys repeatedly to move the slider (holding won't work—must press multiple times), Return to submit
    - Timeout: 7 seconds (random answer selected if timeout)
 4. **AI Partner Rating**: AI partner also rates the image
    - AI RT: Log-normal distribution (mu=0.5, sigma=0.3), capped at 5.0 seconds
@@ -108,15 +108,10 @@ Each of the 10 trials follows this structure:
 
 ### Participant Rating (Slider Response)
 
-- **Continuous slider** with no midpoint shown
-- **Left side** = OLD (studied)
-- **Right side** = NEW (not studied)
-- Slider position indicates **confidence level**
-- Participants must:
-  1. Click anywhere on the slider line to set their rating
-  2. Click the "SUBMIT" button to confirm
-  3. Cannot submit if slider hasn't been clicked (still at center)
-  4. If they try to submit without selecting, they see an error message: "Please select an answer first"
+- **Continuous slider** (left = OLD, right = NEW); position indicates confidence
+- **Touch screen**: Tap once on the slider line to set rating, then tap SUBMIT
+- **Keyboard (computer)**: Press LEFT/RIGHT arrow keys repeatedly (holding won't work), Return to submit
+- Cannot submit until slider has been moved from center; "Please select an answer first" if attempted
 - **Timeout**: 7 seconds (random answer selected if timeout)
 
 ### AI Partner Rating
@@ -260,9 +255,9 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Neural Data Logging (Photodiode & TTL)
 
-Photodiode patch (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard** at (-0.75, -0.48). **Present in both tasks** (main experiment and localizer). White baseline; at each event it briefly flashes black (TTL sent) then white via `win.flip()`—never stays black. **Photodiode is off only during participant name entry.** After name entry, photodiode and TTL are **on for every screen change, stimulus change, and response**—same as localizer. Covers: BEGIN screen onset/click, fixation onset/offset, image onset/offset, instruction onset, CONTINUE clicks, outcome onset, participant commits (slider submit, STAY/SWITCH), **AI/partner decision onset** (when "[Name] is rating..." appears) and **AI/partner rating complete** (when "[Name] rates: OLD/NEW" appears). **TTL is sent at the exact moment of each black flip** via PsychoPy `callOnFlip` (triggers and diode change simultaneously). Every flash that can be associated with a trial is logged in per-trial CSV. **Every TTL trigger is also logged chronologically** to `recognition_ttl_events_[participant_id]_[timestamp].csv` (timestamp + event_type per row). See `CSV_VARIABLES_DOCUMENTATION.md` for complete event list and variable mapping.
+Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off only during name entry; thereafter every screen change, stimulus, and response triggers a black flash (TTL) then white. **Outcome onset** flashes the diode, sends the TTL trigger, and writes to CSV in **both touch-screen and keyboard modes**. All triggers logged to `recognition_ttl_events_*.csv` and `localizer_ttl_events_*.csv`. See `CSV_VARIABLES_DOCUMENTATION.md` for event list and variable mapping.
 
-**Computer/laptop screens only**: A 17 ms delay (~1 frame at 60 Hz) is used between the black and white flips for every photodiode event. This prevents vsync coalescing where rapid flips can cause only the white frame to display. Touch screens do not use this delay.
+**Computer/laptop only**: 17 ms delay between black and white flips to prevent vsync coalescing.
 
 ---
 
@@ -286,12 +281,12 @@ Photodiode patch (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard*
   6. Trial 3: Blue square - shows "now, work with Carly", participant rates, then AI selects OLD but is not very confident (euclidean distance of 0.4 from left, at 0.4) but incorrectly (as it's a new square), then participant performs switch/stay decision, outcome shown
 - **Note**: Carly (Amy's assistant) appears only in practice; same image as Amy.
 - **Outcome explanations**: Practice trials 1–2 show just "Correct" or "Incorrect". Practice trial 3 shows "Correct/Incorrect. Based off your answer and confidence, your points are X."
-- **Slider instruction**: For mouse/trackpad mode, participants can click or drag the slider. For touch screen mode, participants tap to set the rating.
+- **Slider instruction**: Touch screen—tap once to set rating. Keyboard (computer)—press LEFT/RIGHT repeatedly (holding won't work), Return to submit.
 
 ### Purpose
 
 - Familiarize participants with task mechanics
-- Practice using the slider (click or drag for mouse mode, tap for touch screen)
+- Practice using the slider (touch: tap once; keyboard: press arrow keys repeatedly, holding won't work)
 - Understand collaboration decisions
 - Learn about the curator scoring system
 - **Note**: Practice stimuli are simple shapes, not replaced with final stimuli
@@ -355,12 +350,9 @@ Separate task for object verification. Participants view 200 images (100 Image +
 
 ### Window and Display
 
-- **Window**: Fullscreen on both laptop and touch screen (uses full display resolution)
-- **Exit fullscreen (main task)**: 
-  - **Laptop**: Press **ESC** — ESC always works to exit.
-  - **Touch screen**: Tap the **Exit** button (top-right corner) — the Exit button is only shown when participants make a decision or tap a button (input method, instructions, CONTINUE, slider/SUBMIT, STAY/SWITCH, name entry). It is not shown during fixation, image display, or outcome screens.
-  - **Key difference**: Laptop users can exit anytime with ESC; touch screen users can only exit when the Exit button is visible.
-- **Localizer**: ESC and Exit work at all times, including during fixation and image presentation.
+- **Window**: Fullscreen on both laptop and touch screen
+- **Exit (main task)**: Laptop—ESC anytime. Touch screen—Exit button (top-right) when visible (input/instructions/decisions). Not shown during fixation, image display, or outcome.
+- **Localizer**: ESC and Exit available at all times
 - **Window focus**: Automatically activated on macOS
 - **Initial screen**: "Hello & welcome to the social memory game! ..." with BEGIN button
 
@@ -368,6 +360,7 @@ Separate task for object verification. Participants view 200 images (100 Image +
 
 - **Placeholder stimuli**: Generated automatically if missing or incorrect
 - **Data files**: Created with participant ID and timestamp
+
 - **Incremental saving**: Localizer behavioral CSV written trial-by-trial for both touch and keyboard modes; TTL events written as they occur. Data preserved if task is interrupted.
 
 ---

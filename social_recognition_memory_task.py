@@ -2115,7 +2115,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
     timed_out = False
     mouse_pos = (0, 0)  # Initialize mouse position
     mouse_buttons = [False, False, False]  # Initialize mouse buttons
-    
+
     # For touch screens, use position-change detection
     if USE_TOUCH_SCREEN:
         mouserec = mouse.getPos()
@@ -2257,7 +2257,7 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                 mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
             
         else:
-            # Keyboard mode: left/right arrow keys to move slider, Return to submit
+            # Keyboard: left/right to move slider (press repeatedly; holding keys won't work)
             try:
                 keys = event.getKeys(keyList=['left', 'right', 'return', 'escape'])
                 if keys:
@@ -2265,12 +2265,11 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                         core.quit()
                     if 'return' in keys:
                         if has_moved:
-                            _do_photodiode_flash(draw_slider_content, event_type="participant_commit_trigger")  # Participant response: black (TTL), white
+                            _do_photodiode_flash(draw_slider_content, event_type="participant_commit_trigger")
                             slider_commit_time = time.time()
                             slider_commit_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
                             break
                         else:
-                            # Show message: "please select an answer first"
                             error_message = visual.TextStim(
                                 win,
                                 text="Please select an answer first.",
@@ -2292,7 +2291,6 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
                             error_message.draw()
                             win.flip()
                             core.wait(1.0)
-                    # Left arrow = toward OLD (decrease value), Right arrow = toward NEW (increase value)
                     step = 0.05
                     if 'left' in keys:
                         slider_value = max(0.0, slider_value - step)
@@ -3097,7 +3095,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         color='black',
         height=0.04*0.75*1.35,
         wrapWidth=2.5,  # Wide so text stays on one line
-        pos=(0, 0.35)   # Slightly higher
+        pos=(0, 0.46)   # High enough so keyboard hint (LEFT/RIGHT) doesn't overlap with image
     )
     exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
     exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
@@ -3763,6 +3761,7 @@ def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_an
         color = 'red'
     
     # Show outcome with curator scoring (display rounded to 1 decimal place)
+    # Photodiode flash, TTL trigger, and CSV write at outcome onset (both touch-screen and keyboard modes)
     outcome_text_full = f"{outcome_text}.\n\nThe in-house curator scored this image: {correctness_points_rounded:.1f} points based on image & your confidence."
     outcome_stim = visual.TextStim(win, text=outcome_text_full, color=color, height=0.06*1.35, pos=(0, 0), wrapWidth=1.4)
     _do_photodiode_flash(lambda: outcome_stim.draw(), event_type="outcome_trigger")
@@ -4541,7 +4540,7 @@ def run_experiment():
     _do_photodiode_flash(lambda: _blank_rect.draw() if _blank_rect is not None else None, event_type="recognition_image_offset_trigger")  # Image offset: black (TTL), white
     recognition_image_offset_trigger_t1 = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     _practice_t1_prompt = (
-        "Slide using LEFT or RIGHT arrow keys to show how confident you are you've seen this before (i.e., it is \"old\"). "
+        "Press LEFT or RIGHT arrow keys repeatedly to move the slider (holding won't work). "
         "How close you are to either side indicates how CONFIDENT you are. Press Return when done."
     ) if not USE_TOUCH_SCREEN else (
         "CLICK ONCE on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). "
@@ -4895,7 +4894,7 @@ def run_experiment():
     )
     
     # Rules reminder before starting the actual game - split into 3 pages for better readability
-    _slider_instruction = "Use LEFT/RIGHT arrow keys to move the slider, then press Return to submit." if not USE_TOUCH_SCREEN else "Click on the slider, then SUBMIT."
+    _slider_instruction = "Press LEFT/RIGHT arrow keys repeatedly (holding won't work), then Return to submit." if not USE_TOUCH_SCREEN else "Click on the slider, then SUBMIT."
     show_instructions(
         "Task Overview:\n"
         "Remember which photos belong in each collection.\n\n"
