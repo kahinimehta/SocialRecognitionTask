@@ -2102,7 +2102,8 @@ def get_slider_response(prompt_text="Rate your memory:", image_stim=None, trial_
         exit_text.draw()
     
     mouse.setVisible(True)
-    
+    event.clearEvents()  # Discard any keys pressed during fixation/image (e.g. leftover Return from previous screen)
+
     slider_value = 0.5  # Start at center (0.5)
     start_time = time.time()
     slider_commit_time = None
@@ -3095,7 +3096,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         color='black',
         height=0.04*0.75*1.35,
         wrapWidth=2.5,  # Wide so text stays on one line
-        pos=(0, 0.46)   # High enough so keyboard hint (LEFT/RIGHT) doesn't overlap with image
+        pos=(0, 0.40)   # High enough so keyboard hint (LEFT/RIGHT) doesn't overlap with image
     )
     exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
     exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
