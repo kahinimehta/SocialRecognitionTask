@@ -302,7 +302,7 @@ Make sure participants get all the way to the end of the task. If they do, there
 
 ## Troubleshooting
 
-- **Photodiode placement**: The photodiode patch (0.03 × 0.01, PsychoPy height units) appears at far left (-0.75, -0.48) on screen in **both tasks** (main experiment and localizer) and **both modes** (touch screen and keyboard). Align the physical sensor over this corner region.
+- **Photodiode placement**: The photodiode patch (0.03 × 0.01) appears at (-0.65, -0.48) on touch screen and (-0.75, -0.48) on keyboard in **both tasks** (main experiment and localizer). Align the physical sensor over this corner region.
 - The task should not quit if they accidentally turn the Surface Pro off, but be sure to log this if it happens. 
 - If a participant times out, the task will automatically select a random response and continue.
 - If the participant accidentally minimizes the screen, navigate to the PsychoPy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
