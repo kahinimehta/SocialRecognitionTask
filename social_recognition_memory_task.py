@@ -99,6 +99,9 @@ photodiode_patch = None  # Created after main window exists
 _blank_rect = None  # Full-screen gray rect for blank frames (fixation offset)
 _last_photodiode_ttl_timestamp = [None]  # Set at exact moment of photodiode flash + TTL (for CSV alignment)
 _ttl_events = []  # Log every TTL: [{"timestamp": t, "event_type": str}, ...] (populated when photodiode active)
+_ttl_file_ref = [None]   # Open file handle for incremental TTL writes (set when experiment starts)
+_ttl_writer_ref = [None]  # csv.DictWriter for incremental TTL writes
+_ttl_file_path_ref = [None]  # Path to TTL file (for closing and log message)
 
 # TTL trigger: parallel port pulse when photodiode appears (Windows/Linux; no-op on macOS)
 _ttl_parallel = None  # Lazy-init
@@ -800,8 +803,23 @@ try:
                     _last_photodiode_ttl_timestamp[0] = ts
                     _send_ttl_trigger()
                     if _pending_ttl_event_type[0] is not None:
-                        _ttl_events.append({"timestamp": ts, "event_type": _pending_ttl_event_type[0]})
+                        ev = {"timestamp": ts, "event_type": _pending_ttl_event_type[0]}
+                        _ttl_events.append(ev)
                         _pending_ttl_event_type[0] = None
+                        # Write incrementally to TTL file if open
+                        if _ttl_writer_ref[0] is not None and _ttl_file_ref[0] is not None:
+                            try:
+                                row = dict(ev)
+                                if isinstance(row.get('timestamp'), (int, float)):
+                                    row['timestamp'] = f"{row['timestamp']:.9f}"
+                                _ttl_writer_ref[0].writerow(row)
+                                _ttl_file_ref[0].flush()
+                                try:
+                                    os.fsync(_ttl_file_ref[0].fileno())
+                                except (AttributeError, OSError):
+                                    pass
+                            except Exception as e:
+                                print(f"Warning: Could not write TTL event incrementally: {e}", file=sys.stderr)
                 win.callOnFlip(_on_flash)
             result = _orig_flip(*args, **kwargs)
             return result
@@ -2453,10 +2471,11 @@ class AICollaborator:
 # =========================
 #  STUDY PHASE
 # =========================
-def run_study_phase(studied_images, block_num):
+def run_study_phase(studied_images, block_num, participant_id=None, study_file=None, trial_file=None):
     """
     Show study phase: images back-to-back with jittered fixations
     NOTE: Study phase ONLY shows studied images (IMAGE_X.png), never lures
+    Writes each study row incrementally when participant_id, study_file, trial_file are provided.
     """
     study_data = []
     image_duration = 1.0  # Show each image for 1 second
@@ -2483,7 +2502,7 @@ def run_study_phase(studied_images, block_num):
         _do_photodiode_flash(lambda: _blank_rect.draw() if _blank_rect is not None else None, event_type="study_image_offset_trigger")  # Image offset: black (TTL), white
         study_image_offset_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
         
-        study_data.append({
+        row = {
             "block": block_num,
             "phase": "study",
             "trial": i,
@@ -2494,7 +2513,11 @@ def run_study_phase(studied_images, block_num):
             "study_image_onset_trigger": study_image_onset_trigger,
             "study_image_offset_trigger": study_image_offset_trigger,
             "image_duration": image_duration
-        })
+        }
+        study_data.append(row)
+        # Write incrementally if file params provided
+        if participant_id and study_file is not None and trial_file is not None:
+            study_file, trial_file = save_data_incremental([row], [], participant_id, study_file=study_file, trial_file=trial_file)
     
     # Final fixation after last image
     show_fixation(1.0, onset_event_type="study_fixation_onset_trigger", offset_event_type="study_fixation_offset_trigger")
@@ -3768,15 +3791,8 @@ def run_block(block_num, studied_images, block_start_participant_first, ai_colla
         study_file = os.path.join(log_dir, f"recognition_study_{participant_id}_{timestamp}.csv")
         trial_file = os.path.join(log_dir, f"recognition_trials_{participant_id}_{timestamp}.csv")
     
-    # Phase 1: Study
-    study_data = run_study_phase(studied_images, block_num)
-    
-    # Save study data immediately after study phase
-    if participant_id:
-        study_file, trial_file = save_data_incremental(
-            study_data, [], participant_id,
-            study_file=study_file, trial_file=trial_file
-        )
+    # Phase 1: Study (writes incrementally when participant_id and files provided)
+    study_data = run_study_phase(studied_images, block_num, participant_id=participant_id, study_file=study_file, trial_file=trial_file)
     
     # Determine partner name based on block accuracy (Amy = reliable, Ben = unreliable)
     partner_name = "Amy" if ai_collaborator.accuracy_rate >= 0.5 else "Ben"
@@ -3984,6 +4000,10 @@ def save_data_incremental(all_study_data, all_trial_data, participant_id,
                 writer.writeheader()
             writer.writerows(all_study_data)
             f.flush()
+            try:
+                os.fsync(f.fileno())
+            except (AttributeError, OSError):
+                pass
         print(f"✓ Study data saved ({len(all_study_data)} rows)")
     
     # Save trial data
@@ -4034,6 +4054,10 @@ def save_data_incremental(all_study_data, all_trial_data, participant_id,
                         complete_row[field] = value
                 writer.writerow(complete_row)
             f.flush()
+            try:
+                os.fsync(f.fileno())
+            except (AttributeError, OSError):
+                pass
         print(f"✓ Trial data saved ({len(all_trial_data)} rows)")
     
     return study_file, trial_file
@@ -4062,6 +4086,19 @@ def run_experiment():
     participant_id = get_participant_id()
     PHOTODIODE_ACTIVE = True  # Enable photodiode for every screen change/stimulus/response from here on (like localizer)
     experiment_start_time = time.time()
+    # Open TTL file for incremental writes (one row per event)
+    if not is_test_participant(participant_id):
+        try:
+            _ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            log_dir = get_log_directory()
+            ttl_file = os.path.join(log_dir, f"recognition_ttl_events_{participant_id}_{_ts}.csv")
+            _ttl_file_path_ref[0] = ttl_file
+            _ttl_file_ref[0] = open(ttl_file, 'w', newline='')
+            _ttl_writer_ref[0] = csv.DictWriter(_ttl_file_ref[0], fieldnames=['timestamp', 'event_type'])
+            _ttl_writer_ref[0].writeheader()
+            _ttl_file_ref[0].flush()
+        except Exception as e:
+            print(f"Warning: Could not open TTL file for incremental writes: {e}", file=sys.stderr)
     
     # Initial click-to-start screen with button (photodiode active: start_task_onset, begin_click)
     start_screen = visual.TextStim(
@@ -4575,6 +4612,8 @@ def run_experiment():
         'block_duration_minutes': np.nan
     }
     practice_trials.append(trial_data_t1)
+    if participant_id:
+        study_file, trial_file = save_data_incremental([], [trial_data_t1], participant_id, study_file=study_file, trial_file=trial_file)
     
     # Show red circle
     recognition_fixation_onset_trigger_t2, recognition_fixation_offset_trigger_t2 = show_fixation(0.5, return_onset=True, return_offset_trigger=True, onset_event_type="recognition_fixation_onset_trigger", offset_event_type="recognition_fixation_offset_trigger")
@@ -4697,6 +4736,8 @@ def run_experiment():
         'block_duration_minutes': np.nan
     }
     practice_trials.append(trial_data_t2)
+    if participant_id:
+        study_file, trial_file = save_data_incremental([], [trial_data_t2], participant_id, study_file=study_file, trial_file=trial_file)
     
     # Show message: "now, work with your partner." (Carly in practice)
     work_with_partner_text = visual.TextStim(win, text="Now, work with Carly.", 
@@ -4827,13 +4868,8 @@ def run_experiment():
         'block_duration_minutes': np.nan
     }
     practice_trials.append(trial_data_t3)
-    
-    # Save practice data
     if participant_id:
-        study_file, trial_file = save_data_incremental(
-            practice_study, practice_trials, participant_id,
-            study_file=study_file, trial_file=trial_file
-        )
+        study_file, trial_file = save_data_incremental([], [trial_data_t3], participant_id, study_file=study_file, trial_file=trial_file)
     
     show_instructions(
         "Training complete!\n\n"
@@ -5567,21 +5603,30 @@ def run_experiment():
             })
         print(f"✓ Summary data saved to {summary_file}")
         print(f"  Total task time: {total_task_time/60:.2f} minutes ({total_task_time:.1f} seconds)")
-        # Save TTL events log (every photodiode flash with timestamp and event type)
-        ttl_events = globals().get('_ttl_events', [])
-        if ttl_events:
-            ttl_file = os.path.join(log_dir, f"recognition_ttl_events_{participant_id}_{timestamp}.csv")
+        # Close TTL file (written incrementally throughout experiment)
+        if _ttl_file_ref[0] is not None:
             try:
+                _ttl_file_ref[0].close()
+                _ttl_file_ref[0] = None
+                _ttl_writer_ref[0] = None
+                ttl_count = len(_ttl_events)
+                if _ttl_file_path_ref[0]:
+                    print(f"✓ TTL events saved incrementally to {_ttl_file_path_ref[0]} ({ttl_count} triggers)")
+            except Exception as e:
+                print(f"⚠ Could not close TTL file: {e}", file=sys.stderr)
+        elif _ttl_events:
+            # Fallback: batch write if incremental was never opened
+            try:
+                ttl_file = os.path.join(log_dir, f"recognition_ttl_events_{participant_id}_{timestamp}.csv")
                 with open(ttl_file, 'w', newline='') as f:
                     writer = csv.DictWriter(f, fieldnames=['timestamp', 'event_type'])
                     writer.writeheader()
-                    # Preserve full float precision for timestamps (no int conversion)
-                    for ev in ttl_events:
+                    for ev in _ttl_events:
                         row = dict(ev)
                         if isinstance(row.get('timestamp'), (int, float)):
                             row['timestamp'] = f"{row['timestamp']:.9f}"
                         writer.writerow(row)
-                print(f"✓ TTL events saved to {ttl_file} ({len(ttl_events)} triggers)")
+                print(f"✓ TTL events saved to {ttl_file} ({len(_ttl_events)} triggers)")
             except Exception as e:
                 print(f"⚠ Could not save TTL events: {e}", file=sys.stderr)
     else:

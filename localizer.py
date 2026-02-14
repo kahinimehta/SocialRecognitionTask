@@ -1805,6 +1805,9 @@ try:
 
     # Create photodiode and install wrapper AFTER name is submitted. White baseline; flashes black (TTL) then white per event.
     # Photodiode: shown in BOTH touch-screen and keyboard modes. Touch: -0.70; keyboard: -0.75
+    # Refs for incremental TTL writes (set when CSV is created, before first trial)
+    _ttl_file_ref = [None]
+    _ttl_writer_ref = [None]
     PHOTODIODE_ACTIVE = True  # Re-enable for main task
     _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
     try:
@@ -1851,8 +1854,23 @@ try:
                     _last_photodiode_ttl_timestamp[0] = ts
                     _send_ttl_trigger()
                     if _pending_ttl_event_type[0] is not None:
-                        _ttl_events.append({"timestamp": ts, "event_type": _pending_ttl_event_type[0]})
+                        ev = {"timestamp": ts, "event_type": _pending_ttl_event_type[0]}
+                        _ttl_events.append(ev)
                         _pending_ttl_event_type[0] = None
+                        # Write incrementally to TTL file if open
+                        if _ttl_writer_ref[0] is not None and _ttl_file_ref[0] is not None:
+                            try:
+                                row = dict(ev)
+                                if isinstance(row.get('timestamp'), (int, float)):
+                                    row['timestamp'] = f"{row['timestamp']:.9f}"
+                                _ttl_writer_ref[0].writerow(row)
+                                _ttl_file_ref[0].flush()
+                                try:
+                                    os.fsync(_ttl_file_ref[0].fileno())
+                                except (AttributeError, OSError):
+                                    pass
+                            except Exception as e:
+                                print(f"Warning: Could not write TTL event incrementally: {e}", file=sys.stderr)
                 win.callOnFlip(_on_flash)
             result = _orig_flip(*args, **kwargs)
             return result
@@ -1940,6 +1958,17 @@ try:
         csv_file.flush()
         csv_initialized = True
         print(f"✓ Created localizer CSV file: {csv_file_path}")
+        # Open TTL file for incremental writes (same directory, derived from csv path)
+        try:
+            base = os.path.basename(csv_file_path)
+            ttl_filename = base.replace("localizer_", "localizer_ttl_events_", 1)
+            ttl_file_path = os.path.join(log_dir, ttl_filename)
+            _ttl_file_ref[0] = open(ttl_file_path, 'w', newline='')
+            _ttl_writer_ref[0] = csv.DictWriter(_ttl_file_ref[0], fieldnames=['timestamp', 'event_type'])
+            _ttl_writer_ref[0].writeheader()
+            _ttl_file_ref[0].flush()
+        except Exception as e:
+            print(f"Warning: Could not open TTL file for incremental writes: {e}", file=sys.stderr)
 
     # Show images
     # Start with a fixation cross before the first image
@@ -2057,10 +2086,14 @@ try:
             
             localizer_data.append(trial_data)
             
-            # Write current trial to CSV
-            if csv_writer is not None:
+            # Write current trial to CSV incrementally
+            if csv_writer is not None and csv_file is not None:
                 csv_writer.writerow(trial_data)
-                csv_file.flush()  # Ensure data is written immediately
+                csv_file.flush()
+                try:
+                    os.fsync(csv_file.fileno())  # Ensure data is persisted to disk
+                except (AttributeError, OSError):
+                    pass
                 
         except Exception as e:
             print(f"Error loading image {stimulus['path']}: {e}")
@@ -2110,28 +2143,32 @@ try:
         else:
             print(f"✓ Closed localizer CSV file")
 
-    # Save TTL events log (every photodiode flash with timestamp and event type)
+    # Close TTL file (written incrementally throughout experiment)
     if not is_test_participant(participant_id) and csv_file_path:
-        try:
-            ttl_events = _ttl_events
-        except NameError:
-            ttl_events = []
-        if ttl_events:
+        if _ttl_file_ref[0] is not None:
+            try:
+                _ttl_file_ref[0].close()
+                _ttl_file_ref[0] = None
+                _ttl_writer_ref[0] = None
+                print(f"✓ TTL events saved incrementally ({len(_ttl_events)} triggers)")
+            except Exception as e:
+                print(f"⚠ Could not close TTL file: {e}", file=sys.stderr)
+        elif _ttl_events:
+            # Fallback: batch write if incremental was never opened
             try:
                 log_dir = get_log_directory()
-                base = os.path.basename(csv_file_path)  # localizer_P001_20260213_143022.csv
-                ttl_filename = base.replace("localizer_", "localizer_ttl_events_", 1)  # localizer_ttl_events_P001_...
+                base = os.path.basename(csv_file_path)
+                ttl_filename = base.replace("localizer_", "localizer_ttl_events_", 1)
                 ttl_file = os.path.join(log_dir, ttl_filename)
                 with open(ttl_file, 'w', newline='') as f:
                     writer = csv.DictWriter(f, fieldnames=['timestamp', 'event_type'])
                     writer.writeheader()
-                    # Preserve full float precision for timestamps (no int conversion)
-                    for ev in ttl_events:
+                    for ev in _ttl_events:
                         row = dict(ev)
                         if isinstance(row.get('timestamp'), (int, float)):
                             row['timestamp'] = f"{row['timestamp']:.9f}"
                         writer.writerow(row)
-                print(f"✓ TTL events saved to {ttl_file} ({len(ttl_events)} triggers)")
+                print(f"✓ TTL events saved to {ttl_file} ({len(_ttl_events)} triggers)")
             except Exception as e:
                 print(f"⚠ Could not save TTL events: {e}", file=sys.stderr)
 
