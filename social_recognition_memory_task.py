@@ -772,13 +772,13 @@ try:
             draw_func()
         win.flip()  # White (baseline)
     # Photodiode: shown in BOTH touch-screen and keyboard modes (no USE_TOUCH_SCREEN check).
-    # Touch screen: -0.65 (slightly further right); keyboard: -0.75 (farther left)
+    # Touch screen: -0.70; keyboard: -0.75
     try:
-        _pd_x = -0.65 if USE_TOUCH_SCREEN else -0.75
+        _pd_x = -0.70 if USE_TOUCH_SCREEN else -0.75
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # Quarter of exit-button size
             fillColor='white', lineColor=None,
-            pos=(_pd_x, -0.48),  # Touch: -0.65; keyboard: -0.75
+            pos=(_pd_x, -0.48),  # Touch: -0.70; keyboard: -0.75
             units='height'
         )
         _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
