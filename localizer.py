@@ -1865,6 +1865,7 @@ try:
                                     row['timestamp'] = f"{row['timestamp']:.9f}"
                                 _ttl_writer_ref[0].writerow(row)
                                 _ttl_file_ref[0].flush()
+
                                 try:
                                     os.fsync(_ttl_file_ref[0].fileno())
                                 except (AttributeError, OSError):
@@ -1938,7 +1939,7 @@ try:
     fieldnames = None
     csv_initialized = False
     
-    # Initialize CSV file before first image
+    # Initialize CSV file before first image (trial-by-trial incremental write for BOTH touch and keyboard modes)
     if not is_test_participant(participant_id):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         log_dir = get_log_directory()
@@ -2086,7 +2087,7 @@ try:
             
             localizer_data.append(trial_data)
             
-            # Write current trial to CSV incrementally
+            # Write current trial to CSV incrementally (both touch and keyboard modes; flush+fsync for crash safety)
             if csv_writer is not None and csv_file is not None:
                 csv_writer.writerow(trial_data)
                 csv_file.flush()
