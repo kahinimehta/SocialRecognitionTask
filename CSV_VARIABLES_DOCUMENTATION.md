@@ -12,7 +12,7 @@ Photodiode (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard** at (
 
 **TTL timing**: TTL is sent via PsychoPy `callOnFlip` at the exact moment of each black flip (when the photodiode patch flashes black). Every flash event triggers exactly one TTL pulse.
 
-**TTL event logging**: Every TTL trigger is logged to a dedicated CSV file (`recognition_ttl_events_*.csv` for the main task, `localizer_ttl_events_*.csv` for the localizer). Each row contains `timestamp` (Unix time when TTL fired) and `event_type` (string matching the CSV variable name, e.g., `study_fixation_onset_trigger`, `participant_commit_trigger`). These files provide a complete chronological record of all neural triggers for alignment with recording equipment.
+**TTL event logging**: Every TTL trigger is logged to a dedicated CSV file (`recognition_ttl_events_*.csv` for the main task, `localizer_ttl_events_*.csv` for the localizer). Each row contains `timestamp` (Unix time when TTL fired) and `event_type` (string matching the CSV variable name, e.g., `study_fixation_onset_trigger`, `participant_commit_trigger`). These files provide a complete chronological record of all neural triggers for alignment with recording equipment. **All CSV files (including TTL) are written incrementally** (one row per event/trial) with immediate flush to disk, so data is preserved if the task is interrupted.
 
 ### Complete Photodiode Flash Events (Main Task)
 
