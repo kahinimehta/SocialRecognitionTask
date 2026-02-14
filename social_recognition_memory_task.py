@@ -2598,7 +2598,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         
         # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
-        ai_slider_display_time, ai_final_slider_display_time, partner_rating_onset_trigger, partner_rating_complete_trigger = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
+        ai_slider_display_time, ai_final_slider_display_time, partner_rating_onset_trigger, partner_rating_complete_trigger, partner_slider_settled_trigger = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
         
         # Go straight to switch/stay screen (question + image + scores + buttons all at once)
         # Switch/Stay decision (keep image on screen, show euclidean distance)
@@ -2650,6 +2650,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "ai_final_slider_display_time": ai_final_slider_display_time,
             "partner_rating_onset_trigger": partner_rating_onset_trigger,
             "partner_rating_complete_trigger": partner_rating_complete_trigger,
+            "partner_slider_settled_trigger": partner_slider_settled_trigger,
             "ai_correct": ai_correct,
             "ai_reliability": ai_collaborator.accuracy_rate,
             "switch_stay_decision": switch_decision,
@@ -2679,7 +2680,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
         
         # Animate partner's slider tapping and clicking submit
         ai_decision_time = time.time()
-        ai_slider_display_time, ai_final_slider_display_time, partner_rating_onset_trigger, partner_rating_complete_trigger = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
+        ai_slider_display_time, ai_final_slider_display_time, partner_rating_onset_trigger, partner_rating_complete_trigger, partner_slider_settled_trigger = show_animated_partner_slider(ai_confidence, ai_rt, image_stim=img_stim, partner_name=partner_name, slider_y_pos=SLIDER_Y_POS_ACTUAL)
         
         # P1: Participant responds (image stays on screen)
         participant_value, participant_rt, participant_commit_time, participant_slider_timeout, participant_slider_stop_time, participant_slider_decision_onset_time, participant_slider_click_times, participant_commit_trigger = get_slider_response(
@@ -2736,6 +2737,7 @@ def run_recognition_trial(trial_num, block_num, studied_image_path, is_studied,
             "ai_final_slider_display_time": ai_final_slider_display_time,
             "partner_rating_onset_trigger": partner_rating_onset_trigger,
             "partner_rating_complete_trigger": partner_rating_complete_trigger,
+            "partner_slider_settled_trigger": partner_slider_settled_trigger,
             "ai_correct": ai_correct,
             "ai_reliability": ai_collaborator.accuracy_rate,
             "switch_stay_decision": switch_decision,
@@ -2865,10 +2867,23 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
         
         core.wait(0.05)  # Quick tap animation
     
-    # Handle appears at target position (tap completed)
+    # Handle appears at target position (tap completed) - AI has settled on decision, before submit
     partner_handle.pos = (target_x, slider_y_pos)
     slider_display_time = time.time()  # Time when handle appears at final position
-    
+
+    def draw_partner_slider_settled():
+        if image_stim:
+            image_stim.draw()
+        partner_text.draw()
+        slider_line.draw()
+        old_label.draw()
+        new_label.draw()
+        partner_handle.draw()
+        submit_button.draw()
+        submit_text.draw()
+    _do_photodiode_flash(draw_partner_slider_settled, event_type="partner_slider_settled_trigger")
+    partner_slider_settled_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
+
     # Brief visual feedback: handle appears with slight highlight
     for i in range(2):
         # Make handle slightly larger/brighten to show tap completion
@@ -2943,7 +2958,7 @@ def show_animated_partner_slider(partner_value, partner_rt, image_stim=None, par
     partner_rating_complete_trigger = _last_photodiode_ttl_timestamp[0] if _last_photodiode_ttl_timestamp[0] is not None else time.time()
     core.wait(0.5)
     
-    return slider_display_time, final_slider_display_time, partner_rating_onset_trigger, partner_rating_complete_trigger
+    return slider_display_time, final_slider_display_time, partner_rating_onset_trigger, partner_rating_complete_trigger, partner_slider_settled_trigger
 
 def show_both_responses(participant_value, partner_value, participant_first, partner_name="Amy", slider_y_pos=None, image_stim=None):
     """Show both participant and partner responses with sliders. slider_y_pos must match get_slider_response (use SLIDER_Y_POS_ACTUAL for actual task). Draws image if provided so scores don't appear before the image."""
@@ -3096,7 +3111,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
         color='black',
         height=0.04*0.75*1.35,
         wrapWidth=2.5,  # Wide so text stays on one line
-        pos=(0, 0.40)   # High enough so keyboard hint (LEFT/RIGHT) doesn't overlap with image
+        pos=(0, 0.39)   # High enough so keyboard hint (LEFT/RIGHT) doesn't overlap with image
     )
     exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
     exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
@@ -4597,6 +4612,7 @@ def run_experiment():
         'ai_final_slider_display_time': np.nan,
         'partner_rating_onset_trigger': np.nan,
         'partner_rating_complete_trigger': np.nan,
+        'partner_slider_settled_trigger': np.nan,
         'ai_correct': np.nan,
         'ai_reliability': 0.5,  # Practice block uses 50% reliability
         'switch_stay_decision': np.nan,
@@ -4662,7 +4678,7 @@ def run_experiment():
     
     # Show AI rating (Carly in practice)
     try:
-        ai_slider_display_time_t2, ai_final_slider_display_time_t2, partner_rating_onset_trigger_t2, partner_rating_complete_trigger_t2 = show_animated_partner_slider(ai_confidence_t2, ai_rt_t2, image_stim=red_circle, partner_name="Carly")
+        ai_slider_display_time_t2, ai_final_slider_display_time_t2, partner_rating_onset_trigger_t2, partner_rating_complete_trigger_t2, partner_slider_settled_trigger_t2 = show_animated_partner_slider(ai_confidence_t2, ai_rt_t2, image_stim=red_circle, partner_name="Carly")
     except Exception as e:
         print(f"Warning: Error in show_animated_partner_slider: {e}", file=sys.stderr)
         import traceback
@@ -4672,6 +4688,7 @@ def run_experiment():
         ai_final_slider_display_time_t2 = time.time()
         partner_rating_onset_trigger_t2 = np.nan
         partner_rating_complete_trigger_t2 = np.nan
+        partner_slider_settled_trigger_t2 = np.nan
     
     # Participant rates
     participant_value_t2, participant_rt_t2, participant_commit_time_t2, participant_slider_timeout_t2, participant_slider_stop_time_t2, participant_slider_decision_onset_time_t2, participant_slider_click_times_t2, participant_commit_trigger_t2 = get_slider_response(
@@ -4725,6 +4742,7 @@ def run_experiment():
         'ai_final_slider_display_time': ai_final_slider_display_time_t2,
         'partner_rating_onset_trigger': partner_rating_onset_trigger_t2,
         'partner_rating_complete_trigger': partner_rating_complete_trigger_t2,
+        'partner_slider_settled_trigger': partner_slider_settled_trigger_t2,
         'ai_correct': ai_correct_t2,
         'ai_reliability': 0.5,  # Practice block uses 50% reliability
         'switch_stay_decision': np.nan,
@@ -4787,7 +4805,7 @@ def run_experiment():
     ai_correct_t3 = False  # It's actually NEW (square), but Carly rates it as OLD (0.4), so AI is Incorrect
     ground_truth_t3 = 1.0  # NEW
     try:
-        ai_slider_display_time_t3, ai_final_slider_display_time_t3, partner_rating_onset_trigger_t3, partner_rating_complete_trigger_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Carly")
+        ai_slider_display_time_t3, ai_final_slider_display_time_t3, partner_rating_onset_trigger_t3, partner_rating_complete_trigger_t3, partner_slider_settled_trigger_t3 = show_animated_partner_slider(ai_confidence_t3, ai_rt_t3, image_stim=blue_square, partner_name="Carly")
     except Exception as e:
         print(f"Warning: Error in show_animated_partner_slider: {e}", file=sys.stderr)
         import traceback
@@ -4797,6 +4815,7 @@ def run_experiment():
         ai_final_slider_display_time_t3 = time.time()
         partner_rating_onset_trigger_t3 = np.nan
         partner_rating_complete_trigger_t3 = np.nan
+        partner_slider_settled_trigger_t3 = np.nan
     
     # Go straight to switch/stay screen (question + image + scores + buttons all at once)
     # Switch/Stay decision (Carly in practice)
@@ -4861,6 +4880,7 @@ def run_experiment():
         'ai_final_slider_display_time': ai_final_slider_display_time_t3,
         'partner_rating_onset_trigger': partner_rating_onset_trigger_t3,
         'partner_rating_complete_trigger': partner_rating_complete_trigger_t3,
+        'partner_slider_settled_trigger': partner_slider_settled_trigger_t3,
         'ai_correct': ai_correct_t3,
         'ai_reliability': 0.5,  # Practice block uses 50% reliability
         'switch_stay_decision': switch_decision_t3,

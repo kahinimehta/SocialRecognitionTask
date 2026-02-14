@@ -27,17 +27,19 @@ Photodiode (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard** at (
 | Recognition image onset | `recognition_image_onset_trigger` | trials |
 | Recognition image offset | `recognition_image_offset_trigger` | trials |
 | Partner "[Name] is rating..." (AI starts deciding) | `partner_rating_onset_trigger` | trials |
+| Partner slider handle appears at final position (AI has settled, before submit) | `partner_slider_settled_trigger` | trials |
 | Partner "[Name] rates: OLD/NEW" | `partner_rating_complete_trigger` | trials |
 | Participant slider submit | `participant_commit_trigger` | trials |
 | Switch/stay screen onset | `switch_stay_trigger` | trials |
 | Participant STAY/SWITCH click | `switch_stay_response_trigger` | trials |
 | Outcome screen | `outcome_trigger` | trials |
 | Partner "[Name] is rating..." appears (AI starts making decision) | `partner_rating_onset` | TTL events |
+| Partner slider handle appears at final position (AI settled, before submit) | `partner_slider_settled_trigger` | TTL events |
 | Partner "[Name] rates: OLD/NEW" appears | `partner_rating_complete` | TTL events |
 | Timeout warning "Time's up!" onset | `timeout_warning_onset` | TTL events |
 | Timeout warning offset (warning removed) | `timeout_warning_offset` | TTL events |
 
-**All events** (including start_task_onset, begin_click, instruction_onset, instruction_continue, block_summary_onset, block_summary_continue, welcome_onset, motor_response, practice_*, partner_rating_onset, partner_rating_complete, timeout_warning_onset, timeout_warning_offset) trigger photodiode+TTL and are logged to `recognition_ttl_events_*.csv`. Per-trial CSVs log only trial-associated triggers.
+**All events** (including start_task_onset, begin_click, instruction_onset, instruction_continue, block_summary_onset, block_summary_continue, welcome_onset, motor_response, practice_*, partner_rating_onset, partner_slider_settled_trigger, partner_rating_complete, timeout_warning_onset, timeout_warning_offset) trigger photodiode+TTL and are logged to `recognition_ttl_events_*.csv`. Per-trial CSVs log only trial-associated triggers.
 
 ### Complete Photodiode Flash Events (Localizer)
 
@@ -69,6 +71,7 @@ All `*_trigger` variables record the **Unix timestamp** when the photodiode flas
 | **Recognition** | `recognition_image_onset_trigger` | Recognition image appeared |
 | **Recognition** | `recognition_image_offset_trigger` | Recognition image removed (before slider) |
 | **Recognition** | `partner_rating_onset_trigger` | "[Partner] is rating..." appeared (AI starts deciding) |
+| **Recognition** | `partner_slider_settled_trigger` | Partner's slider handle appeared at final position (AI settled on decision, before submit) |
 | **Recognition** | `partner_rating_complete_trigger` | "[Partner] rates: OLD/NEW" appeared |
 | **Recognition** | `participant_commit_trigger` | Participant submitted slider (photodiode/TTL) |
 | **Recognition** | `switch_stay_trigger` | Switch/stay decision screen onset |
@@ -90,7 +93,7 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
 | `timestamp` | Float (Unix) | Time when TTL fired (same as photodiode black flash) |
 | `event_type` | String | Event identifier (matches CSV variable names where applicable) |
 
-**Main task event types**: `study_fixation_onset_trigger`, `study_fixation_offset_trigger`, `study_image_onset_trigger`, `study_image_offset_trigger`, `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger`, `instruction_onset`, `instruction_continue`, `block_summary_onset`, `block_summary_continue`, `start_task_onset`, `begin_click`, `welcome_onset`, `motor_response`, `practice_fixation_onset`, `practice_fixation_offset`, `partner_rating_onset`, `partner_rating_complete`, `timeout_warning_onset`, `timeout_warning_offset`
+**Main task event types**: `study_fixation_onset_trigger`, `study_fixation_offset_trigger`, `study_image_onset_trigger`, `study_image_offset_trigger`, `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger`, `instruction_onset`, `instruction_continue`, `block_summary_onset`, `block_summary_continue`, `start_task_onset`, `begin_click`, `welcome_onset`, `motor_response`, `practice_fixation_onset`, `practice_fixation_offset`, `partner_rating_onset`, `partner_slider_settled_trigger`, `partner_rating_complete`, `timeout_warning_onset`, `timeout_warning_offset`
 
 **Localizer event types**: `localizer_fixation_onset_trigger`, `localizer_fixation_offset_trigger`, `localizer_image_onset_trigger`, `localizer_image_offset_trigger`, `question_trigger`, `question_answer_trigger`, `instruction_onset`, `instruction_continue`, `timeout_warning_onset`, `timeout_warning_offset`
 
@@ -189,7 +192,7 @@ The localizer task generates two CSV files (both written incrementally for touch
 
 ## Recognition Phase CSV Variables
 
-**Columns (recognition_trials)** — photodiode/trigger variables: `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `partner_rating_onset_trigger`, `partner_rating_complete_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger` (plus existing RTs, accuracy, etc.)
+**Columns (recognition_trials)** — photodiode/trigger variables: `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `partner_rating_onset_trigger`, `partner_slider_settled_trigger`, `partner_rating_complete_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger` (plus existing RTs, accuracy, etc.)
 
 ---
 
@@ -283,6 +286,11 @@ The localizer task generates two CSV files (both written incrementally for touch
 - **Type**: Float (Unix timestamp) or None
 - **Description**: Time when the photodiode flashed black (TTL fired) as "[Partner name] is rating..." appeared—i.e., when the AI/partner starts making a decision. Use for neural alignment to AI decision onset.
 - **Example**: `1764818198.5`, `None`
+
+### `partner_slider_settled_trigger`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when the photodiode flashed black (TTL fired) as the partner's slider handle appeared at its final position—i.e., when the AI has settled on their decision, before the submit button is clicked. Use for neural alignment to AI decision commitment. `None` for practice trial 1 (no AI partner).
+- **Example**: `1764818199.5`, `None`
 
 ### `partner_rating_complete_trigger`
 - **Type**: Float (Unix timestamp) or None
