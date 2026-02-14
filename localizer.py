@@ -1804,14 +1804,15 @@ try:
         exit(1)
 
     # Create photodiode and install wrapper AFTER name is submitted. White baseline; flashes black (TTL) then white per event.
-    # Photodiode: shown in BOTH touch-screen and keyboard modes (no USE_TOUCH_SCREEN check).
+    # Photodiode: shown in BOTH touch-screen and keyboard modes. Touch: -0.65; keyboard: -0.75
     PHOTODIODE_ACTIVE = True  # Re-enable for main task
     _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
     try:
+        _pd_x = -0.65 if USE_TOUCH_SCREEN else -0.75
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # Quarter of exit-button size
             fillColor='white', lineColor=None,
-            pos=(-0.75, -0.48),  # Far left, slightly up
+            pos=(_pd_x, -0.48),  # Touch: -0.65; keyboard: -0.75
             units='height'
         )
         _photodiode_signal_next_flip = [False]
