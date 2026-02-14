@@ -771,6 +771,7 @@ try:
         if draw_func:
             draw_func()
         win.flip()  # White (baseline)
+    # Photodiode: shown in BOTH touch-screen and keyboard modes (no USE_TOUCH_SCREEN check).
     try:
         photodiode_patch = visual.Rect(
             win, width=0.03, height=0.01,  # Quarter of exit-button size

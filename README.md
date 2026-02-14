@@ -45,7 +45,7 @@ Defines all logged fields, including:
 - AI responses, RTs, correctness  
 - Switch/Stay choices and timings  
 - Distances from ground truth  
-- **Neural data triggers**: Photodiode at extreme left; white baseline, flashes black (TTL) then white per event. Off only during name entry; after name, **every screen change, stimulus change, and response** triggers photodiode+TTL (same as localizer). TTL sent at exact flip moment via `callOnFlip` (triggers and diode change simultaneously). All triggers logged to `recognition_ttl_events_*.csv` and `localizer_ttl_events_*.csv`. See `CSV_VARIABLES_DOCUMENTATION.md` for complete event list.  
+- **Neural data triggers**: Photodiode (0.03 × 0.01) at far left (-0.75, -0.48); in both tasks and both modes; white baseline, flashes black (TTL) then white per event. Off only during name entry; after name, **every screen change, stimulus change, and response** triggers photodiode+TTL (same as localizer). TTL sent at exact flip moment via `callOnFlip` (triggers and diode change simultaneously). All triggers logged to `recognition_ttl_events_*.csv` and `localizer_ttl_events_*.csv`. See `CSV_VARIABLES_DOCUMENTATION.md` for complete event list.  
 
 Use this file when analyzing data.
 
