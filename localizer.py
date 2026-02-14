@@ -1804,6 +1804,7 @@ try:
         exit(1)
 
     # Create photodiode and install wrapper AFTER name is submitted. White baseline; flashes black (TTL) then white per event.
+    # Photodiode: shown in BOTH touch-screen and keyboard modes (no USE_TOUCH_SCREEN check).
     PHOTODIODE_ACTIVE = True  # Re-enable for main task
     _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
     try:
