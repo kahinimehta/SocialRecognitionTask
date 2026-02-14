@@ -26,11 +26,13 @@ Photodiode (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard** at (
 | Study image offset | `study_image_offset_trigger` | study |
 | Recognition image onset | `recognition_image_onset_trigger` | trials |
 | Recognition image offset | `recognition_image_offset_trigger` | trials |
+| Partner "[Name] is rating..." (AI starts deciding) | `partner_rating_onset_trigger` | trials |
+| Partner "[Name] rates: OLD/NEW" | `partner_rating_complete_trigger` | trials |
 | Participant slider submit | `participant_commit_trigger` | trials |
 | Switch/stay screen onset | `switch_stay_trigger` | trials |
 | Participant STAY/SWITCH click | `switch_stay_response_trigger` | trials |
 | Outcome screen | `outcome_trigger` | trials |
-| Partner "[Name] is rating..." appears | `partner_rating_onset` | TTL events |
+| Partner "[Name] is rating..." appears (AI starts making decision) | `partner_rating_onset` | TTL events |
 | Partner "[Name] rates: OLD/NEW" appears | `partner_rating_complete` | TTL events |
 | Timeout warning "Time's up!" onset | `timeout_warning_onset` | TTL events |
 | Timeout warning offset (warning removed) | `timeout_warning_offset` | TTL events |
@@ -106,9 +108,9 @@ The experiment generates four CSV files:
 3. **recognition_summary_[participant_id]_[timestamp].csv** - Experiment summary (total time)
 4. **recognition_ttl_events_[participant_id]_[timestamp].csv** - TTL trigger log (every photodiode flash with timestamp and event type)
 
-The localizer task generates two CSV files:
-5. **localizer_[participant_id]_[timestamp].csv** - Localizer task data
-6. **localizer_ttl_events_[participant_id]_[timestamp].csv** - TTL trigger log (every photodiode flash with timestamp and event type)
+The localizer task generates two CSV files (both written incrementally for touch and keyboard modes):
+5. **localizer_[participant_id]_[timestamp].csv** - Localizer behavioral data (trial-by-trial)
+6. **localizer_ttl_events_[participant_id]_[timestamp].csv** - TTL trigger log (each event written as it occurs)
 
 **File saving locations**:
 - All files are saved to `../LOG_FILES/` directory (created automatically if it doesn't exist)
@@ -185,7 +187,7 @@ The localizer task generates two CSV files:
 
 ## Recognition Phase CSV Variables
 
-**Columns (recognition_trials)** — photodiode/trigger variables: `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger` (plus existing RTs, accuracy, etc.)
+**Columns (recognition_trials)** — photodiode/trigger variables: `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `partner_rating_onset_trigger`, `partner_rating_complete_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger` (plus existing RTs, accuracy, etc.)
 
 ---
 
@@ -274,6 +276,16 @@ The localizer task generates two CSV files:
 - **Type**: Float (Unix timestamp) or None
 - **Description**: Time when the photodiode flashed black (TTL fired) as the participant submitted their slider rating. Matches the exact screen change for neural alignment. `None` if participant timed out.
 - **Example**: `1764818198.3314402`, `None`
+
+### `partner_rating_onset_trigger`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when the photodiode flashed black (TTL fired) as "[Partner name] is rating..." appeared—i.e., when the AI/partner starts making a decision. Use for neural alignment to AI decision onset.
+- **Example**: `1764818198.5`, `None`
+
+### `partner_rating_complete_trigger`
+- **Type**: Float (Unix timestamp) or None
+- **Description**: Time when the photodiode flashed black (TTL fired) as "[Partner name] rates: OLD/NEW" appeared—i.e., when the AI/partner's final rating was shown.
+- **Example**: `1764818200.2`, `None`
 
 ### `participant_slider_timeout`
 - **Type**: Boolean
@@ -538,7 +550,7 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 
 ## Localizer Task CSV Variables
 
-The **localizer_[participant_id]_[timestamp].csv** file contains data from the localizer task, where participants view 200 images (100 Image + 100 Lure versions) in random order and answer object questions at every 10th image.
+The **localizer_[participant_id]_[timestamp].csv** file contains data from the localizer task, where participants view 200 images (100 Image + 100 Lure versions) in random order and answer object questions at every 10th image. **Written trial-by-trial incrementally for both touch-screen and keyboard modes**—each row is flushed to disk immediately, preserving data if the task crashes or is interrupted.
 
 ### `participant_id`
 - **Type**: String
