@@ -80,10 +80,7 @@ Example CSVs (`recognition_study_*`, `recognition_trials_*`, `recognition_summar
 
 ### 5. Stimuli
 
-**`STIMULI`** folder: THINGS dataset (Image + Lure versions). Includes `ImagevsLure.pdf` and `Image_Similarity_Rater.csv` (reference file documenting stimulus pair similarity). 
-
-**`PLACEHOLDERS`** folder: Practice shapes (green/red/blue circles, blue square) and fallback placeholder images used when full stimuli are unavailable or for practice trials. 
-
+**`STIMULI`** folder: THINGS dataset (Image + Lure versions). Includes `ImagevsLure.pdf` and `Image_Similarity_Rater.csv` (reference file documenting stimulus pair similarity).
 
 
 
