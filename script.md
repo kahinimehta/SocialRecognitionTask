@@ -293,7 +293,7 @@ Make sure participants get all the way to the end of the task. If they do, there
 - **Decision screen labels**: On the switch/stay screen, "you" (green) and the partner name "Amy" or "Ben" (blue) appear below the scale next to the markers
 - **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; CONTINUE button is placed lower to avoid overlap with text
 - **Practice vs. Real**: The practice block uses Carly (Amy's assistant; same image as Amy) and 4 simple shapes: green circle, red circle, blue circle (study phase), and blue square (trial 3 recognition—the NEW item). Carly only appears in practice. The real experiment uses Amy or Ben as partners and photographs from the THINGS dataset
-- **Amy vs. Ben accuracy**: Amy (reliable blocks): 75% accuracy (7-8 correct per 10-trial block). Ben (unreliable blocks): 35% accuracy (3-4 correct per 10-trial block).
+- **Amy vs. Ben accuracy**: Amy (reliable blocks): 80% achieved (8 correct per 10-trial block). Ben (unreliable blocks): 40% achieved (4 correct per 10-trial block).
 - **Amy vs. Ben confidence**: Amy (reliable blocks): Confidence correlated with correctness—when correct, high confidence (0.75–1.0 on correct side); when wrong, moderate confidence (0.5–0.75 or 0.25–0.5 depending on which wrong side). Ben (unreliable blocks): Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—participants cannot infer accuracy from Ben's confidence.
 - **Partner rating**: "[Partner name] is rating..." then slider handle at final position, then "[Partner name] rates: OLD/NEW"—each triggers photodiode/TTL (logged to trials and recognition_ttl_events_*.csv). Outcome onset likewise.
 

@@ -53,10 +53,11 @@ This task examines how participants collaborate with an AI partner during a reco
 
 ### Recognition Trial Distribution
 
-- **50% show the studied image** (original Image version): These are "studied" trials
-- **50% show the lure version** (Lure version of the **same object** as the studied item): These are "lure" trials
+- **Exactly 5 studied and 5 lure trials per block** (50/50 split)
+- **5 studied trials**: Show the original Image version (OLD)—these are "studied" trials
+- **5 lure trials**: Show the Lure version of the **same object** as a studied item (NEW)—these are "lure" trials
   - **Important**: Lures correspond to the same category/object as the studied image (e.g., if `Image_041.jpg` was studied, the lure would be `Lure_041.jpg`, not a random lure from a different object)
-- Each of the 10 studied images appears exactly once in recognition (5 as studied images, 5 as lures)
+- Each of the 10 studied images appears exactly once in recognition—5 as studied images, 5 as lures
 
 ### Practice Block Stimuli
 
@@ -117,7 +118,7 @@ Each of the 10 trials follows this structure:
 - **AI Confidence**:
   - **Amy (reliable blocks)**: Confidence correlated with correctness. When correct, high confidence—0.75–1.0 on the correct side (uniform random). When wrong, moderate confidence—0.5–0.75 if she said NEW (but correct was OLD), or 0.25–0.5 if she said OLD (but correct was NEW). Confidence is informative about accuracy.
   - **Ben (unreliable blocks)**: Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—confidence is uninformative about correctness
-- **AI Accuracy**: Varies by block (see below)
+- **AI Accuracy**: Block-level target rate (0.75 Amy, 0.35 Ben, 0.5 practice). With 10 trials, achieved rates are 80% (8/10) and 40% (4/10) due to rounding. Per-trial correctness is pre-generated per block; see AI Accuracy Manipulation below.
 - Animation shows AI's slider clicking (handle appears at chosen position) and clicking submit
 
 ### Turn-Taking Manipulation
@@ -129,15 +130,15 @@ Each of the 10 trials follows this structure:
 
 ### AI Accuracy Manipulation
 
-- **Reliable blocks**: 75% accuracy (Blocks 1-3 and 6-7, Amy)—7-8 correct per 10-trial block
-- **Unreliable blocks**: 35% accuracy (Blocks 4-5 and 8-10, Ben)—3-4 correct per 10-trial block
+- **Reliable blocks**: Target 75% (Blocks 1-3 and 6-7, Amy)—**80% achieved** (8 correct per 10-trial block, from `round(0.75×10)`)
+- **Unreliable blocks**: Target 35% (Blocks 4-5 and 8-10, Ben)—**40% achieved** (4 correct per 10-trial block, from `round(0.35×10)`)
 - **Block structure**:
-  - Blocks 1-3: Reliable (Amy, 75%), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 4-5: Unreliable (Ben, 35%), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 6-7: Reliable (Amy, 75%), turn order randomized within block (AI first on 5 random trials)
-  - Blocks 8-10: Unreliable (Ben, 35%), turn order randomized within block (AI first on 5 random trials)
+  - Blocks 1-3: Reliable (Amy), 80% achieved, turn order randomized (AI first on 5 random trials)
+  - Blocks 4-5: Unreliable (Ben), 40% achieved, turn order randomized (AI first on 5 random trials)
+  - Blocks 6-7: Reliable (Amy), 80% achieved, turn order randomized (AI first on 5 random trials)
+  - Blocks 8-10: Unreliable (Ben), 40% achieved, turn order randomized (AI first on 5 random trials)
 
-**Implementation details**: The AI collaborator uses a pre-generated randomized sequence to target 75% (reliable/Amy) or 35% (unreliable/Ben) accuracy per block. Reliable blocks yield 7-8 correct, unreliable blocks yield 3-4 correct.
+**Implementation details**: The AI uses `int(round(accuracy_rate * num_trials))` per block. With 10 trials: 0.75→8 correct (80%), 0.35→4 correct (40%). CSV: `ai_correct` = per-trial correctness; `ai_reliability` = block target (0.75, 0.35, or 0.5).
 
 ### Collaboration Decision (STAY/SWITCH)
 
@@ -223,9 +224,10 @@ All scoring is framed as "in-house curator" evaluations:
 #### AI Partner Data
 - **AI RT**: Response time (log-normal distribution)
 - **AI Decision Time**: Time when AI "commits" to rating
-- **AI Slider Value**: AI's confidence rating
-- **AI Accuracy**: Whether AI was correct or incorrect
-- **Euclidean Distance**: AI slider to ground truth
+- **AI Slider Value**: AI's confidence rating (`ai_slider_value`)
+- **AI Accuracy**: Whether the AI's categorical decision (OLD vs NEW) matched ground truth for that trial (`ai_correct`). Determined by the block's pre-generated accuracy sequence; slider value is generated to match.
+- **AI Reliability**: Block-level target (`ai_reliability`): 0.75 (Amy→80% achieved), 0.35 (Ben→40% achieved), 0.5 (practice). Same for all trials in the block.
+- **Euclidean Distance**: AI slider to ground truth (`euclidean_ai_to_truth`)
 
 #### Interaction Data
 - **Euclidean Distance**: Between participant and AI slider values
@@ -253,7 +255,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off only during name entry; thereafter every screen change, stimulus, and response triggers a black flash (TTL) then white. All triggers logged to `recognition_ttl_events_*.csv` and `localizer_ttl_events_*.csv`. See `CSV_VARIABLES_DOCUMENTATION.md` for event list.
 
-**Computer/laptop only**: 17 ms delay between black and white flips to prevent vsync coalescing.
+**All modes**: 17 ms delay between black and white flips to prevent vsync coalescing and visible screen blinks.
 
 ---
 
