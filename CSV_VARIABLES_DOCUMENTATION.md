@@ -20,6 +20,14 @@ Photodiode (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard** at (
 |-------|--------------|------|
 | BEGIN screen onset | `start_task_onset` | TTL events |
 | BEGIN button click | `begin_click` | TTL events |
+| Welcome screen 1 (Carly) onset | `welcome_onset` | TTL events |
+| Welcome screen 1 CONTINUE click | `motor_response` | TTL events |
+| **Practice phase (study)** | | |
+| Practice fixation onset | `practice_fixation_onset` | TTL events |
+| Practice fixation offset | `practice_fixation_offset` | TTL events |
+| Practice shape onset (green/red/blue circle) | `practice_image_onset` | TTL events |
+| Practice shape offset | `practice_image_offset` | TTL events |
+| **Experimental blocks** | | |
 | Fixation onset | `study_fixation_onset_trigger`, `recognition_fixation_onset_trigger` | study, trials |
 | Fixation offset | `study_fixation_offset_trigger`, `recognition_fixation_offset_trigger` | study, trials |
 | Study image onset | `study_image_onset_trigger` | study |
@@ -33,10 +41,15 @@ Photodiode (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard** at (
 | Switch/stay screen onset | `switch_stay_trigger` | trials |
 | Participant STAY/SWITCH click | `switch_stay_response_trigger` | trials |
 | Outcome screen | `outcome_trigger` | trials |
+| **Other** | | |
+| Instruction/transition screen onset | `instruction_onset` | TTL events |
+| Instruction CONTINUE click | `instruction_continue` | TTL events |
+| Block summary onset | `block_summary_onset` | TTL events |
+| Block summary CONTINUE click | `block_summary_continue` | TTL events |
 | Timeout warning "Time's up!" onset | `timeout_warning_onset` | TTL events |
 | Timeout warning offset (warning removed) | `timeout_warning_offset` | TTL events |
 
-All listed events trigger photodiode+TTL and are logged to `recognition_ttl_events_*.csv`. Per-trial CSVs log only trial-associated triggers.
+All listed events trigger photodiode+TTL and are logged to `recognition_ttl_events_*.csv`. Per-trial CSVs (study, trials) log only trial-associated triggers.
 
 ### Complete Photodiode Flash Events (Localizer)
 
@@ -495,7 +508,7 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
 
 ### `block_start_time`
 - **Type**: Float (Unix timestamp)
-- **Description**: Time when the block started (when study phase began)
+- **Description**: Time when the block started (recorded at the outset of the block, immediately before the study phase). This is a few milliseconds before the first study-phase fixation appears. For the exact first-fixation onset, use `study_fixation_onset_trigger` from the first row of `recognition_study_*.csv`.
 - **Example**: `1764818000.0`
 
 ### `block_end_time`
