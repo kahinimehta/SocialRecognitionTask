@@ -6,7 +6,7 @@ Canonical task specification. CSV fields and neural event mapping: `CSV_VARIABLE
 
 This task examines how participants collaborate with an AI partner during a recognition memory task. Participants study images and then test their memory by rating images as "OLD" (studied) or "NEW" (not studied), while collaborating with an AI partner who also provides ratings.
 
-**Duration**: 20-35 minutes (40-50 minutes for slower participants)  
+**Duration**: 20-35 minutes (30-40 minutes for slower participants)  
 **Structure**: 10 blocks × 10 trials = 100 total trials  
 **Response Timeout**: 7 seconds per response (slider and switch/stay decisions)
 
