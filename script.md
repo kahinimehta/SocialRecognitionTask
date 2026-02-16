@@ -211,7 +211,7 @@ Now we'll begin the actual work."
 Remember which photos belong in each collection.
 
 Rate each image: OLD (belongs) or NEW (doesn't belong).
-Press LEFT/RIGHT arrow keys repeatedly to move the slider (holding won't work—press multiple times), then Return to submit." — *keyboard*
+Press LEFT/RIGHT arrow keys repeatedly (holding won't work), then Return to submit." — *keyboard*
 "Click on the slider, then SUBMIT." — *touch screen*
 
 **Display shows:** CONTINUE button.
@@ -315,15 +315,70 @@ X collection(s) remaining"
 "When you see this screen, press Return" — *keyboard* — "or tap BEGIN" — *touch screen* — " when you're ready to start the next collection."
 
 ---
+
+### Study-to-Recognition Transition (Within Each Block)
+**Display says:**
+"STUDYING COLLECTION IMAGES COMPLETE!
+
+Now switching to the sorting phase.
+
+You will see MORE images again and rate them with [Amy/Ben]."
+
+**Display shows:** CONTINUE button. (Shown after the 10 study images, before the 10 recognition trials in each block.)
+
+**What to say:**
+"You've finished viewing the collection. Now you'll see more images—including repeats and similar ones—and rate each one with your partner."
+
+---
+
+### Block Summary (After Each Block)
+**Display says:**
+"Collection X Complete!
+
+The in-house curator scored this collection Y points out of a total of 10 points!"
+
+**Display shows:** CONTINUE button. (Shown after the 10 recognition trials in each block.)
+
+**What to say:**
+"That's the end of this collection. Press CONTINUE to move on."
+
+---
+
+### Cumulative Points (End of Experiment)
+**Display says:**
+"The in-house curator scored all your collections X points out of a total of 100 points!"
+
+**Display shows:** CONTINUE button.
+
+---
+
+### Leaderboard
+**Display shows:**
+"AMY'S EMPLOYEE RANKING & LEADERSHIP BOARD" with a ranked list of participant names (and current participant). CONTINUE button.
+
+---
+
+### Final Message
+**Display says:**
+"COLLECTION SORTING COMPLETE!
+
+Total time: X minutes (Y seconds)
+
+Amy thanks you for helping sort the collection!"
+
+**Display shows:** CONTINUE button. After pressing CONTINUE, the screen closes on its own.
+
+---
+
 ***Important:***
-Make sure participants get all the way to the end of the task. If they do, there should be no more buttons and the screen should close on its own. If this does not happen, the data will not get pushed.
+Make sure participants get all the way to the end of the task. After the final CONTINUE on the last screen, the display closes automatically. If it does not close, the data may not get pushed.
 
 ## Notes for Experimenters
 
 - **Timing**: 7 s per slider and switch/stay
 - **Controls**: Touch — tap once on slider, SUBMIT. Keyboard — LEFT/RIGHT repeatedly (holding won't work), Return. Switch/stay: LEFT = STAY, RIGHT = SWITCH
 - **Blocks**: 1–3, 6–7 = Amy; 4–5, 8–10 = Ben. Partner switches before blocks 4, 6, 8
-- **Practice**: 3 shapes, Carly only. Real task: Amy/Ben, THINGS photos
+- **Practice**: 3 shapes, Carly only. Real task: Amy/Ben, THINGS photos. Experimental trials show "Image X of 10" above the slider.
 - **Localizer** (if run): 200 images, 20 questions (trials 10, 20, …). "Enter participant ID". LEFT = YES, RIGHT = NO. 10 s timeout. See `TASK_DESCRIPTION.md`.
 
 ---
