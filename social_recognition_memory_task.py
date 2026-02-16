@@ -762,15 +762,14 @@ try:
     def _signal_photodiode_event():
         _photodiode_signal_next_flip[0] = True
     def _do_photodiode_flash(draw_func, event_type=None):
-        """Signal photodiode, then flip black (TTL) then white. Computer screen only: 17ms delay between flips so black is shown (fixes vsync coalescing). Logs TTL if event_type given."""
+        """Signal photodiode, then flip black (TTL) then white. 17ms delay between flips for all modes (touch and keyboard) so the black frame is actually displayed; without it, vsync coalescing can skip the black frame and cause visible screen blinks. Logs TTL if event_type given."""
         if event_type is not None:
             _pending_ttl_event_type[0] = event_type
         _signal_photodiode_event()
         if draw_func:
             draw_func()
         win.flip()  # Black flash, TTL
-        if not USE_TOUCH_SCREEN:
-            core.wait(0.017)  # Computer/laptop only: ~1 frame at 60Hz so black displays before white
+        core.wait(0.017)  # ~1 frame at 60Hz: ensures black displays before white; prevents vsync coalescing and screen blinks on all modes
         if draw_func:
             draw_func()
         win.flip()  # White (baseline)
@@ -1447,7 +1446,7 @@ def wait_for_button(redraw_func=None, button_text="CONTINUE", button_y=None):
                 
                 # Redraw once per iteration (avoids double-flip that could cause flicker)
                 draw_screen()
-                core.wait(0.016)  # ~60 Hz to reduce photodiode flicker on touch
+                core.wait(0.016)  # ~60 Hz polling
             except Exception:
                 pass
             
@@ -2367,7 +2366,8 @@ class AICollaborator:
     def __init__(self, accuracy_rate=0.5, num_trials=20):
         """
         AI collaborator for recognition memory task
-        accuracy_rate: Overall accuracy (0.5 = 50% practice, 0.75 = 75% Amy, 0.35 = 35% Ben)
+        accuracy_rate: Target rate (0.5 practice, 0.75 Amy, 0.35 Ben). With num_trials=10,
+            int(round(rate*10)) yields 8 correct (80%) or 4 correct (40%) achieved.
         num_trials: Number of trials in the block (default 20)
         """
         self.accuracy_rate = accuracy_rate
@@ -2438,10 +2438,8 @@ class AICollaborator:
         is_studied: True if this is a studied item, False if lure
         trial_type: "studied" or "lure"
         
-        Uses pre-generated randomized sequence to ensure target accuracy rate
-        while randomizing which trials are correct/Incorrect:
-        - 75% accuracy (Amy): 7-8 out of 10 trials correct (randomized order)
-        - 35% accuracy (Ben): 3-4 out of 10 trials correct (randomized order)
+        Uses pre-generated randomized sequence via int(round(accuracy_rate * num_trials)).
+        With 10 trials: 0.75→8 correct (80%), 0.35→4 correct (40%).
         """
         # Ground truth: studied items should be rated OLD, lures should be rated NEW
         if is_studied:

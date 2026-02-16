@@ -1202,9 +1202,9 @@ def wait_for_button(button_text="CONTINUE", additional_stimuli=None):
                                     print(f"Warning: Could not parse mouse position in wait_for_button: {e}", file=sys.stderr)
                                     mouserec_x, mouserec_y = mouseloc_x, mouseloc_y
                 
-                # Redraw once per iteration (avoids double-flip that could cause photodiode flicker)
+                # Redraw once per iteration (avoids double-flip that could cause flicker)
                 draw_screen()
-                safe_wait(0.016)  # ~60 Hz to reduce photodiode flicker on touch
+                safe_wait(0.016)  # ~60 Hz polling
             except (AttributeError, RuntimeError, ValueError, TypeError) as e:
                 # Log specific errors instead of silently ignoring
                 print(f"Warning: Error in wait_for_button touch screen loop: {e}", file=sys.stderr)
@@ -1824,15 +1824,14 @@ try:
         def _signal_photodiode_event():
             _photodiode_signal_next_flip[0] = True
         def _do_photodiode_flash(draw_func, event_type=None):
-            """Signal photodiode, then flip black (TTL) then white. Computer screen only: 17ms delay between flips so black is shown (fixes vsync coalescing). Logs TTL if event_type given."""
+            """Signal photodiode, then flip black (TTL) then white. 17ms delay between flips for all modes so the black frame is displayed; prevents vsync coalescing and screen blinks. Logs TTL if event_type given."""
             if event_type is not None:
                 _pending_ttl_event_type[0] = event_type
             _signal_photodiode_event()
             if draw_func:
                 draw_func()
             win.flip()  # Black flash, TTL
-            if not USE_TOUCH_SCREEN:
-                safe_wait(0.017)  # Computer/laptop only: ~1 frame at 60Hz so black displays before white
+            safe_wait(0.017)  # ~1 frame at 60Hz: ensures black displays before white; prevents vsync coalescing and screen blinks on all modes
             if draw_func:
                 draw_func()
             win.flip()  # White (baseline)

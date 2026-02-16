@@ -8,7 +8,7 @@ Photodiode (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard** at (
 
 **When photodiode is active** (main task and localizer): Photodiode is **off only during participant name entry**. After name entry, photodiode and TTL are **on for every screen change, stimulus change, and response**—same as localizer. BEGIN screen, instruction onsets, CONTINUE clicks, block summaries, etc. all trigger flashes.
 
-**Computer/laptop screens only**: A 17 ms (~1 frame at 60 Hz) delay is inserted between the black and white flips for every photodiode event. This prevents vsync coalescing where rapid successive flips can cause only the white frame to be displayed. Touch screens do not use this delay.
+**All modes (touch screen and keyboard)**: A 17 ms (~1 frame at 60 Hz) delay is inserted between the black and white flips for every photodiode event. This ensures the black frame is actually displayed and prevents vsync coalescing; without it, rapid successive flips can skip the black frame and cause visible screen blinks (e.g. on instruction onset, fixation onset/offset).
 
 **TTL timing**: TTL is sent via PsychoPy `callOnFlip` at the exact moment of each black flip (when the photodiode patch flashes black). Every flash event triggers exactly one TTL pulse.
 
@@ -366,17 +366,18 @@ The localizer task generates two CSV files (both written incrementally for touch
 
 ### `ai_correct`
 - **Type**: Boolean or None
-- **Description**: True if AI's decision was correct (matches ground truth), False otherwise
+- **Description**: True if the AI's categorical decision (OLD vs NEW, based on slider &lt;0.5 or ≥0.5) matched ground truth for this trial, False otherwise.
+- **Implementation**: Determined by the pre-generated block accuracy sequence (see `ai_reliability`). The AI's slider value is generated to match this; i.e., correct trials get confidence on the correct side (OLD: 0–0.25, NEW: 0.75–1.0), incorrect trials on the wrong side.
 - **Note**: `None` for practice trial 1 (no AI response)
 - **Example**: `True`, `False`, `None`
 
 ### `ai_reliability`
 - **Type**: Float (0.0 to 1.0)
-- **Description**: AI's accuracy rate/reliability for this trial
-  - `0.75` = Reliable partner (Amy in blocks 1-3 and 6-7) - 75% accurate per block (7-8/10 trials)
-  - `0.35` = Unreliable partner (Ben in blocks 4-5 and 8-10) - 35% accurate per block (3-4/10 trials)
-  - `0.5` = Practice block (50% reliability)
-- **Note**: With 10 trials per block, reliable blocks yield 7-8 correct (75%), unreliable blocks yield 3-4 correct (35%).
+- **Description**: Block-level target AI accuracy rate (same for all trials within the block). This is the AI partner's configured reliability, not trial-varying.
+  - `0.75` = Reliable partner (Amy) in blocks 1–3 and 6–7 — **80% achieved** (8 correct out of 10 trials; rounding of 0.75×10)
+  - `0.35` = Unreliable partner (Ben) in blocks 4–5 and 8–10 — **40% achieved** (4 correct out of 10 trials; rounding of 0.35×10)
+  - `0.5` = Practice block (Carly) — 50% (1 correct of 2 AI trials)
+- **Note**: The AI uses `int(round(accuracy_rate * num_trials))`; with 10 trials, 0.75→8 and 0.35→4. `ai_correct` per trial reflects the pre-generated sequence.
 - **Example**: `0.75`, `0.35`, `0.5`
 
 ---
