@@ -2,6 +2,8 @@
 
 This repository contains the full PsychoPy implementation, documentation, and example data outputs for the **Social Recognition Memory with Human–AI Collaboration** experiment.
 
+**Documentation**: `TASK_DESCRIPTION.md` is the canonical task specification. `CSV_VARIABLES_DOCUMENTATION.md` documents all CSV fields and neural event mapping. `script.md` is the experimenter script.
+
 ## Narrative Context
 
 The experiment is framed as a photography studio collaboration task. It is **Amy's shop**; she is the professional photographer preparing images for an exhibition. **Carly** is Amy's assistant and **only appears during the practice block**—she walks participants through the training (using the same image as Amy). The **experimental blocks** use **Amy** (reliable partner) or **Ben** (another assistant who may rely on different cues, unreliable partner). Participants help sort through large sets of images and decide which ones truly belong in the collection. The task is framed as helping an "in-house curator" score the images, with scoring feedback presented as "The in-house curator scored this image: X points" rather than direct point earnings.
@@ -74,44 +76,11 @@ Short screen recording from early version demonstrating:
 
 ### 4. Example Data Outputs
 
-These are example CSVs produced by running the task with test parameters. Your real participants' files will follow identical formats.
+Example CSVs produced by running the task with test parameters. See `CSV_VARIABLES_DOCUMENTATION.md` for column definitions, file structure, and neural event mapping.
 
----
+### 5. Stimuli
 
-#### **`recognition_study_*.csv`**
-Study-phase data.  
-Each row = one study trial.
-
----
-
-#### **`recognition_trials_*.csv`**
-Recognition-phase (main task) data.  
-Each row = one recognition trial.
-
----
-
-#### **`recognition_summary_*.csv`**
-Summary of experiment time
-
----
-
-#### **`recognition_ttl_events_*.csv`**
-Chronological log of every TTL trigger (timestamp + event_type) for neural data alignment.
-
----
-
-#### **`localizer_*.csv`**
-Localizer task data (object questions every 10th trial, 50/50 correct/random incorrect object, feedback at end only).
-
----
-
-#### **`localizer_ttl_events_*.csv`**
-Chronological log of every TTL trigger (timestamp + event_type) for the localizer task.
-
----
-
-#### **`STIMULI`**
-Stimuli used in the task. From the THINGS dataset. Also included with STIMULI: `ImagevsLure.pdf` to visualize all stimuli & manual ratings of stimulus similarity by Kahini: `Image_Similarity_Rater.csv`. Lures were AI generated via OpenAI, and aimed to keep difficulty at a medium level across all images as far as possible, but a fairly balanced mix of high/low/medium similarity was obtained. 
+`STIMULI` folder: THINGS dataset (Image + Lure versions). Includes `ImagevsLure.pdf` and `Image_Similarity_Rater.csv`. Stimulus structure: `TASK_DESCRIPTION.md`. 
 
 
 
