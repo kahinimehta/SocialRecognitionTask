@@ -38,9 +38,9 @@ Use this file to understand the conceptual design.
 ---
 
 #### **`CSV_VARIABLES_DOCUMENTATION.md`**
-Complete dictionary of every variable saved in the output CSVs.
+Complete dictionary of every variable saved in all CSVs (6 task output files + 1 reference file).
 
-Defines all logged fields: trial metadata, participant slider values, RTs, commit times, AI responses, switch/stay decisions, distances from ground truth, and neural data (photodiode/TTL triggers). All CSVs are written incrementally with flush to disk, preserving data if the task is interrupted.
+Defines all logged fields: trial metadata, participant slider values, RTs, commit times, AI responses, switch/stay decisions, distances from ground truth, and neural data (photodiode/TTL triggers). Covers `recognition_study`, `recognition_trials`, `recognition_summary`, `recognition_ttl_events`, `localizer`, `localizer_ttl_events`, and `Image_Similarity_Rater.csv`. All output CSVs are written incrementally with flush to disk, preserving data if the task is interrupted.
 
 Use this file when analyzing data.
 
@@ -76,11 +76,13 @@ Short screen recording from early version demonstrating:
 
 ### 4. Example Data Outputs
 
-Example CSVs produced by running the task with test parameters. See `CSV_VARIABLES_DOCUMENTATION.md` for column definitions, file structure, and neural event mapping.
+Example CSVs (`recognition_study_*`, `recognition_trials_*`, `recognition_summary_*`, `recognition_ttl_events_*`, `localizer_*`, `localizer_ttl_events_*`) produced by running the task with test parameters. During runs, data saves to `../LOG_FILES/`. See `CSV_VARIABLES_DOCUMENTATION.md` for column definitions, file structure, and neural event mapping.
 
 ### 5. Stimuli
 
-`STIMULI` folder: THINGS dataset (Image + Lure versions). Includes `ImagevsLure.pdf` and `Image_Similarity_Rater.csv`. Stimulus structure: `TASK_DESCRIPTION.md`. 
+**`STIMULI`** folder: THINGS dataset (Image + Lure versions). Includes `ImagevsLure.pdf` and `Image_Similarity_Rater.csv` (reference file documenting stimulus pair similarity). Stimulus structure: `TASK_DESCRIPTION.md`.
+
+**`PLACEHOLDERS`** folder: Practice shapes (green/red/blue circles, blue square) and fallback placeholder images used when full stimuli are unavailable or for practice trials. 
 
 
 

@@ -90,7 +90,7 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
 | `timestamp` | Float (Unix) | Time when TTL fired (same as photodiode black flash) |
 | `event_type` | String | Event identifier (matches CSV variable names where applicable) |
 
-**Main task event types**: `study_fixation_onset_trigger`, `study_fixation_offset_trigger`, `study_image_onset_trigger`, `study_image_offset_trigger`, `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger`, `instruction_onset`, `instruction_continue`, `block_summary_onset`, `block_summary_continue`, `start_task_onset`, `begin_click`, `welcome_onset`, `motor_response`, `practice_fixation_onset`, `practice_fixation_offset`, `partner_rating_onset`, `partner_slider_settled_trigger`, `partner_rating_complete`, `timeout_warning_onset`, `timeout_warning_offset`
+**Main task event types**: `study_fixation_onset_trigger`, `study_fixation_offset_trigger`, `study_image_onset_trigger`, `study_image_offset_trigger`, `recognition_fixation_onset_trigger`, `recognition_fixation_offset_trigger`, `recognition_image_onset_trigger`, `recognition_image_offset_trigger`, `participant_commit_trigger`, `switch_stay_trigger`, `switch_stay_response_trigger`, `outcome_trigger`, `instruction_onset`, `instruction_continue`, `block_summary_onset`, `block_summary_continue`, `start_task_onset`, `begin_click`, `welcome_onset`, `motor_response`, `practice_fixation_onset`, `practice_fixation_offset`, `practice_image_onset`, `practice_image_offset`, `partner_rating_onset`, `partner_slider_settled_trigger`, `partner_rating_complete`, `timeout_warning_onset`, `timeout_warning_offset`
 
 **Localizer event types**: `localizer_fixation_onset_trigger`, `localizer_fixation_offset_trigger`, `localizer_image_onset_trigger`, `localizer_image_offset_trigger`, `question_trigger`, `question_answer_trigger`, `instruction_onset`, `instruction_continue`, `timeout_warning_onset`, `timeout_warning_offset`
 
@@ -104,15 +104,34 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
 
 ## File Structure
 
-The experiment generates four CSV files:
-1. **recognition_study_[participant_id]_[timestamp].csv** - Study phase data
-2. **recognition_trials_[participant_id]_[timestamp].csv** - Recognition phase data
-3. **recognition_summary_[participant_id]_[timestamp].csv** - Experiment summary (total time)
-4. **recognition_ttl_events_[participant_id]_[timestamp].csv** - TTL trigger log (every photodiode flash with timestamp and event type)
+**Task output CSVs** (saved to `../LOG_FILES/`):
 
-The localizer task generates two CSV files (both written incrementally for touch and keyboard modes):
-5. **localizer_[participant_id]_[timestamp].csv** - Localizer behavioral data (trial-by-trial)
-6. **localizer_ttl_events_[participant_id]_[timestamp].csv** - TTL trigger log (each event written as it occurs)
+| # | File | Description |
+|---|------|-------------|
+| 1 | **recognition_study_[participant_id]_[timestamp].csv** | Study phase data |
+| 2 | **recognition_trials_[participant_id]_[timestamp].csv** | Recognition phase data |
+| 3 | **recognition_summary_[participant_id]_[timestamp].csv** | Experiment summary (total time) |
+| 4 | **recognition_ttl_events_[participant_id]_[timestamp].csv** | TTL trigger log (every photodiode flash with timestamp and event type) |
+| 5 | **localizer_[participant_id]_[timestamp].csv** | Localizer behavioral data (trial-by-trial) |
+| 6 | **localizer_ttl_events_[participant_id]_[timestamp].csv** | TTL trigger log (each event written as it occurs) |
+
+**Reference/input CSVs** (in `STIMULI/`):
+
+| # | File | Description |
+|---|------|-------------|
+| 7 | **Image_Similarity_Rater.csv** | Stimulus metadata: Image Pair number and Similarity (Low/Medium/High) for each stimulus pair |
+
+### Complete Variable Index by File
+
+| File | Variables (in column order) |
+|------|----------------------------|
+| **recognition_study** | `block`, `phase`, `trial`, `image_path`, `study_fixation_onset_trigger`, `study_fixation_offset_trigger`, `fixation_duration`, `study_image_onset_trigger`, `study_image_offset_trigger`, `image_duration` |
+| **recognition_trials** | `ai_correct`, `ai_decision_time`, `ai_final_slider_display_time`, `ai_reliability`, `ai_rt`, `ai_slider_display_time`, `ai_slider_value`, `block`, `block_duration_minutes`, `block_duration_seconds`, `block_end_time`, `block_start_time`, `euclidean_ai_to_truth`, `euclidean_participant_to_ai`, `euclidean_participant_to_truth`, `final_answer`, `ground_truth`, `image_path`, `is_studied`, `outcome_trigger`, `participant_accuracy`, `participant_commit_time`, `participant_commit_trigger`, `participant_first`, `participant_rt`, `participant_slider_click_times`, `participant_slider_decision_onset_time`, `participant_slider_stop_time`, `participant_slider_timeout`, `participant_slider_value`, `partner_rating_complete_trigger`, `partner_rating_onset_trigger`, `partner_slider_settled_trigger`, `phase`, `points_earned`, `recognition_fixation_offset_trigger`, `recognition_fixation_onset_trigger`, `recognition_image_offset_trigger`, `recognition_image_onset_trigger`, `switch_commit_time`, `switch_rt`, `switch_stay_decision`, `switch_stay_response_trigger`, `switch_stay_trigger`, `switch_timeout`, `trial`, `trial_type`, `used_ai_answer` |
+| **recognition_summary** | `participant_id`, `experiment_start_time`, `experiment_end_time`, `total_task_time_seconds`, `total_task_time_minutes` |
+| **recognition_ttl_events** | `timestamp`, `event_type` |
+| **localizer** | `participant_id`, `trial`, `stimulus_number`, `object_name`, `category`, `stimulus_type`, `is_lure`, `image_path`, `presentation_time`, `localizer_fixation_onset_trigger`, `localizer_fixation_offset_trigger`, `fixation_duration`, `localizer_image_onset_trigger`, `localizer_image_offset_trigger`, `is_question_trial`, `question_object`, `question_text`, `question_trigger`, `question_answer_trigger`, `answer`, `correct_answer`, `correct`, `timed_out`, `response_time`, `answer_click_time` |
+| **localizer_ttl_events** | `timestamp`, `event_type` |
+| **Image_Similarity_Rater** | `Image Pair`, `Similarity` |
 
 **File saving locations**:
 - All files are saved to `../LOG_FILES/` directory (created automatically if it doesn't exist)
@@ -304,7 +323,7 @@ The localizer task generates two CSV files (both written incrementally for touch
 - **Type**: Float (Unix timestamp) or None
 - **Description**: Time when participant last clicked/tapped on the slider to set their rating (final position). None if they never clicked on the slider. All slider-related variables are written to the CSV for analysis; the **photodiode/TTL fires only on submit** (commit time), not on slider movements.
 - **Note**: For touch screens, this may be different from `participant_slider_decision_onset_time` if the participant taps multiple times to adjust their rating.
-- **Derived measure**: Time from image onset to last slider click = `participant_slider_stop_time - recognition_image_trigger` (when not None)
+- **Derived measure**: Time from image onset to last slider click = `participant_slider_stop_time - recognition_image_onset_trigger` (when not None)
 - **Example**: `1764818195.5`, `None`
 
 ### `participant_slider_decision_onset_time`
@@ -540,12 +559,9 @@ The **recognition_summary_[participant_id]_[timestamp].csv** file contains overa
 
 ## Notes
 
-- **Trigger variables**: Every `*_trigger` = Unix timestamp when photodiode flashed black (TTL fired). Slider fires on submit only, not on movement.
+- **Trigger variables**: Every `*_trigger` = Unix timestamp when photodiode flashed black (TTL fired). Slider fires on submit only.
 - All timestamps: Unix time. Slider values: 0.0 (OLD) to 1.0 (NEW).
-- **Timeout settings (Main Task only)**: Timeout variables are True if the participant didn't respond within the time limit:
-  - Slider and switch/stay decisions: **7.0 seconds** (fixed)
-  - **Note**: The localizer task uses a different timeout (10.0 seconds for questions) - see Localizer Task section below
-- The experiment saves data incrementally after each trial, not just at the end
+- **Timeouts**: Main task—7.0 s (slider, switch/stay). Localizer—10.0 s (questions).
 ---
 
 ## Localizer Task CSV Variables
@@ -704,5 +720,20 @@ The **localizer_[participant_id]_[timestamp].csv** file contains data from the l
 - **Description**: Absolute timestamp when the participant clicked their answer (in seconds since epoch, high precision)
 - **Note**: Only populated for question trials where participant answered (YES/NO button click or y/n key press). `None` for non-question trials or if participant timed out.
 - **Example**: `1764818181.1234567`, `None`
+
+---
+
+## Reference CSV: Image_Similarity_Rater
+
+The **STIMULI/Image_Similarity_Rater.csv** file is a reference/input file (not generated by the task). It contains perceptual similarity ratings for each Image–Lure pair used in the stimulus set. See `TASK_DESCRIPTION.md` for stimulus structure.
+
+**Columns (Image_Similarity_Rater)**:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `Image Pair` | Integer (1–100) | Stimulus pair number; corresponds to Image_XXX.jpg / Lure_XXX.jpg |
+| `Similarity` | String | Perceptual similarity rating: `"Low"`, `"Medium"`, or `"High"` |
+
+**Note**: This file is referenced in the README as part of the stimulus structure. It is not used by the task scripts at runtime; it documents the stimulus design for experimenters and analysts.
 
 ---

@@ -135,10 +135,9 @@ Each of the 10 trials follows this structure:
 - **Reliable blocks**: Target 75% (Blocks 1-3 and 6-7, Amy)—**80% achieved** (8 correct per 10-trial block, from `round(0.75×10)`)
 - **Unreliable blocks**: Target 35% (Blocks 4-5 and 8-10, Ben)—**40% achieved** (4 correct per 10-trial block, from `round(0.35×10)`)
 - **Block structure**:
-  - Blocks 1-3: Reliable (Amy), 80% achieved, turn order randomized (AI first on 5 random trials)
-  - Blocks 4-5: Unreliable (Ben), 40% achieved, turn order randomized (AI first on 5 random trials)
-  - Blocks 6-7: Reliable (Amy), 80% achieved, turn order randomized (AI first on 5 random trials)
-  - Blocks 8-10: Unreliable (Ben), 40% achieved, turn order randomized (AI first on 5 random trials)
+  - Blocks 1-3, 6-7: Reliable (Amy), 80% achieved
+  - Blocks 4-5, 8-10: Unreliable (Ben), 40% achieved
+  - Turn order randomized within each block (AI first on 5 random trials)
 
 **Implementation details**: The AI uses `int(round(accuracy_rate * num_trials))` per block. With 10 trials: 0.75→8 correct (80%), 0.35→4 correct (40%). CSV: `ai_correct` = per-trial correctness; `ai_reliability` = block target (0.75, 0.35, or 0.5).
 
@@ -178,33 +177,11 @@ The closer the final answer is to the correct answer, the more points earned.
 
 All scoring is framed as "in-house curator" evaluations:
 
-- **After each trial**: "The in-house curator scored this image: X points"
-  - Points are based on Euclidean distance from correct answer (1.0 - distance)
-  - Range: 0.0 to 1.0 points per trial
-  - **Display rounding**: Points are displayed rounded to 1 decimal place (e.g., 0.7, 0.9, 1.0)
-  - **Note**: The logged data in CSV files maintains full precision (not rounded)
-
+- **After each trial**: "Correct/Incorrect" plus "The in-house curator scored this image: X points based on image & your confidence."
 - **End of each block**: "The in-house curator scored this collection X points out of a total of 10 points!"
-  - Block points are the sum of all trial points (10 trials × 1.0 max = 10 points maximum)
-  - Each trial can earn up to 1.0 point based on Euclidean distance from correct answer
-  - **Display rounding**: Block summary points are displayed rounded to 1 decimal place (e.g., 7.5, 8.2, 10.0)
-  - **Note**: The logged data in CSV files maintains full precision (not rounded)
+- **End of experiment**: "The in-house curator scored all your collections X points out of a total of 100 points!"
 
-- **End of experiment**: "The in-house curator scored this collection X points out of a total of 100 points!"
-  - Total experiment points are the sum across all 10 blocks (10 blocks × 10 trials = 100 points maximum)
-  - Each trial can earn up to 1.0 point based on Euclidean distance from correct answer
-  - **Display rounding**: Final experiment score is displayed rounded to 1 decimal place (e.g., 75.3, 82.7, 100.0)
-  - **Note**: The logged data in CSV files maintains full precision (not rounded)
-
----
-
-## Outcome Screen
-
-### Trial Outcome
-
-**Correctness Feedback**: 
-- "Correct" (green) or "Incorrect" (red)
-- Points earned this trial displayed (rounded to 1 decimal place for display, full precision maintained in logged data)
+Points = 1.0 − Euclidean distance from correct answer (range 0.0–1.0 per trial). Display rounded to 1 decimal place; CSV logs full precision.
 
 ---
 
@@ -231,11 +208,10 @@ Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off
 - **Practice flow**:
   1. Welcome message: Amy's studio, Carly (her assistant) will walk through practice; Carly's picture (same image as Amy)
   2. Sequential presentation of 3 shapes (green circle, red circle, blue circle), each for 1.5 seconds with fixations between
-  3. Trial 3 uses a blue square (not the blue circle from encoding) - this is NEW and tests recognition
   3. Transition screen: "Now let's see how well you recall the shapes you've seen!"
-  4. Trial 1: Green circle - participant rates only
-  5. Trial 2: Red circle - shows "Carly is confident she's seen this before", AI clicks "all the way on the old" side, then participant rates
-  6. Trial 3: Blue square - shows "now, work with Carly", participant rates, then AI selects OLD but is not very confident (euclidean distance of 0.4 from left, at 0.4) but incorrectly (as it's a new square), then participant performs switch/stay decision, outcome shown
+  4. Trial 1: Green circle—participant rates only
+  5. Trial 2: Red circle—shows "Carly is confident she's seen this before", AI clicks "all the way on the old" side, then participant rates
+  6. Trial 3: Blue square (NEW; not the blue circle from encoding)—shows "Now, work with Carly", participant rates, then AI selects OLD but not very confident (slider at 0.4) incorrectly (it's a new square), then participant performs switch/stay decision, outcome shown
 - **Note**: Carly (Amy's assistant) appears only in practice; same image as Amy.
 - **Outcome explanations**: Practice trials 1–2 show just "Correct" or "Incorrect". Practice trial 3 shows "Correct/Incorrect. Based off your answer and confidence, your points are X."
 - **Slider instruction**: Touch screen—tap once to set rating. Keyboard (computer)—press LEFT/RIGHT repeatedly (holding won't work), Return to submit.
@@ -257,7 +233,7 @@ Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off
   - Slider usage
   - Collaboration mechanics
   - Scoring system (2 pages)
-- **Rules reminder** before experimental blocks (2 pages)
+- **Rules reminder** before experimental blocks (3 pages: Task Overview, Working with Amy, Scoring)
 - **Color-coded headers** for easy navigation
 - **Formatted text** with emphasis on key concepts
 
@@ -313,9 +289,8 @@ Separate task for object verification. Participants view 200 images (100 Image +
 ### File Management
 
 - **Placeholder stimuli**: Generated automatically if missing or incorrect
-- **Data files**: Created with participant ID and timestamp
-
-- **Incremental saving**: Localizer behavioral CSV written trial-by-trial for both touch and keyboard modes; TTL events written as they occur. Data preserved if task is interrupted.
+- **Data files**: Saved to `../LOG_FILES/` with participant ID and timestamp. Main task: recognition_study, recognition_trials, recognition_summary, recognition_ttl_events. Localizer: localizer, localizer_ttl_events.
+- **Incremental saving**: All CSVs written incrementally (trial-by-trial or event-by-event); data preserved if task is interrupted.
 
 ---
 
