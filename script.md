@@ -24,19 +24,9 @@ If you only want to push the log files without running anything else, you may op
 ### Updating the repo
 The code should automatically update every time you open the terminal or run the experiment. If this is not the case, reach out to kahinimehta@hotmail.com
 
-**To exit fullscreen (main experiment):** 
-- **Laptop**: Press **ESC** — ESC always works to exit.
-- **Touch screen**: Tap the **Exit** button (top-right corner) — the Exit button is only shown sometimes, when you have to make a decision or click a button (e.g., input method, instructions, CONTINUE, slider/SUBMIT, STAY/SWITCH, name entry). It is not shown during fixation crosses, image display, or outcome screens. So on touch screens, you can only exit when the Exit button is visible.
-- **Key difference**: Laptop users can exit any time with ESC. Touch screen users can only exit when the Exit button appears (during interactive/decision screens).
-- **Localizer**: ESC and Exit work at all times, including during fixation and image presentation.
+**To exit**: Laptop—ESC anytime. Touch screen—Exit button (top-right) only during decisions/buttons, not during fixation or image display. Localizer: ESC and Exit work anytime.
 
-**Experimenter note**: 
-- Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically. Exit when you see the button."
-- Also make sure to hit all the information in the script below to ensure participants understand the task and its purpose!
-- Make sure to emphasize the leaderboard + stress the importance of collaboration so participants engage with the AI!
-- Make it clear that some images are very similar to the lures (so participants don't wonder why they're incorrect on some trials in the beginning). 
-- Be sure to emphasize that confidence matters so people use the sliding scale. 
-- **Touch screen**: Tap once on the slider (no drag). **Keyboard (computer)**: Press LEFT/RIGHT arrow keys repeatedly to move the slider—holding keys won't work, press multiple times. Return to submit. 
+**Experimenter note**: Tell participants the above. Emphasize leaderboard, collaboration, subtle image differences, confidence matters. 
 
 
 ---
@@ -51,7 +41,7 @@ Double tap for touch screen, or press Right Arrow for keyboard:
 
 (Press ESC or tap Exit to leave fullscreen)"
 
-**Display shows:** Two buttons: "TOUCH SCREEN (Double tap)" and "KEYBOARD (Press Right Arrow)". A small **Exit** button (top-right corner).
+**Display shows:** Two buttons: "TOUCH SCREEN (Double tap)" and "KEYBOARD (Press Right Arrow)" (text may wrap to two lines per button). A small **Exit** button (top-right corner).
 
 **What to say:**
 - **Touch screen:** "First, double-tap the Touch Screen button."
@@ -107,7 +97,7 @@ Carly, her assistant, will walk you through a short practice to get familiar wit
 **Display says:**
 "Before you begin the real work, you'll complete a short training round to get familiar with the process.
 
-For now, simply memorize the shapes you're about to see. Continue when you're ready to get started!
+For now, simply memorize the shapes you're about to see. Continue when you're ready to get started!"
 
 **Display shows:** CONTINUE button.
 
@@ -179,9 +169,9 @@ For now, simply memorize the shapes you're about to see. Continue when you're re
 ### Decision Screen (Switch/Stay)
 **Display shows:**
 - Image
-- Slider with markers (dots) showing each rating:
-  - Green marker for participant's choice (labeled "you" below the scale)
-  - Blue marker for partner's choice (labeled "Carly" during practice, "Amy" or "Ben" during experimental blocks)
+- Slider with black dots marking each rating position:
+  - Participant's dot with "you" label (green text) below the scale
+  - Partner's dot with partner name label (blue text): "Carly" during practice, "Amy" or "Ben" during experimental blocks
 - Text: "Do you want to STAY with your answer or SWITCH to [partner's] answer?" (Carly during practice, Amy or Ben during experimental blocks). Keyboard adds: "(Press LEFT for STAY, RIGHT for SWITCH)"
 - STAY button (light blue)
 - SWITCH button (light coral)
@@ -207,6 +197,8 @@ For now, simply memorize the shapes you're about to see. Continue when you're re
 "Training complete!
 
 Now we'll begin the actual work."
+
+**Display shows:** CONTINUE button.
 
 **What to say:**
 "Great! The practice is done. Now we'll start the actual task. There will be brief instructions coming up."
@@ -263,7 +255,7 @@ Confidence matters. An in-house curator scores based on accuracy and confidence.
 
 Sometimes she goes first, sometimes you do."
 
-**Display shows:** Image of Amy, "Amy" label below the image, CONTINUE button (bottom right).
+**Display shows:** Image of Amy, CONTINUE button (bottom right).
 
 **What to say:**
 "Work with Amy to sort this collection. Sometimes she'll rate first, sometimes you will. Remember that Amy treasures collaboration in her coworkers, and likes them to work together on these images rather than independently. Remember, you are only responsible for remembering the last 10 images you saw before sorting—nothing from prior collections. Each collection has a different set of images. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready to get started."
@@ -328,28 +320,23 @@ Make sure participants get all the way to the end of the task. If they do, there
 
 ## Notes for Experimenters
 
-- **Timing**: 7 seconds per slider and switch/stay decision
-- **Controls**: Touch — tap once on slider, then SUBMIT. Keyboard — LEFT/RIGHT repeatedly (holding won't work), Return to submit. Switch/stay: LEFT = STAY, RIGHT = SWITCH.
-- **Block structure**: Blocks 1–3 and 6–7 = Amy; 4–5 and 8–10 = Ben. Partner switch screens before blocks 4, 6, and 8.
-- **Practice**: Carly (Amy's assistant) and 4 shapes; Carly only in practice. Real task: Amy or Ben with THINGS photos.
-- **Partner rating flow**: "[Partner] is rating..." → slider settles → "[Partner] rates: OLD/NEW" → outcome; each step triggers photodiode/TTL.
-
-See `TASK_DESCRIPTION.md` for trial mix (5 studied/5 lure), AI accuracy (80%/40%), confidence design, and full localizer specs.
-
-### Localizer (if run)
-200 images, 20 object questions at trials 10, 20, …, 200. Return for CONTINUE/BEGIN; LEFT = YES, RIGHT = NO. 10 s timeout per question. Feedback at end only.
+- **Timing**: 7 s per slider and switch/stay
+- **Controls**: Touch — tap once on slider, SUBMIT. Keyboard — LEFT/RIGHT repeatedly (holding won't work), Return. Switch/stay: LEFT = STAY, RIGHT = SWITCH
+- **Blocks**: 1–3, 6–7 = Amy; 4–5, 8–10 = Ben. Partner switches before blocks 4, 6, 8
+- **Practice**: 3 shapes, Carly only. Real task: Amy/Ben, THINGS photos
+- **Localizer** (if run): 200 images, 20 questions (trials 10, 20, …). "Enter participant ID". LEFT = YES, RIGHT = NO. 10 s timeout. See `TASK_DESCRIPTION.md`.
 
 ---
 
 ## Troubleshooting
 
-- **Photodiode**: Patch (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. See `CSV_VARIABLES_DOCUMENTATION.md` for event list.
+- **Photodiode/TTL**: See `CSV_VARIABLES_DOCUMENTATION.md`.
 - The task should not quit if they accidentally turn the Surface Pro off, but be sure to log this if it happens. 
 - If a participant times out, the task will automatically select a random response and continue.
 - If the participant accidentally minimizes the screen, navigate to the PsychoPy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
 - If there are any unexpected bugs, quit the terminal and restart the task again. Sometimes (only on the computer version) the task lags and gets stuck on "begin". For Windows, you should be able to navigate away. For Mac, hit Cmd+Opt+Esc for 3 seconds to force quit. After you restart, it should work normally again. 
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
 - **Force quit**: Close terminal window if needed.
-- Data saved after each trial to `../LOG_FILES/`. See `CSV_VARIABLES_DOCUMENTATION.md` for file structure.
+- Data saved to `../LOG_FILES/`. See `CSV_VARIABLES_DOCUMENTATION.md`.
 - If you can no longer push/pull to LOG_FILES, delete the directory and re-clone it into the same location using: `git clone https://github.com/SocialTask12/LOG_FILES`
 - Email kahinimehta@hotmail.com for any issues.
