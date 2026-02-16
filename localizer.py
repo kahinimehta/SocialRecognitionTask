@@ -1824,14 +1824,15 @@ try:
         def _signal_photodiode_event():
             _photodiode_signal_next_flip[0] = True
         def _do_photodiode_flash(draw_func, event_type=None):
-            """Signal photodiode, then flip black (TTL) then white. 17ms delay between flips for all modes so the black frame is displayed; prevents vsync coalescing and screen blinks. Logs TTL if event_type given."""
+            """Signal photodiode, then flip black (TTL) then white. Keyboard only: 17ms delay between flips so the black frame displays; touch screen skips delay. Logs TTL if event_type given."""
             if event_type is not None:
                 _pending_ttl_event_type[0] = event_type
             _signal_photodiode_event()
             if draw_func:
                 draw_func()
             win.flip()  # Black flash, TTL
-            safe_wait(0.017)  # ~1 frame at 60Hz: ensures black displays before white; prevents vsync coalescing and screen blinks on all modes
+            if not USE_TOUCH_SCREEN:
+                safe_wait(0.017)  # ~1 frame at 60Hz: ensures black displays before white; prevents vsync coalescing on keyboard
             if draw_func:
                 draw_func()
             win.flip()  # White (baseline)

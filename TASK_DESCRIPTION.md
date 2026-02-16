@@ -1,5 +1,7 @@
 # Social Recognition Memory Task with Human–AI Collaboration
 
+Canonical task specification. CSV fields and neural event mapping: `CSV_VARIABLES_DOCUMENTATION.md`. Experimenter script: `script.md`.
+
 ## Overview
 
 This task examines how participants collaborate with an AI partner during a recognition memory task. Participants study images and then test their memory by rating images as "OLD" (studied) or "NEW" (not studied), while collaborating with an AI partner who also provides ratings.
@@ -208,54 +210,11 @@ All scoring is framed as "in-house curator" evaluations:
 
 ## Data Collection
 
-### Data Recorded Each Trial
-
-#### Participant Data
-- **Response Time (RT)**: Time to click on slider and submit
-- **Decision Commitment Time**: Time when submit button is clicked
-- **Slider Start/Stop/Click Time**: Time when slider value is set (clicked) or all slider movements
-- **Old-New Slider Value**: Final slider position (0.0 = OLD, 1.0 = NEW)
-- **Switch/Stay Decision**: Choice made
-- **Switch/Stay RT**: Time to make decision
-- **Decision Onset Time**: Time when switch/stay screen appears (logged for both touchscreen and click/mouse input modes)
-- **Accuracy Outcome**: Whether final answer was correct
-- **Euclidean Distance**: Participant slider to ground truth
-
-#### AI Partner Data
-- **AI RT**: Response time (log-normal distribution)
-- **AI Decision Time**: Time when AI "commits" to rating
-- **AI Slider Value**: AI's confidence rating (`ai_slider_value`)
-- **AI Accuracy**: Whether the AI's categorical decision (OLD vs NEW) matched ground truth for that trial (`ai_correct`). Determined by the block's pre-generated accuracy sequence; slider value is generated to match.
-- **AI Reliability**: Block-level target (`ai_reliability`): 0.75 (Amy→80% achieved), 0.35 (Ben→40% achieved), 0.5 (practice). Same for all trials in the block.
-- **Euclidean Distance**: AI slider to ground truth (`euclidean_ai_to_truth`)
-
-#### Interaction Data
-- **Euclidean Distance**: Between participant and AI slider values
-- **Outcome Time**: Time when outcome screen appears
-- **Timeout Flags**: Whether participant timed out on slider or switch/stay decision
-
-#### Trial Metadata
-- **Block Number**: Which block (0 = practice, 1-10 = experimental)
-- **Trial Number**: Trial within block
-- **Trial Type**: "studied" or "lure"
-- **Image Path**: Which image was shown
-- **Participant First**: True if participant responded first in this trial, False if AI responded first (randomized within blocks - AI goes first on 5 random trials per block)
-- **Time from Experiment Start**: Elapsed time since experiment began
-
-### Data Storage
-
-- **CSV files updated after each trial** (not each block)
-- **Study Phase Data**: Saved to `recognition_study_[participant_id]_[timestamp].csv`
-- **Trial Data**: Saved to `recognition_trials_[participant_id]_[timestamp].csv`
-- **Summary Data**: Total task time saved to `recognition_summary_[participant_id]_[timestamp].csv`
-- **File saving locations**: All files are saved to `../LOG_FILES/` directory (created automatically if it doesn't exist)
-- **File saving**: Skipped if "test" (case-insensitive) is in the participant name
+Participant RTs, slider values, switch/stay decisions, accuracy, AI responses, and trial metadata are logged trial-by-trial. Photodiode/TTL timestamps align with neural recordings. See `CSV_VARIABLES_DOCUMENTATION.md` for all variable definitions, file structure, and saving locations.
 
 ### Neural Data Logging (Photodiode & TTL)
 
-Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off only during name entry; thereafter every screen change, stimulus, and response triggers a black flash (TTL) then white. All triggers logged to `recognition_ttl_events_*.csv` and `localizer_ttl_events_*.csv`. See `CSV_VARIABLES_DOCUMENTATION.md` for event list.
-
-**All modes**: 17 ms delay between black and white flips to prevent vsync coalescing and visible screen blinks.
+Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off only during name entry; thereafter every screen change, stimulus, and response triggers a black flash (TTL) then white. Keyboard mode: 17 ms delay between black and white flips to prevent vsync coalescing; touch screen skips this delay. See `CSV_VARIABLES_DOCUMENTATION.md` for event list and TTL timing.
 
 ---
 

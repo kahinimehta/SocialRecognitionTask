@@ -1,5 +1,7 @@
 # Experimenter Script
 
+Full task specs: `TASK_DESCRIPTION.md`. CSV format: `CSV_VARIABLES_DOCUMENTATION.md`.
+
 ## Quick Start Instructions
 
 ### For Running the Main Experiment:
@@ -255,7 +257,7 @@ Confidence matters. An in-house curator scores based on accuracy and confidence.
 
 ---
 
-### Amy Introduction Before Collections
+### Amy Introduction (Blocks 1–3, 6–7)
 **Display says:**
 "Work with Amy to sort this collection.
 
@@ -268,6 +270,46 @@ Sometimes she goes first, sometimes you do."
 
 ---
 
+### Partner Switch to Ben (Before Block 4)
+**Display says:**
+"A quick update.
+
+Amy has stepped away to prepare for her exhibition.
+
+While she's gone, you'll be working with Ben—another assistant in the studio.
+
+Click CONTINUE to start sorting!"
+
+**Display shows:** Image of Ben, CONTINUE button.
+
+**What to say:**
+"Amy has stepped away for a bit. You'll now work with Ben, another assistant. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready."
+
+---
+
+### Partner Switch to Ben Again (Before Block 8)
+**Display says:**
+"Amy has to step away again! You will work with Ben again for the last collections."
+
+**Display shows:** Image of Ben, CONTINUE button.
+
+**What to say:**
+"You'll work with Ben again for the remaining collections. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready."
+
+---
+
+### Return to Amy (Before Block 6)
+**Display says:**
+"Amy is back for a day!
+
+She's returning to help you with exhibition preparation."
+
+**Display shows:** Image of Amy, CONTINUE button (bottom right).
+
+**What to say:**
+"Amy is back. You'll work with her again for this collection. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready."
+
+---
 
 ### Ready to Start (Before Each Block)
 **Display says:**
@@ -286,28 +328,27 @@ Make sure participants get all the way to the end of the task. If they do, there
 
 ## Notes for Experimenters
 
-- **Timing**: Participants have 7 seconds per slider and switch/stay decision
-- **Touch Screen**: Tap once on the slider line to set rating, then SUBMIT (no drag)
-- **Keyboard (computer)**: Press LEFT/RIGHT arrows repeatedly to move the slider (holding won't work—must press multiple times). Return to submit. Switch/stay: LEFT = STAY, RIGHT = SWITCH. Return for all buttons.
-- **Button Positions**: All buttons are positioned away from screen edges for better clickability
-- **Decision screen labels**: On the switch/stay screen, "you" (green) and the partner name "Amy" or "Ben" (blue) appear below the scale next to the markers
-- **Leaderboard**: Shows 5 players (P01-P05), participant ranked 2; CONTINUE button is placed lower to avoid overlap with text
-- **Practice vs. Real**: The practice block uses Carly (Amy's assistant; same image as Amy) and 4 simple shapes: green circle, red circle, blue circle (study phase), and blue square (trial 3 recognition—the NEW item). Carly only appears in practice. The real experiment uses Amy or Ben as partners and photographs from the THINGS dataset
-- **Amy vs. Ben accuracy**: Amy (reliable blocks): 80% achieved (8 correct per 10-trial block). Ben (unreliable blocks): 40% achieved (4 correct per 10-trial block).
-- **Amy vs. Ben confidence**: Amy (reliable blocks): Confidence correlated with correctness—when correct, high confidence (0.75–1.0 on correct side); when wrong, moderate confidence (0.5–0.75 or 0.25–0.5 depending on which wrong side). Ben (unreliable blocks): Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—participants cannot infer accuracy from Ben's confidence.
-- **Partner rating**: "[Partner name] is rating..." then slider handle at final position, then "[Partner name] rates: OLD/NEW"—each triggers photodiode/TTL (logged to trials and recognition_ttl_events_*.csv). Outcome onset likewise.
+- **Timing**: 7 seconds per slider and switch/stay decision
+- **Controls**: Touch — tap once on slider, then SUBMIT. Keyboard — LEFT/RIGHT repeatedly (holding won't work), Return to submit. Switch/stay: LEFT = STAY, RIGHT = SWITCH.
+- **Block structure**: Blocks 1–3 and 6–7 = Amy; 4–5 and 8–10 = Ben. Partner switch screens before blocks 4, 6, and 8.
+- **Practice**: Carly (Amy's assistant) and 4 shapes; Carly only in practice. Real task: Amy or Ben with THINGS photos.
+- **Partner rating flow**: "[Partner] is rating..." → slider settles → "[Partner] rates: OLD/NEW" → outcome; each step triggers photodiode/TTL.
+
+See `TASK_DESCRIPTION.md` for trial mix (5 studied/5 lure), AI accuracy (80%/40%), confidence design, and full localizer specs.
+
+### Localizer (if run)
+200 images, 20 object questions at trials 10, 20, …, 200. Return for CONTINUE/BEGIN; LEFT = YES, RIGHT = NO. 10 s timeout per question. Feedback at end only.
 
 ---
 
 ## Troubleshooting
 
-- **Photodiode placement**: Patch (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Align sensor over this corner.
+- **Photodiode**: Patch (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. See `CSV_VARIABLES_DOCUMENTATION.md` for event list.
 - The task should not quit if they accidentally turn the Surface Pro off, but be sure to log this if it happens. 
 - If a participant times out, the task will automatically select a random response and continue.
 - If the participant accidentally minimizes the screen, navigate to the PsychoPy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
 - If there are any unexpected bugs, quit the terminal and restart the task again. Sometimes (only on the computer version) the task lags and gets stuck on "begin". For Windows, you should be able to navigate away. For Mac, hit Cmd+Opt+Esc for 3 seconds to force quit. After you restart, it should work normally again. 
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
 - **Force quit**: Close terminal window if needed.
-- All data is saved automatically after each trial.
-- Log files are saved to the `../LOG_FILES/` directory.
+- Data saved after each trial to `../LOG_FILES/`. See `CSV_VARIABLES_DOCUMENTATION.md` for file structure.
 - Email kahinimehta@hotmail.com for any issues.
