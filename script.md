@@ -351,4 +351,5 @@ See `TASK_DESCRIPTION.md` for trial mix (5 studied/5 lure), AI accuracy (80%/40%
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
 - **Force quit**: Close terminal window if needed.
 - Data saved after each trial to `../LOG_FILES/`. See `CSV_VARIABLES_DOCUMENTATION.md` for file structure.
+- If you can no longer push/pull to LOG_FILES, delete the directory and re-clone it into the same location using: `git clone https://github.com/SocialTask12/LOG_FILES`
 - Email kahinimehta@hotmail.com for any issues.
