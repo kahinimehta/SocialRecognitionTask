@@ -81,12 +81,8 @@ This task examines how participants collaborate with an AI partner during a reco
 Each of the 10 trials follows this structure:
 
 1. **Pre-trial Fixation Cross**: 0.5 seconds (fixed duration, shown before each image)
-2. **Image Presentation**: Shows either the studied image or its lure (50% chance each) for 1.0 second (fixed duration)
-   - Image remains visible until participant responds or timeout (7 seconds)
-3. **Participant Rating**: Rate memory confidence on a continuous slider
-   - **Touch screen**: Tap once on the slider line to set rating, then tap SUBMIT
-   - **Keyboard (computer)**: Press LEFT/RIGHT arrow keys repeatedly to move the slider (holding won't work—must press multiple times), Return to submit
-   - Timeout: 7 seconds (random answer selected if timeout)
+2. **Image Presentation**: Shows either the studied image or its lure (50% chance each) for 1.0 second (fixed)
+3. **Participant Rating**: Rate memory confidence on continuous slider (tap or arrow keys; 7 s timeout)
 4. **AI Partner Rating**: AI partner also rates the image
    - AI RT: Log-normal distribution (mu=0.5, sigma=0.3), capped at 5.0 seconds
    - Animation shows AI's slider clicking and submitting
@@ -255,7 +251,7 @@ All scoring is framed as "in-house curator" evaluations:
 
 ### Neural Data Logging (Photodiode & TTL)
 
-Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off only during name entry; thereafter every screen change, stimulus, and response triggers a black flash (TTL) then white. **Outcome onset** flashes the diode, sends the TTL trigger, and writes to CSV in **both touch-screen and keyboard modes**. All triggers logged to `recognition_ttl_events_*.csv` and `localizer_ttl_events_*.csv`. See `CSV_VARIABLES_DOCUMENTATION.md` for event list and variable mapping.
+Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off only during name entry; thereafter every screen change, stimulus, and response triggers a black flash (TTL) then white. All triggers logged to `recognition_ttl_events_*.csv` and `localizer_ttl_events_*.csv`. See `CSV_VARIABLES_DOCUMENTATION.md` for event list.
 
 **Computer/laptop only**: 17 ms delay between black and white flips to prevent vsync coalescing.
 
@@ -285,10 +281,7 @@ Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off
 
 ### Purpose
 
-- Familiarize participants with task mechanics
-- Practice using the slider (touch: tap once; keyboard: press arrow keys repeatedly, holding won't work)
-- Understand collaboration decisions
-- Learn about the curator scoring system
+- Familiarize participants with task mechanics (slider, collaboration, curator scoring)
 - **Note**: Practice stimuli are simple shapes, not replaced with final stimuli
 
 ---

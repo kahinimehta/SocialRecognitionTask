@@ -29,8 +29,7 @@ The code should automatically update every time you open the terminal or run the
 - **Localizer**: ESC and Exit work at all times, including during fixation and image presentation.
 
 **Experimenter note**: 
-- Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically
-. Exit when you see the button."
+- Before the task starts, tell participants: "To exit, laptop users can press ESC at any time. Touch screen users: the Exit button only appears when you need to make a decision or tap a button—it won't be visible during image display or when the screen is advancing automatically. Exit when you see the button."
 - Also make sure to hit all the information in the script below to ensure participants understand the task and its purpose!
 - Make sure to emphasize the leaderboard + stress the importance of collaboration so participants engage with the AI!
 - Make it clear that some images are very similar to the lures (so participants don't wonder why they're incorrect on some trials in the beginning). 
@@ -296,21 +295,19 @@ Make sure participants get all the way to the end of the task. If they do, there
 - **Practice vs. Real**: The practice block uses Carly (Amy's assistant; same image as Amy) and 4 simple shapes: green circle, red circle, blue circle (study phase), and blue square (trial 3 recognition—the NEW item). Carly only appears in practice. The real experiment uses Amy or Ben as partners and photographs from the THINGS dataset
 - **Amy vs. Ben accuracy**: Amy (reliable blocks): 75% accuracy (7-8 correct per 10-trial block). Ben (unreliable blocks): 35% accuracy (3-4 correct per 10-trial block).
 - **Amy vs. Ben confidence**: Amy (reliable blocks): Confidence correlated with correctness—when correct, high confidence (0.75–1.0 on correct side); when wrong, moderate confidence (0.5–0.75 or 0.25–0.5 depending on which wrong side). Ben (unreliable blocks): Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—participants cannot infer accuracy from Ben's confidence.
-- **Partner rating text**: When Amy, Ben, or Carly is rating, "[Partner name] is rating..." appears below the slider bar and above the SUBMIT button (in blue). Photodiode/TTL fires at onset of this text and when "[Partner name] rates: OLD/NEW" appears (logged in per-trial CSV and recognition_ttl_events_*.csv).
-- **Outcome onset**: Photodiode flashes, TTL fires, and event is written to CSV at outcome screen onset (Correct/Incorrect) in **both touch-screen and keyboard modes**.
-- **Exit instructions (tell participants before task)**: Laptop users can press ESC any time to exit. Touch screen users: the Exit button only appears when you need to tap a button or make a decision—not during image display, fixation, or outcome screens. Exit when you see it.
+- **Partner rating**: "[Partner name] is rating..." then slider handle at final position, then "[Partner name] rates: OLD/NEW"—each triggers photodiode/TTL (logged to trials and recognition_ttl_events_*.csv). Outcome onset likewise.
 
 ---
 
 ## Troubleshooting
 
-- **Photodiode placement**: The photodiode patch (0.03 × 0.01) appears at (-0.70, -0.48) on touch screen and (-0.75, -0.48) on keyboard in **both tasks** (main experiment and localizer). Align the physical sensor over this corner region.
+- **Photodiode placement**: Patch (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Align sensor over this corner.
 - The task should not quit if they accidentally turn the Surface Pro off, but be sure to log this if it happens. 
 - If a participant times out, the task will automatically select a random response and continue.
 - If the participant accidentally minimizes the screen, navigate to the PsychoPy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
 - If there are any unexpected bugs, quit the terminal and restart the task again. Sometimes (only on the computer version) the task lags and gets stuck on "begin". For Windows, you should be able to navigate away. For Mac, hit Cmd+Opt+Esc for 3 seconds to force quit. After you restart, it should work normally again. 
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
-- **To exit the task**: Laptop users press **ESC** (always works). Touch screen users tap the **Exit** button (top-right) when it appears—it is only shown on interactive/decision screens, not during fixation, image display, or outcome screens. If needed, close the terminal window to force quit.
+- **Force quit**: Close terminal window if needed.
 - All data is saved automatically after each trial.
 - Log files are saved to the `../LOG_FILES/` directory.
 - Email kahinimehta@hotmail.com for any issues.
