@@ -777,11 +777,11 @@ try:
     # Photodiode: shown in BOTH touch-screen and keyboard modes (no USE_TOUCH_SCREEN check).
     # Touch screen: -0.70; keyboard: -0.75
     try:
-        _pd_x = -0.70 if USE_TOUCH_SCREEN else -0.75
+        # Photodiode: exit-button size but vertical (width/height swapped), same position
         photodiode_patch = visual.Rect(
-            win, width=0.03, height=0.01,  # Quarter of exit-button size
+            win, width=0.04, height=0.12,  # Exit button is 0.12×0.04; vertical = 0.04×0.12
             fillColor='white', lineColor=None,
-            pos=(_pd_x, -0.48),  # Touch: -0.70; keyboard: -0.75
+            pos=EXIT_BTN_POS,
             units='height'
         )
         _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
@@ -1717,12 +1717,13 @@ def get_participant_id():
         id_prompt = visual.TextStim(win, text="", color='black', height=0.045*0.75*1.35, wrapWidth=1.4*0.75, pos=(0, 0.3*0.6))
         input_display = visual.TextStim(win, text="", color='black', height=0.06*0.75*1.35, pos=(0, 0.1*0.6))
     
-    # Create on-screen keyboard if touch screen (no number row)
+    # Create on-screen keyboard if touch screen (alphabets + numbers below)
     keyboard_buttons = []
     keyboard_layout = [
         ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
         ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
-        ['z', 'x', 'c', 'v', 'b', 'n', 'm', '_', '-']
+        ['z', 'x', 'c', 'v', 'b', 'n', 'm', '_', '-'],
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     ]
     
     if USE_TOUCH_SCREEN:

@@ -752,11 +752,12 @@ def get_participant_id():
     if USE_TOUCH_SCREEN:
         print("Creating keyboard buttons...")
         try:
-            # On-screen keyboard layout (no number row)
+            # On-screen keyboard layout (alphabets + numbers below)
             keyboard_rows = [
                 ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
                 ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-                ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+                ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+                ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
             ]
             
             keyboard_buttons = []
@@ -1811,11 +1812,11 @@ try:
     PHOTODIODE_ACTIVE = True  # Re-enable for main task
     _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
     try:
-        _pd_x = -0.70 if USE_TOUCH_SCREEN else -0.75
+        # Photodiode: exit-button size but vertical (width/height swapped), same position
         photodiode_patch = visual.Rect(
-            win, width=0.03, height=0.01,  # Quarter of exit-button size
+            win, width=0.04, height=0.12,  # Exit button is 0.12×0.04; vertical = 0.04×0.12
             fillColor='white', lineColor=None,
-            pos=(_pd_x, -0.48),  # Touch: -0.70; keyboard: -0.75
+            pos=EXIT_BTN_POS,
             units='height'
         )
         _photodiode_signal_next_flip = [False]
