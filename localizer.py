@@ -40,27 +40,46 @@ PHOTODIODE_ACTIVE = True  # Set False during get_input_method (temp_win) and get
 photodiode_patch = None  # Created after main window exists
 _last_photodiode_ttl_timestamp = [None]  # Set at exact moment of photodiode flash + TTL (for CSV alignment)
 
-# TTL trigger: parallel port pulse when photodiode appears (Windows/Linux; no-op on macOS)
-_ttl_parallel = None  # Lazy-init
+# TTL trigger: Cedrus pyxid2 (StimTracker, c-pod, Lumina, etc.) or parallel port fallback
+# See https://github.com/cedrus-opensource/pyxid
+_ttl_backend = None  # Lazy-init: pyxid device, psychopy parallel, or False
+_ttl_line = int(os.environ.get('CEDRUS_TTL_LINE', '1'))  # Output line for Cedrus (default 1)
+
 def _send_ttl_trigger():
-    """Send a brief TTL pulse via parallel port when photodiode appears. Fails silently if unavailable."""
-    global _ttl_parallel
+    """Send a brief TTL pulse via Cedrus pyxid2 (preferred) or parallel port. Fails silently if unavailable."""
+    global _ttl_backend
     try:
-        if _ttl_parallel is False:
-            return  # Previously failed to init
-        if _ttl_parallel is None:
+        if _ttl_backend is False:
+            return
+        if _ttl_backend is None:
+            # Try Cedrus pyxid2 first (StimTracker, c-pod, Lumina, etc.)
             try:
-                from psychopy import parallel
-                addr = int(os.environ.get('PARALLEL_PORT_ADDRESS', '0x0378'), 16)
-                parallel.setPortAddress(addr)
-                _ttl_parallel = parallel
+                import pyxid2
+                devices = pyxid2.get_xid_devices()
+                if devices:
+                    dev = devices[0]
+                    dev.set_pulse_duration(10)  # 10ms pulse (matches previous parallel-port timing)
+                    _ttl_backend = ('cedrus', dev)
             except Exception:
-                _ttl_parallel = False
+                pass
+            # Fallback to parallel port (Windows/Linux) if Cedrus not available
+            if _ttl_backend is None:
+                try:
+                    from psychopy import parallel
+                    addr = int(os.environ.get('PARALLEL_PORT_ADDRESS', '0x0378'), 16)
+                    parallel.setPortAddress(addr)
+                    _ttl_backend = ('parallel', parallel)
+                except Exception:
+                    _ttl_backend = False
+            if _ttl_backend is False:
                 return
-        if _ttl_parallel:
-            _ttl_parallel.setData(255)
+        backend_type, backend = _ttl_backend
+        if backend_type == 'cedrus':
+            backend.activate_line(lines=_ttl_line)
+        elif backend_type == 'parallel':
+            backend.setData(255)
             core.wait(0.01)
-            _ttl_parallel.setData(0)
+            backend.setData(0)
     except Exception:
         pass
 
