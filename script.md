@@ -6,15 +6,15 @@ Full task specs: `TASK_DESCRIPTION.md`. CSV format: `CSV_VARIABLES_DOCUMENTATION
 
 ### For Running the Main Experiment:
 1. Open terminal
-2. Type `n` when prompted to confirm you want to run the localizer (this skips the localizer)
-3. Type `experiment` if you are trying to run the experiment
-4. Say `y` to:
+2. Type `n` and enter when prompted to confirm you want to run the localizer (this skips the localizer)
+3. Type `experiment` and enter if you are trying to run the experiment
+4. Say `y` and enter to:
    - Running the experiment
    - Uploading the log files (after the experiment completes)
 
 ### For Participants Running the Localizer:
 1. Open terminal
-2. Enter `y` when prompted
+2. Enter `y` when prompted and hit enter
 
 This will run the localizer and upload the log files. The localizer uses the same input method screen (Touch Screen or Keyboard). For input selection: press Right Arrow to choose Keyboard. During task: use Return for CONTINUE/BEGIN/EXIT, LEFT for YES, RIGHT for NO on object questions. 
 
@@ -24,9 +24,9 @@ If you only want to push the log files without running anything else, you may op
 ### Updating the repo
 The code should automatically update every time you open the terminal or run the experiment. If this is not the case, reach out to kahinimehta@hotmail.com
 
-**To exit**: Laptop—ESC anytime. Touch screen—Exit button (top-right) only during decisions/buttons, not during fixation or image display. Localizer: ESC and Exit work anytime.
+**To exit**: Laptop—ESC anytime. Touch screen—Exit button (top-right) only during decisions/buttons, not during fixation or image display. 
 
-**Experimenter note**: Tell participants the above. Emphasize leaderboard, collaboration, subtle image differences, confidence matters. 
+**Experimenter note**: Tell participants the above. Emphasize leaderboard, collaboration, subtle image differences, confidence matters when possible to ensure good performance. 
 
 
 ---
@@ -89,7 +89,7 @@ Carly, her assistant, will walk you through a short practice to get familiar wit
 **Display shows:** Image of Carly (same as Amy) below the text, CONTINUE button (bottom right).
 
 **What to say:**
-"This is Carly, Amy's assistant. She'll walk you through a short practice to learn the task. The actual work will be with Amy. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — "when you're ready."
+"Carly, Amy's assistant, will walk you through a short practice to learn the task. The actual work will be with Amy, pictured here. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — "when you're ready."
 
 ---
 
@@ -130,7 +130,7 @@ For now, simply memorize the shapes you're about to see. Continue when you're re
 - Green circle
 - Prompt varies by mode:
   - **Keyboard:** "Press LEFT or RIGHT arrow keys repeatedly to move the slider (holding won't work). How close you are to either side indicates how CONFIDENT you are. Press Return when done."
-  - **Touch screen:** "CLICK ONCE on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). How close you are to either side indicates how CONFIDENT you are in your answer."
+  - **Touch screen:** "CLICK ONCE (do NOT slide) on the sliding bar to show how confident you are you've seen this before (i.e., it is \"old\"). How close you are to either side indicates how CONFIDENT you are in your answer."
 - Slider with OLD on left, NEW on right
 - SUBMIT button
 
@@ -258,115 +258,7 @@ Sometimes she goes first, sometimes you do."
 **Display shows:** Image of Amy, CONTINUE button (bottom right).
 
 **What to say:**
-"Work with Amy to sort this collection. Sometimes she'll rate first, sometimes you will. Remember that Amy treasures collaboration in her coworkers, and likes them to work together on these images rather than independently. Remember, you are only responsible for remembering the last 10 images you saw before sorting—nothing from prior collections. Each collection has a different set of images. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready to get started."
-
----
-
-### Partner Switch to Ben (Before Block 4)
-**Display says:**
-"A quick update.
-
-Amy has stepped away to prepare for her exhibition.
-
-While she's gone, you'll be working with Ben—another assistant in the studio.
-
-Click CONTINUE to start sorting!"
-
-**Display shows:** Image of Ben, CONTINUE button.
-
-**What to say:**
-"Amy has stepped away for a bit. You'll now work with Ben, another assistant. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready."
-
----
-
-### Partner Switch to Ben Again (Before Block 8)
-**Display says:**
-"Amy has to step away again! You will work with Ben again for the last collections."
-
-**Display shows:** Image of Ben, CONTINUE button.
-
-**What to say:**
-"You'll work with Ben again for the remaining collections. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready."
-
----
-
-### Return to Amy (Before Block 6)
-**Display says:**
-"Amy is back for a day!
-
-She's returning to help you with exhibition preparation."
-
-**Display shows:** Image of Amy, CONTINUE button (bottom right).
-
-**What to say:**
-"Amy is back. You'll work with her again for this collection. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready."
-
----
-
-### Ready to Start (Before Each Block)
-**Display says:**
-"Ready to start sorting?
-
-X collection(s) remaining"
-
-**Display shows:** BEGIN button. (Number of collections remaining updates each block.)
-
-**What to say:**
-"When you see this screen, press Return" — *keyboard* — "or tap BEGIN" — *touch screen* — " when you're ready to start the next collection."
-
----
-
-### Study-to-Recognition Transition (Within Each Block)
-**Display says:**
-"STUDYING COLLECTION IMAGES COMPLETE!
-
-Now switching to the sorting phase.
-
-You will see MORE images again and rate them with [Amy/Ben]."
-
-**Display shows:** CONTINUE button. (Shown after the 10 study images, before the 10 recognition trials in each block.)
-
-**What to say:**
-"You've finished viewing the collection. Now you'll see more images—including repeats and similar ones—and rate each one with your partner."
-
----
-
-### Block Summary (After Each Block)
-**Display says:**
-"Collection X Complete!
-
-The in-house curator scored this collection Y points out of a total of 10 points!"
-
-**Display shows:** CONTINUE button. (Shown after the 10 recognition trials in each block.)
-
-**What to say:**
-"That's the end of this collection. Press CONTINUE to move on."
-
----
-
-### Cumulative Points (End of Experiment)
-**Display says:**
-"The in-house curator scored all your collections X points out of a total of 100 points!"
-
-**Display shows:** CONTINUE button.
-
----
-
-### Leaderboard
-**Display shows:**
-"AMY'S EMPLOYEE RANKING & LEADERSHIP BOARD" with a ranked list of participant names (and current participant). CONTINUE button.
-
----
-
-### Final Message
-**Display says:**
-"COLLECTION SORTING COMPLETE!
-
-Total time: X minutes (Y seconds)
-
-Amy thanks you for helping sort the collection!"
-
-**Display shows:** CONTINUE button. After pressing CONTINUE, the screen closes on its own.
+"Work with Amy to sort this collection. Sometimes she'll rate first, sometimes you will. Remember that Amy treasures collaboration in her coworkers, and likes to work together on these images rather than independently. Press Return" — *keyboard* — "or tap CONTINUE" — *touch screen* — " when ready to get started."
 
 ---
 
@@ -385,13 +277,11 @@ Make sure participants get all the way to the end of the task. After the final C
 
 ## Troubleshooting
 
-- **Photodiode/TTL**: See `CSV_VARIABLES_DOCUMENTATION.md`.
 - The task should not quit if they accidentally turn the Surface Pro off, but be sure to log this if it happens. 
 - If a participant times out, the task will automatically select a random response and continue.
-- If the participant accidentally minimizes the screen, navigate to the PsychoPy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
-- If there are any unexpected bugs, quit the terminal and restart the task again. Sometimes (only on the computer version) the task lags and gets stuck on "begin". For Windows, you should be able to navigate away. For Mac, hit Cmd+Opt+Esc for 3 seconds to force quit. After you restart, it should work normally again. 
+- If the participant accidentally minimizes the screen on the Surface Pro, navigate to the PsychoPy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!
+- If there are any unexpected bugs, quit the terminal and restart the task again. Sometimes (only on the computer version) the task lags and gets stuck on "begin". For Windows, you should be able to navigate away and quit the terminal screen. For Mac, hit Cmd+Opt+Esc for 3 seconds to force quit. After you restart, it should work normally again. 
 - If the participant has trouble with clicking, make sure they are set up in a position where they aren't accidentally touching multiple points at the same time!
-- **Force quit**: Close terminal window if needed.
-- Data saved to `../LOG_FILES/`. See `CSV_VARIABLES_DOCUMENTATION.md`.
-- If you can no longer push/pull to LOG_FILES, delete the directory and re-clone it into the same location using: `git clone https://github.com/SocialTask12/LOG_FILES`
+- Data saved to `../LOG_FILES/`.
+- If you can no longer push to LOG_FILES, delete the directory and re-clone it into the same location using: `git clone https://github.com/SocialTask12/LOG_FILES`
 - Email kahinimehta@hotmail.com for any issues.
