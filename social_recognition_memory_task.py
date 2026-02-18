@@ -777,11 +777,12 @@ try:
     # Photodiode: shown in BOTH touch-screen and keyboard modes (no USE_TOUCH_SCREEN check).
     # Touch screen: -0.70; keyboard: -0.75
     try:
-        # Photodiode: exit-button size but vertical (width/height swapped), same position
+        _pd_x = -0.70 if USE_TOUCH_SCREEN else -0.75
+        # Photodiode: twice exit-button vertical size (0.08×0.24), bottom-left
         photodiode_patch = visual.Rect(
-            win, width=0.04, height=0.12,  # Exit button is 0.12×0.04; vertical = 0.04×0.12
+            win, width=0.08, height=0.24,
             fillColor='white', lineColor=None,
-            pos=EXIT_BTN_POS,
+            pos=(_pd_x, -0.48),
             units='height'
         )
         _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
