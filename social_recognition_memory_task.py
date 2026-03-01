@@ -105,27 +105,74 @@ _ttl_file_path_ref = [None]  # Path to TTL file (for closing and log message)
 
 # TTL trigger: Cedrus pyxid2 (StimTracker, c-pod, Lumina, etc.) or parallel port fallback
 # See https://github.com/cedrus-opensource/pyxid
+# NOTE: Parallel port works on Windows/Linux only. On macOS, Cedrus pyxid2 (USB) is required for Blackrock.
 _ttl_backend = None  # Lazy-init: pyxid device, psychopy parallel, or False
 _ttl_line = int(os.environ.get('CEDRUS_TTL_LINE', '1'))  # Output line for Cedrus (default 1)
+_ttl_pulse_ms = int(os.environ.get('CEDRUS_TTL_PULSE_MS', '10'))  # Pulse duration in ms (default 10)
+_ttl_status_logged = [False]  # One-time diagnostic print
+
+def _log_ttl_status():
+    """Print TTL backend status once (for Blackrock/debugging)."""
+    if _ttl_status_logged[0]:
+        return
+    _ttl_status_logged[0] = True
+    if _ttl_backend is False:
+        print("=" * 60, file=sys.stderr)
+        print("TTL WARNING: No TTL backend available. Triggers will NOT be sent to Blackrock.", file=sys.stderr)
+        print("  - On macOS: Cedrus pyxid2 (StimTracker/c-pod/Lumina) via USB is required.", file=sys.stderr)
+        print("  - Parallel port is Windows/Linux only.", file=sys.stderr)
+        print("  - Ensure Cedrus device is connected and pyxid2 is installed.", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
+        sys.stderr.flush()
+    elif _ttl_backend is not None:
+        bt, _ = _ttl_backend
+        print(f"TTL OK: Using {bt} backend, line {_ttl_line}, {_ttl_pulse_ms}ms pulse. If Blackrock still misses triggers: check m-pod output mapping (Xidon 2), wiring to Blackrock DIN, and Blackrock digital input channel.", file=sys.stderr)
+        sys.stderr.flush()
+
+def _probe_ttl_at_startup():
+    """Initialize TTL backend and log status. Call when photodiode is first enabled. No pulse sent."""
+    global _ttl_backend
+    if _ttl_backend is not None:
+        _log_ttl_status()
+        return
+    try:
+        import pyxid2
+        devices = pyxid2.get_xid_devices()
+        if devices:
+            dev = devices[0]
+            dev.set_pulse_duration(_ttl_pulse_ms)
+            _ttl_backend = ('cedrus', dev)
+    except Exception:
+        pass
+    if _ttl_backend is None:
+        try:
+            from psychopy import parallel
+            addr = int(os.environ.get('PARALLEL_PORT_ADDRESS', '0x0378'), 16)
+            parallel.setPortAddress(addr)
+            _ttl_backend = ('parallel', parallel)
+        except Exception:
+            _ttl_backend = False
+    _log_ttl_status()
 
 def _send_ttl_trigger():
     """Send a brief TTL pulse via Cedrus pyxid2 (preferred) or parallel port. Fails silently if unavailable."""
     global _ttl_backend
     try:
         if _ttl_backend is False:
+            _log_ttl_status()
             return
         if _ttl_backend is None:
-            # Try Cedrus pyxid2 first (StimTracker, c-pod, Lumina, etc.)
+            # Try Cedrus pyxid2 first (StimTracker, c-pod, Lumina, etc.) - works on macOS
             try:
                 import pyxid2
                 devices = pyxid2.get_xid_devices()
                 if devices:
                     dev = devices[0]
-                    dev.set_pulse_duration(10)  # 10ms pulse (matches previous parallel-port timing)
+                    dev.set_pulse_duration(_ttl_pulse_ms)
                     _ttl_backend = ('cedrus', dev)
             except Exception:
                 pass
-            # Fallback to parallel port (Windows/Linux) if Cedrus not available
+            # Fallback to parallel port (Windows/Linux only - not supported on macOS)
             if _ttl_backend is None:
                 try:
                     from psychopy import parallel
@@ -135,7 +182,9 @@ def _send_ttl_trigger():
                 except Exception:
                     _ttl_backend = False
             if _ttl_backend is False:
+                _log_ttl_status()
                 return
+            _log_ttl_status()
         backend_type, backend = _ttl_backend
         if backend_type == 'cedrus':
             backend.activate_line(lines=_ttl_line)
@@ -4126,6 +4175,7 @@ def run_experiment():
     # Name entry first (like localizer) - photodiode off during name entry only
     participant_id = get_participant_id()
     PHOTODIODE_ACTIVE = True  # Enable photodiode for every screen change/stimulus/response from here on (like localizer)
+    _probe_ttl_at_startup()  # Initialize TTL backend and log status for Blackrock
     experiment_start_time = time.time()
     # Open TTL file for incremental writes (one row per event)
     if not is_test_participant(participant_id):
