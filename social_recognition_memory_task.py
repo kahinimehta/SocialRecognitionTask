@@ -108,7 +108,7 @@ _ttl_file_path_ref = [None]  # Path to TTL file (for closing and log message)
 # NOTE: Parallel port works on Windows/Linux only. On macOS, Cedrus pyxid2 (USB) is required for Blackrock.
 _ttl_backend = None  # Lazy-init: pyxid device, psychopy parallel, or False
 _ttl_line = int(os.environ.get('CEDRUS_TTL_LINE', '1'))  # Output line for Cedrus (default 1)
-_ttl_pulse_ms = int(os.environ.get('CEDRUS_TTL_PULSE_MS', '10'))  # Pulse duration in ms (default 10)
+_ttl_pulse_ms = int(os.environ.get('CEDRUS_TTL_PULSE_MS', '50'))  # Pulse duration in ms (default 50 for reliable Blackrock capture)
 _ttl_status_logged = [False]  # One-time diagnostic print
 
 def _log_ttl_status():
@@ -141,6 +141,10 @@ def _probe_ttl_at_startup():
         if devices:
             dev = devices[0]
             dev.set_pulse_duration(_ttl_pulse_ms)
+            try:
+                dev.reset_timer()  # Ensure device is ready (per Cedrus sample pattern)
+            except Exception:
+                pass
             _ttl_backend = ('cedrus', dev)
     except Exception:
         pass
@@ -169,6 +173,10 @@ def _send_ttl_trigger():
                 if devices:
                     dev = devices[0]
                     dev.set_pulse_duration(_ttl_pulse_ms)
+                    try:
+                        dev.reset_timer()
+                    except Exception:
+                        pass
                     _ttl_backend = ('cedrus', dev)
             except Exception:
                 pass
@@ -192,8 +200,9 @@ def _send_ttl_trigger():
             backend.setData(255)
             core.wait(0.01)
             backend.setData(0)
-    except Exception:
-        pass
+    except Exception as e:
+        if os.environ.get('TTL_DEBUG'):
+            print(f"TTL send error: {e}", file=sys.stderr)
 
 def safe_window_close(window):
     """Safely close a window, checking if it's still valid to prevent NoneType errors"""
@@ -865,12 +874,12 @@ try:
                     _photodiode_signal_next_flip[0] = False
                     did_flash = True
                 photodiode_patch.draw()
-            # TTL at exact flip moment – callOnFlip fires when screen changes, same time as photodiode flash
+            # TTL: send synchronously in main thread before flip (callOnFlip can run in graphics thread where Cedrus USB may fail)
             if PHOTODIODE_ACTIVE and photodiode_patch is not None and did_flash:
+                ts = time.time()
+                _last_photodiode_ttl_timestamp[0] = ts
+                _send_ttl_trigger()
                 def _on_flash():
-                    ts = time.time()
-                    _last_photodiode_ttl_timestamp[0] = ts
-                    _send_ttl_trigger()
                     if _pending_ttl_event_type[0] is not None:
                         ev = {"timestamp": ts, "event_type": _pending_ttl_event_type[0]}
                         _ttl_events.append(ev)
@@ -889,7 +898,7 @@ try:
                                     pass
                             except Exception as e:
                                 print(f"Warning: Could not write TTL event incrementally: {e}", file=sys.stderr)
-                win.callOnFlip(_on_flash)
+                win.callOnFlip(_on_flash)  # Log timestamp/event_type only; TTL already sent above
             result = _orig_flip(*args, **kwargs)
             return result
         win.flip = _wrapped_flip
