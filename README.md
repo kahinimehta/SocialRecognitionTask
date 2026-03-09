@@ -42,7 +42,7 @@ Complete dictionary of every variable saved in all CSVs (6 task output files + 1
 
 Defines all logged fields: trial metadata, participant slider values, RTs, commit times, AI responses, switch/stay decisions, distances from ground truth, and neural data (photodiode/TTL triggers). Covers `recognition_study`, `recognition_trials`, `recognition_summary`, `recognition_ttl_events`, `localizer`, `localizer_ttl_events`, and `Image_Similarity_Rater.csv`. All output CSVs are written incrementally with flush to disk, preserving data if the task is interrupted.
 
-Use this file when analyzing data. Note that on the computer, photodiode flashes are offset by 17 ms. 
+Use this file when analyzing data. Note that on the computer, photodiode flashes are offset by 17 ms. TTL: Cedrus pyxid2 preferred; parallel port on Windows/Linux. See `CSV_VARIABLES_DOCUMENTATION.md` for env vars and Blackrock setup. 
 
 ---
 

@@ -4,13 +4,13 @@ Complete reference for CSV output and neural event mapping. Task design and expe
 
 ## Neural Data Logging (Photodiode & TTL)
 
-Photodiode (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard** at (-0.75, -0.48). **Present in both tasks** (main experiment and localizer). **White baseline** when nothing is happening. At each event the patch **flashes black** (TTL sent) **then white**—a quick transition via `win.flip()`; it does not stay black. **Every flash is accompanied by a TTL trigger** via parallel port (Windows/Linux; default 0x0378; `PARALLEL_PORT_ADDRESS` to override).
+Photodiode (0.03 × 0.01): **Touch screen** at (-0.70, -0.48); **keyboard** at (-0.75, -0.48). **Present in both tasks** (main experiment and localizer). **White baseline** when nothing is happening. At each event the patch **flashes black** (TTL sent) **then white**—a quick transition via `win.flip()`; it does not stay black. **Every flash is accompanied by a TTL trigger**. Cedrus pyxid2 (StimTracker, c-pod, Lumina) preferred; parallel port fallback (Windows/Linux; default 0x0378; `PARALLEL_PORT_ADDRESS`). On macOS, Cedrus required. Env vars: `CEDRUS_TTL_LINE` (default 1), `CEDRUS_TTL_PULSE_MS` (default 50; parallel only). Blackrock: check m-pod mapping (Xidon 2), wiring to DIN, digital input channel.
 
 **When photodiode is active** (main task and localizer): Photodiode is **off only during participant name entry**. After name entry, photodiode and TTL are **on for every screen change, stimulus change, and response**—same as localizer. BEGIN screen, instruction onsets, CONTINUE clicks, block summaries, etc. all trigger flashes.
 
 **Keyboard mode only**: A 17 ms (~1 frame at 60 Hz) delay is inserted between the black and white flips for every photodiode event. This ensures the black frame is actually displayed and prevents vsync coalescing. Touch screen mode skips this delay.
 
-**TTL timing**: TTL is sent via PsychoPy `callOnFlip` at the exact moment of each black flip (when the photodiode patch flashes black). Every flash event triggers exactly one TTL pulse.
+**TTL timing**: TTL is sent synchronously in the main thread immediately before each black flip. Cedrus uses activate-then-deactivate-on-next-flip (~16 ms pulse at 60 Hz); no blocking in frame loop. Every flash event triggers exactly one TTL pulse. Errors printed to stderr.
 
 **TTL event logging**: Every TTL trigger is logged to a dedicated CSV file (`recognition_ttl_events_*.csv` for the main task, `localizer_ttl_events_*.csv` for the localizer). Each row contains `timestamp` (Unix time when TTL fired) and `event_type` (string matching the CSV variable name, e.g., `study_fixation_onset_trigger`, `participant_commit_trigger`). These files provide a complete chronological record of all neural triggers for alignment with recording equipment. **All CSV files (including TTL) are written incrementally** (one row per event/trial) with immediate flush to disk, so data is preserved if the task is interrupted.
 

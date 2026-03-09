@@ -191,7 +191,7 @@ Participant RTs, slider values, switch/stay decisions, accuracy, AI responses, a
 
 ### Neural Data Logging (Photodiode & TTL)
 
-Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off only during name entry; thereafter every screen change, stimulus, and response triggers a black flash (TTL) then white. Keyboard mode: 17 ms delay between black and white flips to prevent vsync coalescing; touch screen skips this delay. See `CSV_VARIABLES_DOCUMENTATION.md` for event list and TTL timing.
+Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off only during name entry; thereafter every screen change, stimulus, and response triggers a black flash (TTL) then white. TTL via Cedrus pyxid2 (StimTracker/c-pod/Lumina) or parallel port (Windows/Linux). On macOS, Cedrus required. Cedrus uses ~16 ms pulse (deactivate on next flip); no blocking. Keyboard mode: 17 ms delay between black and white flips to prevent vsync coalescing; touch screen skips this delay. See `CSV_VARIABLES_DOCUMENTATION.md` for event list, env vars, and Blackrock setup.
 
 ---
 

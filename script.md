@@ -277,6 +277,7 @@ Make sure participants get all the way to the end of the task. After the final C
 
 ## Troubleshooting
 
+- **TTL/Blackrock**: Cedrus (StimTracker/c-pod/Lumina) required on macOS. If triggers aren't captured: check Cedrus USB connection, m-pod output mapping (Xidon 2), wiring to Blackrock DIN, and Blackrock digital input channel. TTL errors print to stderr. See `CSV_VARIABLES_DOCUMENTATION.md`.
 - The task should not quit if they accidentally turn the Surface Pro off, but be sure to log this if it happens. 
 - If a participant times out, the task will automatically select a random response and continue.
 - If the participant accidentally minimizes the screen on the Surface Pro, navigate to the PsychoPy tab in the corner and click on the screen where the task is displayed to continue. Make sure to log this if it happens!

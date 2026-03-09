@@ -108,8 +108,9 @@ _ttl_file_path_ref = [None]  # Path to TTL file (for closing and log message)
 # NOTE: Parallel port works on Windows/Linux only. On macOS, Cedrus pyxid2 (USB) is required for Blackrock.
 _ttl_backend = None  # Lazy-init: pyxid device, psychopy parallel, or False
 _ttl_line = int(os.environ.get('CEDRUS_TTL_LINE', '1'))  # Output line for Cedrus (default 1)
-_ttl_pulse_ms = int(os.environ.get('CEDRUS_TTL_PULSE_MS', '50'))  # Pulse duration in ms (default 50 for reliable Blackrock capture)
+_ttl_pulse_ms = int(os.environ.get('CEDRUS_TTL_PULSE_MS', '50'))  # Pulse duration in ms (parallel port only; Cedrus uses ~16ms via deactivate-next-flip)
 _ttl_status_logged = [False]  # One-time diagnostic print
+_ttl_deactivate_next_flip = [False]  # Deactivate TTL line on next flip (avoids blocking sleep in frame loop)
 
 def _log_ttl_status():
     """Print TTL backend status once (for Blackrock/debugging)."""
@@ -140,11 +141,6 @@ def _probe_ttl_at_startup():
         devices = pyxid2.get_xid_devices()
         if devices:
             dev = devices[0]
-            dev.set_pulse_duration(_ttl_pulse_ms)
-            try:
-                dev.reset_timer()  # Ensure device is ready (per Cedrus sample pattern)
-            except Exception:
-                pass
             _ttl_backend = ('cedrus', dev)
     except Exception:
         pass
@@ -172,11 +168,6 @@ def _send_ttl_trigger():
                 devices = pyxid2.get_xid_devices()
                 if devices:
                     dev = devices[0]
-                    dev.set_pulse_duration(_ttl_pulse_ms)
-                    try:
-                        dev.reset_timer()
-                    except Exception:
-                        pass
                     _ttl_backend = ('cedrus', dev)
             except Exception:
                 pass
@@ -195,14 +186,19 @@ def _send_ttl_trigger():
             _log_ttl_status()
         backend_type, backend = _ttl_backend
         if backend_type == 'cedrus':
-            backend.activate_line(lines=_ttl_line)
+            try:
+                backend.activate_line(lines=_ttl_line)
+                _ttl_deactivate_next_flip[0] = True
+            except Exception as e:
+                print(f"TTL send error: {e}", file=sys.stderr)
         elif backend_type == 'parallel':
-            backend.setData(255)
-            core.wait(0.01)
-            backend.setData(0)
+            try:
+                backend.setData(255)
+                _ttl_deactivate_next_flip[0] = True
+            except Exception as e:
+                print(f"TTL send error: {e}", file=sys.stderr)
     except Exception as e:
-        if os.environ.get('TTL_DEBUG'):
-            print(f"TTL send error: {e}", file=sys.stderr)
+        print(f"TTL send error: {e}", file=sys.stderr)
 
 def safe_window_close(window):
     """Safely close a window, checking if it's still valid to prevent NoneType errors"""
@@ -865,6 +861,21 @@ try:
         _blank_rect = visual.Rect(win, width=3, height=3, fillColor='lightgray', lineColor=None, pos=(0, 0), units='height')
         _orig_flip = win.flip
         def _wrapped_flip(*args, **kwargs):
+            # Deactivate TTL line from previous pulse (no sleep, fires on next frame)
+            if _ttl_deactivate_next_flip[0]:
+                _ttl_deactivate_next_flip[0] = False
+                if _ttl_backend is not None and _ttl_backend is not False:
+                    backend_type, backend = _ttl_backend
+                    if backend_type == 'cedrus':
+                        try:
+                            backend.clear_line(lines=_ttl_line)
+                        except Exception as e:
+                            print(f"TTL deactivate error: {e}", file=sys.stderr)
+                    elif backend_type == 'parallel':
+                        try:
+                            backend.setData(0)
+                        except Exception as e:
+                            print(f"TTL deactivate error: {e}", file=sys.stderr)
             did_flash = False
             if PHOTODIODE_ACTIVE and photodiode_patch is not None:
                 # Always start white (baseline). Flash black only when explicitly signaled.
@@ -874,31 +885,29 @@ try:
                     _photodiode_signal_next_flip[0] = False
                     did_flash = True
                 photodiode_patch.draw()
-            # TTL: send synchronously in main thread before flip (callOnFlip can run in graphics thread where Cedrus USB may fail)
+            # TTL + logging: sync before flip.
             if PHOTODIODE_ACTIVE and photodiode_patch is not None and did_flash:
                 ts = time.time()
                 _last_photodiode_ttl_timestamp[0] = ts
+                event_type_to_log = _pending_ttl_event_type[0]
+                _pending_ttl_event_type[0] = None
                 _send_ttl_trigger()
-                def _on_flash():
-                    if _pending_ttl_event_type[0] is not None:
-                        ev = {"timestamp": ts, "event_type": _pending_ttl_event_type[0]}
-                        _ttl_events.append(ev)
-                        _pending_ttl_event_type[0] = None
-                        # Write incrementally to TTL file if open
-                        if _ttl_writer_ref[0] is not None and _ttl_file_ref[0] is not None:
+                if event_type_to_log is not None:
+                    ev = {"timestamp": ts, "event_type": event_type_to_log}
+                    _ttl_events.append(ev)
+                    if _ttl_writer_ref[0] is not None and _ttl_file_ref[0] is not None:
+                        try:
+                            row = dict(ev)
+                            if isinstance(row.get('timestamp'), (int, float)):
+                                row['timestamp'] = f"{row['timestamp']:.9f}"
+                            _ttl_writer_ref[0].writerow(row)
+                            _ttl_file_ref[0].flush()
                             try:
-                                row = dict(ev)
-                                if isinstance(row.get('timestamp'), (int, float)):
-                                    row['timestamp'] = f"{row['timestamp']:.9f}"
-                                _ttl_writer_ref[0].writerow(row)
-                                _ttl_file_ref[0].flush()
-                                try:
-                                    os.fsync(_ttl_file_ref[0].fileno())
-                                except (AttributeError, OSError):
-                                    pass
-                            except Exception as e:
-                                print(f"Warning: Could not write TTL event incrementally: {e}", file=sys.stderr)
-                win.callOnFlip(_on_flash)  # Log timestamp/event_type only; TTL already sent above
+                                os.fsync(_ttl_file_ref[0].fileno())
+                            except (AttributeError, OSError):
+                                pass
+                        except Exception as e:
+                            print(f"Warning: Could not write TTL event: {e}", file=sys.stderr)
             result = _orig_flip(*args, **kwargs)
             return result
         win.flip = _wrapped_flip
