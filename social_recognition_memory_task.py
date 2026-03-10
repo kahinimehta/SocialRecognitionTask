@@ -3843,6 +3843,102 @@ def show_leaderboard(participant_id, total_points):
     # Use wait_for_button with lower button position to avoid overlap with leaderboard text
     wait_for_button(redraw_func=redraw, button_y=-0.4)
 
+
+def _ask_mcq_question(question_text, options, no_photodiode=True):
+    """Display a multiple-choice question and return the selected option. No photodiode/TTL."""
+    mouse = event.Mouse(win=win)
+    mouse.setVisible(True)
+    exit_btn = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+    exit_text = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
+    q_stim = visual.TextStim(win, text=question_text, color='black', height=0.04*0.75*1.35, wrapWidth=1.4, pos=(0, 0.25))
+    n_opts = len(options)
+    btn_width = 0.5
+    btn_height = 0.06*0.75*1.35
+    spacing = 0.12
+    start_y = 0.05 - (n_opts - 1) * spacing / 2
+    buttons = []
+    for i, opt in enumerate(options):
+        y = start_y + i * spacing
+        btn = visual.Rect(win, width=btn_width, height=btn_height, fillColor='lightblue', lineColor='black', pos=(0, y))
+        txt = visual.TextStim(win, text=opt, color='black', height=0.03*0.75*1.35, wrapWidth=1.2, pos=(0, y))
+        buttons.append((btn, txt, opt))
+    mouserec = mouse.getPos()
+    try:
+        mouserec_x, mouserec_y = float(mouserec[0]), float(mouserec[1])
+    except:
+        mouserec_x, mouserec_y = 0.0, 0.0
+    selected = None
+    while selected is None:
+        try:
+            mouseloc = mouse.getPos()
+            try:
+                mx, my = float(mouseloc[0]), float(mouseloc[1])
+            except:
+                mx, my = 0.0, 0.0
+            on_exit = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mx <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                       EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= my <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
+            if on_exit:
+                core.quit()
+            if USE_TOUCH_SCREEN and (mx != mouserec_x or my != mouserec_y):
+                for btn, txt, opt in buttons:
+                    bx, by = float(btn.pos[0]), float(btn.pos[1])
+                    bw, bh = float(btn.width), float(btn.height)
+                    hit_x = max(bw * 0.5, 0.06)
+                    hit_y = max(bh * 0.5, 0.03)
+                    if bx - bw/2 - hit_x <= mx <= bx + bw/2 + hit_x and by - bh/2 - hit_y <= my <= by + bh/2 + hit_y:
+                        selected = opt
+                        break
+                mouserec_x, mouserec_y = mx, my
+            q_stim.draw()
+            for btn, txt, _ in buttons:
+                btn.draw()
+                txt.draw()
+            exit_btn.draw()
+            exit_text.draw()
+            win.flip()
+        except Exception:
+            pass
+        if not USE_TOUCH_SCREEN:
+            keys = event.getKeys(keyList=[str(i) for i in range(1, n_opts + 1)] + ['escape'], timeStamped=False)
+            if keys:
+                if 'escape' in keys:
+                    core.quit()
+                for k in keys:
+                    if k.isdigit():
+                        idx = int(k)
+                        if 1 <= idx <= n_opts:
+                            selected = options[idx - 1]
+                            break
+        safe_wait(0.02)
+    mouse.setVisible(False)
+    event.clearEvents()
+    return selected
+
+
+def show_end_survey():
+    """Show end-of-task survey (MCQ, no photodiode/TTL). Returns dict of responses."""
+    _hint = "\n\n(Press number key to select)" if not USE_TOUCH_SCREEN else ""
+    q1 = "Who did you trust more?" + _hint
+    opts1 = ["Amy", "Ben", "Neither"]
+    q2 = "What did you prioritize?" + _hint
+    opts2 = ["Maximising score", "Social collaboration"]
+    q3 = "Why?" + _hint
+    opts3 = [
+        "I felt the AIs didn't add any more knowledge/help over and above my memory",
+        "I didn't trust the AI over my memory",
+        "I wanted to see if I could do the task by myself",
+        "Other"
+    ]
+    q4 = "Did you use the confidence ratings?" + _hint
+    opts4 = ["Yes", "No"]
+    return {
+        'survey_trusted_more': _ask_mcq_question(q1, opts1),
+        'survey_prioritized': _ask_mcq_question(q2, opts2),
+        'survey_why': _ask_mcq_question(q3, opts3),
+        'survey_used_confidence': _ask_mcq_question(q4, opts4),
+    }
+
+
 def show_trial_outcome(final_answer, correct_answer, switch_decision, used_ai_answer, total_points=0):
     """Show trial outcome with points based on euclidean distance"""
     # Calculate correctness points based on euclidean distance from correct answer
@@ -5700,6 +5796,13 @@ def run_experiment():
     
     # Show leaderboard before final message
     show_leaderboard(participant_id, total_experiment_points)
+    
+    # End-of-task survey (no photodiode/TTL)
+    survey_results = show_end_survey()
+    if not is_test_participant(participant_id) and trial_file and os.path.exists(trial_file):
+        survey_row = {'phase': 'survey', 'block': '', 'trial': ''}
+        survey_row.update(survey_results)
+        save_data_incremental([], [survey_row], participant_id, study_file=study_file, trial_file=trial_file)
     
     # Final message with total time
     show_instructions(

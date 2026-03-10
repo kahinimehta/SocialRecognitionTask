@@ -253,7 +253,7 @@ Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off
 - **After practice**: Transition message explaining the real work begins with Amy organizing photographs
 - **Before each block**: "Ready to start sorting?" screen showing collections remaining count with BEGIN button
 - **Between blocks**: Partner switch messages when partner changes (Amy ↔ Ben), or brief break message
-- **Final screen**: Shows cumulative curator scoring, leaderboard (without scores), total task time, and thank you message
+- **Final screen**: Shows cumulative curator scoring, leaderboard (without scores), end-of-task survey (MCQ: trust, prioritization, why, confidence ratings use), total task time, and thank you message
 
 ---
 

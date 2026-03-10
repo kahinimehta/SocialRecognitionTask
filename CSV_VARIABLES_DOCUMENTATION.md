@@ -112,6 +112,7 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
 - Input method selection screen (`temp_win`)
 - Participant name entry screen (photodiode enabled immediately after name is submitted)
 - Any screen before the main experiment window is active
+- End-of-task survey (after leaderboard, before final message): MCQ questions have no photodiode or TTL triggers
 
 ---
 
@@ -139,7 +140,7 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
 | File | Variables (in column order) |
 |------|----------------------------|
 | **recognition_study** | `block`, `phase`, `trial`, `image_path`, `study_fixation_onset_trigger`, `study_fixation_offset_trigger`, `fixation_duration`, `study_image_onset_trigger`, `study_image_offset_trigger`, `image_duration` |
-| **recognition_trials** | `ai_correct`, `ai_decision_time`, `ai_final_slider_display_time`, `ai_reliability`, `ai_rt`, `ai_slider_display_time`, `ai_slider_value`, `block`, `block_duration_minutes`, `block_duration_seconds`, `block_end_time`, `block_start_time`, `euclidean_ai_to_truth`, `euclidean_participant_to_ai`, `euclidean_participant_to_truth`, `final_answer`, `ground_truth`, `image_path`, `is_studied`, `outcome_trigger`, `participant_accuracy`, `participant_commit_time`, `participant_commit_trigger`, `participant_first`, `participant_rt`, `participant_slider_click_times`, `participant_slider_decision_onset_time`, `participant_slider_stop_time`, `participant_slider_timeout`, `participant_slider_value`, `partner_rating_complete_trigger`, `partner_rating_onset_trigger`, `partner_slider_settled_trigger`, `phase`, `points_earned`, `recognition_fixation_offset_trigger`, `recognition_fixation_onset_trigger`, `recognition_image_offset_trigger`, `recognition_image_onset_trigger`, `switch_commit_time`, `switch_rt`, `switch_stay_decision`, `switch_stay_response_trigger`, `switch_stay_trigger`, `switch_timeout`, `trial`, `trial_type`, `used_ai_answer` |
+| **recognition_trials** | `ai_correct`, `ai_decision_time`, `ai_final_slider_display_time`, `ai_reliability`, `ai_rt`, `ai_slider_display_time`, `ai_slider_value`, `block`, `block_duration_minutes`, `block_duration_seconds`, `block_end_time`, `block_start_time`, `euclidean_ai_to_truth`, `euclidean_participant_to_ai`, `euclidean_participant_to_truth`, `final_answer`, `ground_truth`, `image_path`, `is_studied`, `outcome_trigger`, `participant_accuracy`, `participant_commit_time`, `participant_commit_trigger`, `participant_first`, `participant_rt`, `participant_slider_click_times`, `participant_slider_decision_onset_time`, `participant_slider_stop_time`, `participant_slider_timeout`, `participant_slider_value`, `partner_rating_complete_trigger`, `partner_rating_onset_trigger`, `partner_slider_settled_trigger`, `phase`, `points_earned`, `recognition_fixation_offset_trigger`, `recognition_fixation_onset_trigger`, `recognition_image_offset_trigger`, `recognition_image_onset_trigger`, `survey_prioritized`, `survey_trusted_more`, `survey_used_confidence`, `survey_why`, `switch_commit_time`, `switch_rt`, `switch_stay_decision`, `switch_stay_response_trigger`, `switch_stay_trigger`, `switch_timeout`, `trial`, `trial_type`, `used_ai_answer` |
 | **recognition_summary** | `participant_id`, `experiment_start_time`, `experiment_end_time`, `total_task_time_seconds`, `total_task_time_minutes` |
 | **recognition_ttl_events** | `timestamp`, `event_type` |
 | **localizer** | `participant_id`, `trial`, `stimulus_number`, `object_name`, `category`, `stimulus_type`, `is_lure`, `image_path`, `presentation_time`, `localizer_fixation_onset_trigger`, `localizer_fixation_offset_trigger`, `fixation_duration`, `localizer_image_onset_trigger`, `localizer_image_offset_trigger`, `is_question_trial`, `question_object`, `question_text`, `question_trigger`, `question_answer_trigger`, `answer`, `correct_answer`, `correct`, `timed_out`, `response_time`, `answer_click_time` |
@@ -532,6 +533,36 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
 - **Type**: Float
 - **Description**: Points this trial; formula `1.0 - euclidean_distance(final_answer, ground_truth)`; range 0.0–1.0. Logged at full precision; display rounded to 1 decimal.
 - **Example**: `0.6857638888888889`, `0.0`, `1.0`
+
+---
+
+## End-of-Task Survey Variables (recognition_trials)
+
+After the leaderboard and before the final message, participants complete a short MCQ survey (no photodiode/TTL). Responses are logged as a single row in `recognition_trials_*.csv` with `phase` = `"survey"`. Trial columns (e.g., `block`, `trial`, `image_path`) are empty for this row.
+
+### `survey_trusted_more`
+- **Type**: String
+- **Description**: Response to "Who did you trust more?"
+- **Possible values**: `"Amy"`, `"Ben"`, `"Neither"`
+- **Example**: `"Amy"`, `"Neither"`
+
+### `survey_prioritized`
+- **Type**: String
+- **Description**: Response to "What did you prioritize?"
+- **Possible values**: `"Maximising score"`, `"Social collaboration"`
+- **Example**: `"Maximising score"`
+
+### `survey_why`
+- **Type**: String
+- **Description**: Response to "Why?"
+- **Possible values**: `"I felt the AIs didn't add any more knowledge/help over and above my memory"`, `"I didn't trust the AI over my memory"`, `"I wanted to see if I could do the task by myself"`, `"Other"`
+- **Example**: `"I didn't trust the AI over my memory"`
+
+### `survey_used_confidence`
+- **Type**: String
+- **Description**: Response to "Did you use the confidence ratings?"
+- **Possible values**: `"Yes"`, `"No"`
+- **Example**: `"Yes"`
 
 ---
 
