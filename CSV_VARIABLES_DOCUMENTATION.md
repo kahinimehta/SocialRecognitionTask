@@ -564,6 +564,12 @@ After the leaderboard and before the final message, participants complete a shor
 - **Possible values**: `"Yes"`, `"No"`
 - **Example**: `"Yes"`
 
+**Example survey row** (abbreviated; trial columns are empty for this row):
+
+| phase | block | trial | survey_trusted_more | survey_prioritized | survey_why | survey_used_confidence |
+|-------|-------|-------|---------------------|-------------------|-----------|------------------------|
+| survey | | | Amy | Maximising score | I didn't trust the AI over my memory | Yes |
+
 ---
 
 ## Summary CSV Variables

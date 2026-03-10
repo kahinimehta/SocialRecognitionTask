@@ -263,7 +263,7 @@ Sometimes she goes first, sometimes you do."
 ---
 
 ***Important:***
-Make sure participants get all the way to the end of the task. After the final CONTINUE on the last screen, the display closes automatically. If it does not close, the data may not get pushed.
+Make sure participants get all the way to the end of the task. **Make sure they complete the survey after they see the leaderboard and before quitting the task.** After the final CONTINUE on the last screen, the display closes automatically. If it does not close, the data may not get pushed.
 
 ## Notes for Experimenters
 

@@ -245,6 +245,16 @@ Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off
 - Participant shown as "[ID] (you)" at their rank
 - **No scores displayed** - only rank and participant names
 
+### End-of-Task Survey
+
+- **Displayed after the leaderboard, before the final thank-you message**
+- Four multiple-choice questions (no photodiode or TTL triggers):
+  1. **Who did you trust more?** — Amy, Ben, Neither
+  2. **What did you prioritize?** — Maximising score, Social collaboration
+  3. **Why?** — I felt the AIs didn't add any more knowledge/help over and above my memory; I didn't trust the AI over my memory; I wanted to see if I could do the task by myself; Other
+  4. **Did you use the confidence ratings?** — Yes, No
+- Responses are logged as a single row in `recognition_trials_*.csv` with `phase` = `"survey"` (see `CSV_VARIABLES_DOCUMENTATION.md`)
+
 ### Transition Screens
 
 - **Task flow**: Participant enters name first (photodiode off); then BEGIN screen and all subsequent screens have photodiode/TTL for every change.
