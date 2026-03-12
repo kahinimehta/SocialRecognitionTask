@@ -2082,7 +2082,7 @@ def load_image_stimulus(image_path, maintain_aspect_ratio=False):
     
     Args:
         image_path: Path to image file
-        maintain_aspect_ratio: If True, maintain aspect ratio (for partner images like Amy.png, Ben.png)
+        maintain_aspect_ratio: If True, maintain aspect ratio (for partner images like Amy.png, Jen.png)
     """
     if os.path.exists(image_path):
         if maintain_aspect_ratio:
@@ -2437,7 +2437,7 @@ class AICollaborator:
     def __init__(self, accuracy_rate=0.5, num_trials=20):
         """
         AI collaborator for recognition memory task
-        accuracy_rate: Target rate (0.5 practice, 0.75 Amy, 0.35 Ben). With num_trials=10,
+        accuracy_rate: Target rate (0.5 practice, 0.75 Amy, 0.35 Jen). With num_trials=10,
             int(round(rate*10)) yields 8 correct (80%) or 4 correct (40%) achieved.
         num_trials: Number of trials in the block (default 20)
         """
@@ -2467,7 +2467,7 @@ class AICollaborator:
     def generate_confidence(self, is_studied, ground_truth_correct):
         """Generate AI confidence.
         Amy (reliable, 0.75): When correct, 0.75–1.0 (on correct side). When wrong, 0.5–0.75 or 0.25–0.5 (depending on which wrong side).
-        Ben (unreliable, 0.35): Categorical accuracy 35% (from correctness_sequence). Confidence is random *within* the chosen category
+        Jen (unreliable, 0.35): Categorical accuracy 35% (from correctness_sequence). Confidence is random *within* the chosen category
         (0–0.25 for OLD, 0.75–1.0 for NEW)—uninformative about correctness.
         """
         if self.accuracy_rate >= 0.5:
@@ -2487,7 +2487,7 @@ class AICollaborator:
                     # Correct was NEW, AI said OLD: confidence 0.25–0.5
                     confidence = np.random.uniform(0.25, 0.5)
         else:
-            # Ben (unreliable): categorical accuracy from correctness_sequence (35%). Confidence random *within* chosen category.
+            # Jen (unreliable): categorical accuracy from correctness_sequence (35%). Confidence random *within* chosen category.
             if ground_truth_correct:
                 # Correct: random within correct side
                 if is_studied:
@@ -2497,9 +2497,9 @@ class AICollaborator:
             else:
                 # Wrong: random within wrong side
                 if is_studied:
-                    confidence = np.random.uniform(0.75, 1.0)   # Correct was OLD, Ben says NEW
+                    confidence = np.random.uniform(0.75, 1.0)   # Correct was OLD, Jen says NEW
                 else:
-                    confidence = np.random.uniform(0.0, 0.25)   # Correct was NEW, Ben says OLD
+                    confidence = np.random.uniform(0.0, 0.25)   # Correct was NEW, Jen says OLD
         
         return confidence
     
@@ -3050,7 +3050,7 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     a_x_pos = -0.4*0.6 + (partner_value * 0.8*0.6)
     a_dot = visual.Circle(win, radius=0.02, fillColor='black', lineColor='black', pos=(a_x_pos, slider_y_pos))
     
-    # Labels below dots, vertical (90°), colored: "you" (green) and partner name (Carly in practice, Amy/Ben in experimental) (blue)
+    # Labels below dots, vertical (90°), colored: "you" (green) and partner name (Carly in practice, Amy/Jen in experimental) (blue)
     # Actual trials: labels slightly higher so they stay visible and above dock
     is_actual_scale = (slider_y_pos <= SLIDER_Y_POS_ACTUAL + 0.005)
     label_y = slider_y_pos - (0.05 if is_actual_scale else 0.06)  # Below dots, not hidden
@@ -3065,7 +3065,7 @@ def show_both_responses(participant_value, partner_value, participant_first, par
     
     a_label_text = visual.TextStim(
         win,
-        text=partner_name,  # "Carly" (practice), "Amy" or "Ben" (experimental)
+        text=partner_name,  # "Carly" (practice), "Amy" or "Jen" (experimental)
         color='blue',
         height=0.032*0.75*1.35,
         pos=(a_x_pos, label_y),
@@ -3141,7 +3141,7 @@ def get_switch_stay_decision(image_stim=None, participant_value=None, partner_va
     if partner_value is not None and a_x_pos is not None:
         a_label_text = visual.TextStim(
             win,
-            text=partner_name,  # "Carly" (practice), "Amy" or "Ben" (experimental)
+            text=partner_name,  # "Carly" (practice), "Amy" or "Jen" (experimental)
             color='blue',
             height=0.032*0.75*1.35,
             pos=(a_x_pos, label_y),
@@ -3884,8 +3884,8 @@ def run_block(block_num, studied_images, block_start_participant_first, ai_colla
     # Phase 1: Study (writes incrementally when participant_id and files provided)
     study_data = run_study_phase(studied_images, block_num, participant_id=participant_id, study_file=study_file, trial_file=trial_file)
     
-    # Determine partner name based on block accuracy (Amy = reliable, Ben = unreliable)
-    partner_name = "Amy" if ai_collaborator.accuracy_rate >= 0.5 else "Ben"
+    # Determine partner name based on block accuracy (Amy = reliable, Jen = unreliable)
+    partner_name = "Amy" if ai_collaborator.accuracy_rate >= 0.5 else "Jen"
     
     # Transition screen: switching to recognition phase
     show_instructions(
@@ -5178,22 +5178,22 @@ def run_experiment():
     try:
         # Block structure:
         # Blocks 1-3: Amy (Reliable 75%)
-        # Blocks 4-5: Ben (Unreliable 35%)
+        # Blocks 4-5: Jen (Unreliable 35%)
         # Blocks 6-7: Amy (Reliable 75%)
-        # Blocks 8-10: Ben (Unreliable 35%)
+        # Blocks 8-10: Jen (Unreliable 35%)
         # Turn order is randomized within each block: AI goes first on a random 5 out of 10 trials
         # The 5 trials where AI goes first are randomly selected for each block
         block_conditions = [
             (True, 0.75),   # Block 1: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
             (True, 0.75),   # Block 2: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
             (True, 0.75),   # Block 3: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
-            (True, 0.35),   # Block 4: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
-            (True, 0.35),   # Block 5: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.35),   # Block 4: Unreliable (Jen) - turn order randomized (AI first on 5 random trials)
+            (True, 0.35),   # Block 5: Unreliable (Jen) - turn order randomized (AI first on 5 random trials)
             (True, 0.75),   # Block 6: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
             (True, 0.75),   # Block 7: Reliable (Amy) - turn order randomized (AI first on 5 random trials)
-            (True, 0.35),   # Block 8: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
-            (True, 0.35),   # Block 9: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
-            (True, 0.35),   # Block 10: Unreliable (Ben) - turn order randomized (AI first on 5 random trials)
+            (True, 0.35),   # Block 8: Unreliable (Jen) - turn order randomized (AI first on 5 random trials)
+            (True, 0.35),   # Block 9: Unreliable (Jen) - turn order randomized (AI first on 5 random trials)
+            (True, 0.35),   # Block 10: Unreliable (Jen) - turn order randomized (AI first on 5 random trials)
         ]
         
         # Assign stimuli to blocks: each block has 1 item from each category (10 stimuli), no repeats
@@ -5215,17 +5215,17 @@ def run_experiment():
             # Show partner switch message if partner changed
             if previous_partner_reliable is not None:
                 if previous_partner_reliable and not current_partner_reliable:
-                    # Switched from Amy (reliable) to Ben (unreliable)
+                    # Switched from Amy (reliable) to Jen (unreliable)
                     # Partner intro image position: below text, above continue button (avoid overlap)
-                    BEN_INTRO_IMAGE_Y = -0.2
+                    JEN_INTRO_IMAGE_Y = -0.2
                     # Check if this is the first switch (Block 4) or second switch (Block 8)
                     if block_num == 4:
-                        # First switch to Ben - show long message
+                        # First switch to Jen - show long message
                         switch_text = visual.TextStim(
                             win,
                             text="A quick update.\n\n"
                                  "Amy has stepped away to prepare for her exhibition.\n\n"
-                                 "While she's gone, you'll be working with Ben—another assistant in the studio.\n\n"
+                                 "While she's gone, you'll be working with Jen—another assistant in the studio.\n\n"
                                  "Click CONTINUE to start sorting!",
                             color='black',
                             height=0.04*0.75*1.35,
@@ -5233,22 +5233,22 @@ def run_experiment():
                             wrapWidth=1.2
                         )
                         
-                        # Load and display Ben's picture (maintain aspect ratio)
-                        ben_path = os.path.join(STIMULI_DIR, "Ben.png")
-                        if os.path.exists(ben_path):
-                            ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
-                            if hasattr(ben_image, 'setPos'):
-                                ben_image.setPos((0, BEN_INTRO_IMAGE_Y))
-                            elif hasattr(ben_image, 'pos'):
-                                ben_image.pos = (0, BEN_INTRO_IMAGE_Y)
+                        # Load and display Jen's picture (maintain aspect ratio)
+                        jen_path = os.path.join(STIMULI_DIR, "Jen.png")
+                        if os.path.exists(jen_path):
+                            jen_image = load_image_stimulus(jen_path, maintain_aspect_ratio=True)
+                            if hasattr(jen_image, 'setPos'):
+                                jen_image.setPos((0, JEN_INTRO_IMAGE_Y))
+                            elif hasattr(jen_image, 'pos'):
+                                jen_image.pos = (0, JEN_INTRO_IMAGE_Y)
                         else:
-                            ben_image = None
-                            print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
+                            jen_image = None
+                            print(f"Warning: Jen.png not found at {jen_path}", file=sys.stderr)
                         
-                        ben_label = None  # No label on Ben intro screen
+                        jen_label = None  # No label on Jen intro screen
                         
                         # Create custom button for this screen (positioned bottom right to avoid icon overlap)
-                        continue_button_ben = visual.Rect(
+                        continue_button_jen = visual.Rect(
                             win,
                             width=0.3*0.75,
                             height=0.1*0.75*1.35,
@@ -5256,7 +5256,7 @@ def run_experiment():
                             lineColor='black',
                             pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
-                        continue_text_ben = visual.TextStim(
+                        continue_text_jen = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
@@ -5264,47 +5264,47 @@ def run_experiment():
                             pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
                         
-                        def redraw_ben():
+                        def redraw_jen():
                             switch_text.draw()  # Draw text first
-                            if ben_image:
-                                ben_image.draw()
-                            if ben_label is not None:
-                                ben_label.draw()
-                            continue_button_ben.draw()
-                            continue_text_ben.draw()
+                            if jen_image:
+                                jen_image.draw()
+                            if jen_label is not None:
+                                jen_label.draw()
+                            continue_button_jen.draw()
+                            continue_text_jen.draw()
                         
                         button_x, button_y = 0.4, -0.3  # Updated to match button position
-                        continue_button = continue_button_ben
-                        continue_text = continue_text_ben
+                        continue_button = continue_button_jen
+                        continue_text = continue_text_jen
                         
                     elif block_num == 8:
-                        # Second switch to Ben - show short message
+                        # Second switch to Jen - show short message
                         switch_text = visual.TextStim(
                             win,
-                            text="Amy has to step away again! You will work with Ben again for the last collections.",
+                            text="Amy has to step away again! You will work with Jen again for the last collections.",
                             color='black',
                             height=0.04*0.75*1.35,  # Reduced to ensure buttons are visually larger
                             pos=(0, 0.25),  # Moved down for better spacing with image
                             wrapWidth=1.2
                         )
                         
-                        # Load and display Ben's picture (same low position as first intro so never over text)
-                        ben_path = os.path.join(STIMULI_DIR, "Ben.png")
-                        if os.path.exists(ben_path):
-                            ben_image = load_image_stimulus(ben_path, maintain_aspect_ratio=True)
-                            if hasattr(ben_image, 'setPos'):
-                                ben_image.setPos((0, BEN_INTRO_IMAGE_Y))
-                            elif hasattr(ben_image, 'pos'):
-                                ben_image.pos = (0, BEN_INTRO_IMAGE_Y)
+                        # Load and display Jen's picture (same low position as first intro so never over text)
+                        jen_path = os.path.join(STIMULI_DIR, "Jen.png")
+                        if os.path.exists(jen_path):
+                            jen_image = load_image_stimulus(jen_path, maintain_aspect_ratio=True)
+                            if hasattr(jen_image, 'setPos'):
+                                jen_image.setPos((0, JEN_INTRO_IMAGE_Y))
+                            elif hasattr(jen_image, 'pos'):
+                                jen_image.pos = (0, JEN_INTRO_IMAGE_Y)
                         else:
-                            ben_image = None
-                            print(f"Warning: Ben.png not found at {ben_path}", file=sys.stderr)
+                            jen_image = None
+                            print(f"Warning: Jen.png not found at {jen_path}", file=sys.stderr)
                         
-                        # No label needed for second time showing Ben
-                        ben_label = None
+                        # No label needed for second time showing Jen
+                        jen_label = None
                         
                         # Create custom button for this screen (positioned bottom right to avoid icon overlap)
-                        continue_button_ben_continue = visual.Rect(
+                        continue_button_jen_continue = visual.Rect(
                             win,
                             width=0.3*0.75,
                             height=0.1*0.75*1.35,
@@ -5312,7 +5312,7 @@ def run_experiment():
                             lineColor='black',
                             pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
-                        continue_text_ben_continue = visual.TextStim(
+                        continue_text_jen_continue = visual.TextStim(
                             win,
                             text="CONTINUE",
                             color='black',
@@ -5320,65 +5320,65 @@ def run_experiment():
                             pos=(0.4, -0.3)  # Bottom right, moved up to avoid dock
                         )
                         
-                        def redraw_ben():
+                        def redraw_jen():
                             switch_text.draw()  # Draw text first
-                            if ben_image:
-                                ben_image.draw()
-                            continue_button_ben_continue.draw()
-                            continue_text_ben_continue.draw()
+                            if jen_image:
+                                jen_image.draw()
+                            continue_button_jen_continue.draw()
+                            continue_text_jen_continue.draw()
                         
                         button_x, button_y = 0.4, -0.3
-                        continue_button = continue_button_ben_continue
-                        continue_text = continue_text_ben_continue
+                        continue_button = continue_button_jen_continue
+                        continue_text = continue_text_jen_continue
                     else:
                         # Should not happen, but skip if it does
                         switch_text = None
-                        ben_image = None
-                        ben_label = None
+                        jen_image = None
+                        jen_label = None
                         continue_button = None
                         continue_text = None
                         button_x, button_y = 0, 0
                     
-                    # Only show Ben screen if we have valid text (Block 4 or Block 8)
+                    # Only show Jen screen if we have valid text (Block 4 or Block 8)
                     if switch_text is not None:
-                        exit_btn_ben = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
-                        exit_text_ben = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
+                        exit_btn_jen = visual.Rect(win, width=0.12, height=0.04, fillColor=[0.95, 0.85, 0.85], lineColor='darkred', pos=EXIT_BTN_POS, lineWidth=1, units='height')
+                        exit_text_jen = visual.TextStim(win, text="Exit", color='darkred', height=0.025, pos=EXIT_BTN_POS, units='height')
                     
                         # Custom wait for button with custom button position
                         mouse = event.Mouse(win=win)
                         mouse.setVisible(True)
                         
-                        def draw_ben_content():
-                            redraw_ben()
-                            exit_btn_ben.draw()
-                            exit_text_ben.draw()
+                        def draw_jen_content():
+                            redraw_jen()
+                            exit_btn_jen.draw()
+                            exit_text_jen.draw()
                         
                         def draw_screen():
-                            draw_ben_content()
+                            draw_jen_content()
                             win.flip()
                         
-                        _do_photodiode_flash(draw_ben_content, event_type="instruction_onset")
+                        _do_photodiode_flash(draw_jen_content, event_type="instruction_onset")
                         
                         clicked = False
                         
                         if USE_TOUCH_SCREEN:
                             # Use keyboard method (position-change detection) for touch screens
-                            mouserec_ben = mouse.getPos()
+                            mouserec_jen = mouse.getPos()
                             try:
-                                mouserec_x_ben, mouserec_y_ben = float(mouserec_ben[0]), float(mouserec_ben[1])
+                                mouserec_x_jen, mouserec_y_jen = float(mouserec_jen[0]), float(mouserec_jen[1])
                             except:
-                                mouserec_x_ben, mouserec_y_ben = 0.0, 0.0
+                                mouserec_x_jen, mouserec_y_jen = 0.0, 0.0
                             
                             while not clicked:
                                 try:
-                                    mouseloc_ben = mouse.getPos()
+                                    mouseloc_jen = mouse.getPos()
                                     try:
-                                        mouseloc_x_ben, mouseloc_y_ben = float(mouseloc_ben[0]), float(mouseloc_ben[1])
+                                        mouseloc_x_jen, mouseloc_y_jen = float(mouseloc_jen[0]), float(mouseloc_jen[1])
                                     except:
-                                        mouseloc_x_ben, mouseloc_y_ben = 0.0, 0.0
+                                        mouseloc_x_jen, mouseloc_y_jen = 0.0, 0.0
                                     
                                     # Check if mouse position has changed (touch moved) - keyboard method
-                                    if mouseloc_x_ben == mouserec_x_ben and mouseloc_y_ben == mouserec_y_ben:
+                                    if mouseloc_x_jen == mouserec_x_jen and mouseloc_y_jen == mouserec_y_jen:
                                         # Position hasn't changed, just redraw
                                         draw_screen()
                                     else:
@@ -5387,25 +5387,25 @@ def run_experiment():
                                         hit_margin_x = max(button_width * 0.5, 0.08)
                                         hit_margin_y = max(button_height * 0.5, 0.04)
                                         
-                                        on_exit_ben = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x_ben <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
-                                                      EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y_ben <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
-                                        on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x_ben <= button_x + button_width/2 + hit_margin_x and
-                                                    button_y - button_height/2 - hit_margin_y <= mouseloc_y_ben <= button_y + button_height/2 + hit_margin_y)
+                                        on_exit_jen = (EXIT_BTN_POS[0] - 0.06 - EXIT_HIT_MARGIN <= mouseloc_x_jen <= EXIT_BTN_POS[0] + 0.06 + EXIT_HIT_MARGIN and
+                                                      EXIT_BTN_POS[1] - 0.02 - EXIT_HIT_MARGIN <= mouseloc_y_jen <= EXIT_BTN_POS[1] + 0.02 + EXIT_HIT_MARGIN)
+                                        on_button = (button_x - button_width/2 - hit_margin_x <= mouseloc_x_jen <= button_x + button_width/2 + hit_margin_x and
+                                                    button_y - button_height/2 - hit_margin_y <= mouseloc_y_jen <= button_y + button_height/2 + hit_margin_y)
                                         
-                                        if on_exit_ben:
+                                        if on_exit_jen:
                                             core.quit()
                                         elif on_button:
-                                            _do_photodiode_flash(draw_ben_content, event_type="instruction_continue")
+                                            _do_photodiode_flash(draw_jen_content, event_type="instruction_continue")
                                             core.wait(0.2)
                                             clicked = True
                                             break
                                         
                                         # Update recorded position
-                                        mouserec_ben = mouse.getPos()
+                                        mouserec_jen = mouse.getPos()
                                         try:
-                                            mouserec_x_ben, mouserec_y_ben = float(mouserec_ben[0]), float(mouserec_ben[1])
+                                            mouserec_x_jen, mouserec_y_jen = float(mouserec_jen[0]), float(mouserec_jen[1])
                                         except:
-                                            mouserec_x_ben, mouserec_y_ben = mouseloc_x_ben, mouseloc_y_ben
+                                            mouserec_x_jen, mouserec_y_jen = mouseloc_x_jen, mouseloc_y_jen
                                     
                                     # Redraw every frame
                                     draw_screen()
@@ -5416,7 +5416,7 @@ def run_experiment():
                                     keys = event.getKeys(keyList=['space', 'escape'], timeStamped=False)
                                     if keys:
                                         if 'space' in keys:
-                                            _do_photodiode_flash(draw_ben_content, event_type="instruction_continue")
+                                            _do_photodiode_flash(draw_jen_content, event_type="instruction_continue")
                                             clicked = True
                                             break
                                         elif 'escape' in keys:
@@ -5433,7 +5433,7 @@ def run_experiment():
                                     keys = event.getKeys(keyList=['return', 'escape'], timeStamped=False)
                                     if keys:
                                         if 'return' in keys:
-                                            _do_photodiode_flash(draw_ben_content, event_type="instruction_continue")
+                                            _do_photodiode_flash(draw_jen_content, event_type="instruction_continue")
                                             clicked = True
                                             break
                                         elif 'escape' in keys:
@@ -5446,7 +5446,7 @@ def run_experiment():
                         event.clearEvents()
                     
                 elif not previous_partner_reliable and current_partner_reliable:
-                    # Switched from Ben (unreliable) to Amy (reliable)
+                    # Switched from Jen (unreliable) to Amy (reliable)
                     # Check if this is Block 6 (switching back to Amy)
                     if block_num == 6:
                         switch_text = visual.TextStim(
@@ -5599,7 +5599,7 @@ def run_experiment():
                         switch_text = None
                     
                 elif not previous_partner_reliable and not current_partner_reliable:
-                    # Still Ben, but switching blocks (e.g., Block 3 to Block 4, or Block 9 to Block 10)
+                    # Still Jen, but switching blocks (e.g., Block 3 to Block 4, or Block 9 to Block 10)
                     # No message needed - just continue to next block
                     switch_text = None
                 elif previous_partner_reliable and current_partner_reliable:
@@ -5616,7 +5616,7 @@ def run_experiment():
             # Create AI collaborator with block-specific accuracy
             block_ai_collaborator = AICollaborator(accuracy_rate=block_accuracy, num_trials=10)  # Experimental blocks have 10 trials
             reliability = "Reliable" if block_accuracy == 0.75 else "Unreliable"
-            partner_name = "Amy" if block_accuracy == 0.75 else "Ben"
+            partner_name = "Amy" if block_accuracy == 0.75 else "Jen"
             print(f"Block {block_num}: Partner {partner_name} ({reliability}, accuracy = {block_accuracy*100:.0f}%), randomized turn order (AI first on 5 random trials)")
             print(f"  Stimuli: {selected_indices}")
             

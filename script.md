@@ -171,8 +171,8 @@ For now, simply memorize the shapes you're about to see. Continue when you're re
 - Image
 - Slider with black dots marking each rating position:
   - Participant's dot with "you" label (green text) below the scale
-  - Partner's dot with partner name label (blue text): "Carly" during practice, "Amy" or "Ben" during experimental blocks
-- Text: "Do you want to STAY with your answer or SWITCH to [partner's] answer?" (Carly during practice, Amy or Ben during experimental blocks). Keyboard adds: "(Press LEFT for STAY, RIGHT for SWITCH)"
+  - Partner's dot with partner name label (blue text): "Carly" during practice, "Amy" or "Jen" during experimental blocks
+- Text: "Do you want to STAY with your answer or SWITCH to [partner's] answer?" (Carly during practice, Amy or Jen during experimental blocks). Keyboard adds: "(Press LEFT for STAY, RIGHT for SWITCH)"
 - STAY button (light blue)
 - SWITCH button (light coral)
 
@@ -269,8 +269,8 @@ Make sure participants get all the way to the end of the task. After the final C
 
 - **Timing**: 7 s per slider and switch/stay
 - **Controls**: Touch — tap once on slider, SUBMIT. Keyboard — LEFT/RIGHT repeatedly (holding won't work), Return. Switch/stay: LEFT = STAY, RIGHT = SWITCH
-- **Blocks**: 1–3, 6–7 = Amy; 4–5, 8–10 = Ben. Partner switches before blocks 4, 6, 8
-- **Practice**: 3 shapes, Carly only. Real task: Amy/Ben, THINGS photos. Experimental trials show "Image X of 10" above the slider.
+- **Blocks**: 1–3, 6–7 = Amy; 4–5, 8–10 = Jen. Partner switches before blocks 4, 6, 8
+- **Practice**: 3 shapes, Carly only. Real task: Amy/Jen, THINGS photos. Experimental trials show "Image X of 10" above the slider.
 - **Localizer** (if run): 200 images, 20 questions (trials 10, 20, …). "Enter participant ID". LEFT = YES, RIGHT = NO. 10 s timeout. See `TASK_DESCRIPTION.md`.
 
 ---

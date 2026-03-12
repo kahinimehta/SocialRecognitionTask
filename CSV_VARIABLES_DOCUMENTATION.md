@@ -365,7 +365,7 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
   - Values closer to 1.0 = NEW (lure)
   - `None` for practice trial 1 (no AI response)
   - **Amy (reliable)**: Confidence correlated with correctness. When correct—0.75–1.0 on correct side (OLD: 0–0.25, NEW: 0.75–1.0); when wrong—0.5–0.75 or 0.25–0.5 depending on wrong side. Uniform random within ranges.
-  - **Ben (unreliable)**: Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—uninformative about correctness
+  - **Jen (unreliable)**: Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—uninformative about correctness
 - **Example**: `0.6569413750565093`, `0.3563797294608513`, `None`
 
 ### `ai_rt`
@@ -407,7 +407,7 @@ The TTL events files list every photodiode/TTL trigger in chronological order. *
 - **Type**: Float (0.0 to 1.0)
 - **Description**: Block-level target AI accuracy rate (same for all trials within the block). This is the AI partner's configured reliability, not trial-varying.
   - `0.75` = Amy (reliable), 8/10 correct
-  - `0.35` = Ben (unreliable), 4/10 correct
+  - `0.35` = Jen (unreliable), 4/10 correct
   - `0.5` = Practice (Carly)
 - **Note**: Block assignment in `TASK_DESCRIPTION.md`. `ai_correct` per trial reflects the pre-generated sequence.
 - **Example**: `0.75`, `0.35`, `0.5`

@@ -119,8 +119,8 @@ Each of the 10 trials follows this structure:
 - **AI Response Time (RT)**: Drawn from a log-normal distribution (jittered)
 - **AI Confidence**:
   - **Amy (reliable blocks)**: Confidence correlated with correctness. When correct, high confidence—0.75–1.0 on the correct side (uniform random). When wrong, moderate confidence—0.5–0.75 if she said NEW (but correct was OLD), or 0.25–0.5 if she said OLD (but correct was NEW). Confidence is informative about accuracy.
-  - **Ben (unreliable blocks)**: Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—confidence is uninformative about correctness
-- **AI Accuracy**: Block-level target rate (0.75 Amy, 0.35 Ben, 0.5 practice). With 10 trials, achieved rates are 80% (8/10) and 40% (4/10) due to rounding. Per-trial correctness is pre-generated per block; see AI Accuracy Manipulation below.
+  - **Jen (unreliable blocks)**: Random within chosen category (0–0.25 for OLD, 0.75–1.0 for NEW)—confidence is uninformative about correctness
+- **AI Accuracy**: Block-level target rate (0.75 Amy, 0.35 Jen, 0.5 practice). With 10 trials, achieved rates are 80% (8/10) and 40% (4/10) due to rounding. Per-trial correctness is pre-generated per block; see AI Accuracy Manipulation below.
 - Animation shows AI's slider clicking (handle appears at chosen position) and clicking submit
 
 ### Turn-Taking Manipulation
@@ -133,10 +133,10 @@ Each of the 10 trials follows this structure:
 ### AI Accuracy Manipulation
 
 - **Reliable blocks**: Target 75% (Blocks 1-3 and 6-7, Amy)—**80% achieved** (8 correct per 10-trial block, from `round(0.75×10)`)
-- **Unreliable blocks**: Target 35% (Blocks 4-5 and 8-10, Ben)—**40% achieved** (4 correct per 10-trial block, from `round(0.35×10)`)
+- **Unreliable blocks**: Target 35% (Blocks 4-5 and 8-10, Jen)—**40% achieved** (4 correct per 10-trial block, from `round(0.35×10)`)
 - **Block structure**:
   - Blocks 1-3, 6-7: Reliable (Amy), 80% achieved
-  - Blocks 4-5, 8-10: Unreliable (Ben), 40% achieved
+  - Blocks 4-5, 8-10: Unreliable (Jen), 40% achieved
   - Turn order randomized within each block (AI first on 5 random trials)
 
 **Implementation details**: The AI uses `int(round(accuracy_rate * num_trials))` per block. With 10 trials: 0.75→8 correct (80%), 0.35→4 correct (40%). CSV: `ai_correct` = per-trial correctness; `ai_reliability` = block target (0.75, 0.35, or 0.5).
@@ -252,7 +252,7 @@ Photodiode (0.03 × 0.01) at (-0.70, -0.48) touch / (-0.75, -0.48) keyboard. Off
 - **Before practice**: Welcome message—Amy's studio; Carly (her assistant) will walk through practice (same image as Amy)
 - **After practice**: Transition message explaining the real work begins with Amy organizing photographs
 - **Before each block**: "Ready to start sorting?" screen showing collections remaining count with BEGIN button
-- **Between blocks**: Partner switch messages when partner changes (Amy ↔ Ben), or brief break message
+- **Between blocks**: Partner switch messages when partner changes (Amy ↔ Jen), or brief break message
 - **Final screen**: Shows cumulative curator scoring, leaderboard (without scores), total task time, and thank you message
 
 ---
